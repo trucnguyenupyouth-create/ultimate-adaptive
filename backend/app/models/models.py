@@ -77,6 +77,13 @@ class KCPrerequisite(Base):
         primary_key=True
     )
 
+    label: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    weight: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
+    created_at: Mapped[datetime] = now_col()
+    created_by: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("cms_users.id"), nullable=True
+    )
+
     kc: Mapped["KnowledgeComponent"] = relationship(
         "KnowledgeComponent", foreign_keys=[kc_id], back_populates="prerequisites"
     )

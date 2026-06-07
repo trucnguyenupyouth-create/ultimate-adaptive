@@ -50,7 +50,7 @@ class KnowledgeGraph:
     def add_kc(self, kc: KCNode) -> None:
         self._G.add_node(kc.id, **kc.__dict__)
 
-    def add_prerequisite(self, kc_id: str, prereq_id: str) -> None:
+    def add_prerequisite(self, kc_id: str, prereq_id: str, label: str | None = None, weight: float = 1.0) -> None:
         """
         Add edge prereq_id → kc_id  (prereq must be mastered before kc).
         Raises ValueError if this would create a cycle.
@@ -64,7 +64,7 @@ class KnowledgeGraph:
             raise ValueError(
                 f"Adding prerequisite {prereq_id} → {kc_id} would create a cycle."
             )
-        self._G.add_edge(prereq_id, kc_id)
+        self._G.add_edge(prereq_id, kc_id, label=label, weight=weight)
 
     def remove_prerequisite(self, kc_id: str, prereq_id: str) -> None:
         if self._G.has_edge(prereq_id, kc_id):
@@ -73,14 +73,19 @@ class KnowledgeGraph:
     def load_from_dicts(
         self,
         kcs: list[dict],
-        prerequisites: list[dict]  # [{kc_id, prereq_id}, ...]
+        prerequisites: list[dict]  # [{kc_id, prereq_id, label, weight}, ...]
     ) -> None:
         """Bulk load from DB query results."""
         for kc in kcs:
             self._G.add_node(kc["id"], **kc)
         for edge in prerequisites:
             # Direct add (already validated in DB on insert)
-            self._G.add_edge(edge["prereq_id"], edge["kc_id"])
+            self._G.add_edge(
+                edge["prereq_id"],
+                edge["kc_id"],
+                label=edge.get("label"),
+                weight=edge.get("weight", 1.0)
+            )
 
     # ── Validation ────────────────────────────────────────────────────────
 
@@ -216,7 +221,12 @@ class KnowledgeGraph:
                 for n in self._G.nodes()
             ],
             "edges": [
-                {"source": u, "target": v}
+                {
+                    "source": u,
+                    "target": v,
+                    "label": self._G.edges[u, v].get("label"),
+                    "weight": self._G.edges[u, v].get("weight", 1.0)
+                }
                 for u, v in self._G.edges()
             ],
         }

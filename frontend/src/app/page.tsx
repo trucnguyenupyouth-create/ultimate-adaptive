@@ -32,15 +32,18 @@ import {
   Info,
 } from "lucide-react";
 
-import { graphApi, GraphHealth } from "@/lib/api";
+import { graphApi, GraphHealth, GraphEdge } from "@/lib/api";
 import { KCNodeData } from "@/components/KCNode";
 import KCNodeComponent from "@/components/KCNode";
 import CreateKCPanel from "@/components/CreateKCPanel";
 import HealthPanel from "@/components/HealthPanel";
 import KCDetailPanel from "@/components/KCDetailPanel";
+import CustomEdgeComponent from "@/components/CustomEdge";
+import EdgeDetailPanel from "@/components/EdgeDetailPanel";
 
-// Register custom node type
+// Register custom node and edge types
 const nodeTypes = { kcNode: KCNodeComponent };
+const edgeTypes = { prerequisite: CustomEdgeComponent };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -73,26 +76,40 @@ function toFlowNodes(
 }
 
 function toFlowEdges(
-  apiEdges: { source: string; target: string }[],
-  cycleEdges: Set<string>
+  apiEdges: GraphEdge[],
+  cycleEdges: Set<string>,
+  selectedEdgeId: string | null
 ): Edge[] {
   return apiEdges.map((e) => {
     const id = `${e.source}->${e.target}`;
     const isCycle = cycleEdges.has(id);
+    const isSelected = selectedEdgeId === id;
+    
+    const strokeColor = isCycle
+      ? "var(--accent-red)"
+      : isSelected
+      ? "var(--accent-blue)"
+      : "var(--edge-default)";
+      
     return {
       id,
       source: e.source,
       target: e.target,
-      type: "smoothstep",
+      type: "prerequisite",
       animated: false,
+      data: {
+        label: e.label,
+        weight: e.weight,
+        isCycle,
+      },
       style: {
-        stroke: isCycle ? "var(--accent-red)" : "var(--edge-default)",
-        strokeWidth: isCycle ? 3 : 2,
+        stroke: strokeColor,
+        strokeWidth: isCycle || isSelected ? 3 : 2,
         strokeDasharray: isCycle ? "6 3" : undefined,
       },
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        color: isCycle ? "var(--accent-red)" : "var(--edge-default)",
+        color: strokeColor,
         width: 14,
         height: 14,
       },
@@ -110,6 +127,7 @@ function GraphBuilderInner() {
 
   const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [cycleEdges] = useState<Set<string>>(new Set());
 
@@ -133,7 +151,7 @@ function GraphBuilderInner() {
       ]);
       setHealth(healthData);
       setNodes(toFlowNodes(graphData.nodes, healthData));
-      setEdges(toFlowEdges(graphData.edges, cycleEdges));
+      setEdges(toFlowEdges(graphData.edges, cycleEdges, selectedEdgeId));
     } catch {
       showToast("Không kết nối được với backend", "err");
     } finally {
@@ -143,6 +161,33 @@ function GraphBuilderInner() {
   }, []);
 
   useEffect(() => { loadGraph(); }, [loadGraph]);
+
+  // Update edge style highlights locally on selection change
+  useEffect(() => {
+    setEdges((eds) =>
+      eds.map((e) => {
+        const isSelected = e.id === selectedEdgeId;
+        const isCycle = cycleEdges.has(e.id);
+        const color = isCycle
+          ? "var(--accent-red)"
+          : isSelected
+          ? "var(--accent-blue)"
+          : "var(--edge-default)";
+        return {
+          ...e,
+          style: {
+            ...e.style,
+            stroke: color,
+            strokeWidth: isCycle || isSelected ? 3 : 2,
+          },
+          markerEnd: {
+            ...(e.markerEnd as any),
+            color,
+          },
+        };
+      })
+    );
+  }, [selectedEdgeId, cycleEdges]);
 
   // ── Node/Edge change handlers ─────────────────────────────────────────
   const onNodesChange = useCallback(
@@ -275,7 +320,14 @@ function GraphBuilderInner() {
   // ── Node click ────────────────────────────────────────────────────────
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNodeId(node.id);
+    setSelectedEdgeId(null);
     setShowCreatePanel(false); // Close create panel if open
+  }, []);
+
+  const onEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
+    setSelectedEdgeId(edge.id);
+    setSelectedNodeId(null);
+    setShowCreatePanel(false);
   }, []);
 
   return (
@@ -342,12 +394,14 @@ function GraphBuilderInner() {
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onEdgesDelete={onEdgeDelete}
           onNodeClick={onNodeClick}
-          onPaneClick={() => setSelectedNodeId(null)}
+          onEdgeClick={onEdgeClick}
+          onPaneClick={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }}
           fitView
           fitViewOptions={{ padding: 0.2 }}
           deleteKeyCode="Backspace"
@@ -422,6 +476,27 @@ function GraphBuilderInner() {
           onClose={() => setSelectedNodeId(null)}
           onKCUpdated={handleKCUpdated}
           onKCDeleted={handleKCDeleted}
+        />
+
+        {/* Edge Detail Panel (slides in from left) */}
+        <EdgeDetailPanel
+          edgeId={selectedEdgeId}
+          onClose={() => setSelectedEdgeId(null)}
+          onEdgeUpdated={loadGraph}
+          onEdgeDeleted={() => {
+            setSelectedEdgeId(null);
+            loadGraph();
+            showToast("✓ Đã xoá liên kết");
+          }}
+          onEdgeReversed={() => {
+            setSelectedEdgeId(null);
+            loadGraph();
+            showToast("✓ Đã đảo chiều liên kết");
+          }}
+          onJumpToKC={(kcId) => {
+            setSelectedNodeId(kcId);
+            setSelectedEdgeId(null);
+          }}
         />
 
         {/* Toast notification */}

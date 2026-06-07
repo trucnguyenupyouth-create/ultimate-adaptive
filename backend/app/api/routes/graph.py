@@ -39,6 +39,20 @@ class UpdateKCRequest(BaseModel):
 class AddPrerequisiteRequest(BaseModel):
     kc_id: str       # the KC that REQUIRES the prerequisite
     prereq_id: str   # the KC that must be mastered first
+    label: Optional[str] = None
+    weight: Optional[float] = 1.0
+
+
+class UpdateEdgeRequest(BaseModel):
+    kc_id: str
+    prereq_id: str
+    label: Optional[str] = None
+    weight: Optional[float] = 1.0
+
+
+class ReverseEdgeRequest(BaseModel):
+    kc_id: str
+    prereq_id: str
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -115,7 +129,13 @@ async def delete_kc(kc_id: str, db: AsyncSession = Depends(get_db)):
 
 @router.post("/prerequisite", summary="Add prerequisite edge (with cycle detection)")
 async def add_prerequisite(body: AddPrerequisiteRequest, db: AsyncSession = Depends(get_db)):
-    result = await graph_service.add_prerequisite(db, body.kc_id, body.prereq_id)
+    result = await graph_service.add_prerequisite(
+        db,
+        kc_id=body.kc_id,
+        prereq_id=body.prereq_id,
+        label=body.label,
+        weight=body.weight or 1.0
+    )
     if not result["ok"]:
         raise HTTPException(status_code=409, detail=result["error"])
     return {"ok": True, "message": f"{body.prereq_id} → {body.kc_id} added"}
@@ -128,4 +148,51 @@ async def remove_prerequisite(
     db: AsyncSession = Depends(get_db),
 ):
     await graph_service.remove_prerequisite(db, kc_id, prereq_id)
+    return {"ok": True}
+
+
+@router.get("/edge", summary="Get details and edit history of an edge")
+async def get_edge(
+    kc_id: str,
+    prereq_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    detail = await graph_service.get_edge_detail(db, kc_id=kc_id, prereq_id=prereq_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Edge not found")
+    return detail
+
+
+@router.patch("/edge", summary="Update edge annotation / label")
+async def update_edge(
+    body: UpdateEdgeRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        await graph_service.update_edge(
+            db,
+            kc_id=body.kc_id,
+            prereq_id=body.prereq_id,
+            label=body.label,
+            weight=body.weight or 1.0
+        )
+        return {"ok": True}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/edge/reverse", summary="Reverse edge direction with cycle detection")
+async def reverse_edge(
+    body: ReverseEdgeRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await graph_service.reverse_edge(
+        db,
+        kc_id=body.kc_id,
+        prereq_id=body.prereq_id
+    )
+    if not result["ok"]:
+        raise HTTPException(status_code=409, detail=result["error"])
     return {"ok": True}

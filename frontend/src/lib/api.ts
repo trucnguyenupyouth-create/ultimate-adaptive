@@ -34,6 +34,31 @@ export interface KCDetail extends KCNode {
 export interface GraphEdge {
   source: string; // prereq_id
   target: string; // kc_id
+  label?: string | null;
+  weight?: number;
+}
+
+export interface EdgeHistoryEntry {
+  id: string;
+  action: string;
+  payload: any;
+  created_at: string;
+  performed_by_name: string;
+}
+
+export interface EdgeDetail {
+  kc_id: string;
+  prereq_id: string;
+  label?: string | null;
+  weight: number;
+  created_at?: string | null;
+  created_by?: string | null;
+  created_by_name?: string | null;
+  source_code: string;
+  source_name: string;
+  target_code: string;
+  target_name: string;
+  history: EdgeHistoryEntry[];
 }
 
 export interface GraphData {
@@ -136,10 +161,10 @@ export const graphApi = {
       { method: "DELETE" }
     ),
 
-  addPrerequisite: (kc_id: string, prereq_id: string) =>
+  addPrerequisite: (kc_id: string, prereq_id: string, label?: string | null, weight?: number) =>
     request<{ ok: boolean; message?: string; detail?: string }>(
       "/graph/prerequisite",
-      { method: "POST", body: JSON.stringify({ kc_id, prereq_id }) }
+      { method: "POST", body: JSON.stringify({ kc_id, prereq_id, label, weight }) }
     ),
 
   removePrerequisite: (kc_id: string, prereq_id: string) =>
@@ -147,6 +172,21 @@ export const graphApi = {
       `/graph/prerequisite?kc_id=${kc_id}&prereq_id=${prereq_id}`,
       { method: "DELETE" }
     ),
+
+  getEdge: (kc_id: string, prereq_id: string) =>
+    request<EdgeDetail>(`/graph/edge?kc_id=${kc_id}&prereq_id=${prereq_id}`),
+
+  updateEdge: (kc_id: string, prereq_id: string, label: string | null, weight?: number) =>
+    request<{ ok: boolean }>("/graph/edge", {
+      method: "PATCH",
+      body: JSON.stringify({ kc_id, prereq_id, label, weight }),
+    }),
+
+  reverseEdge: (kc_id: string, prereq_id: string) =>
+    request<{ ok: boolean }>("/graph/edge/reverse", {
+      method: "POST",
+      body: JSON.stringify({ kc_id, prereq_id }),
+    }),
 };
 
 // ── Item Bank API ──────────────────────────────────────────────────────────

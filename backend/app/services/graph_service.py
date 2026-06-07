@@ -16,7 +16,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.engines.knowledge_graph import KnowledgeGraph, KCNode
-from app.models.models import KnowledgeComponent, KCPrerequisite, GraphEditHistory
+from app.models.models import KnowledgeComponent, KCPrerequisite, GraphEditHistory, CMSUser
 
 
 # Module-level singleton graph — loaded once on startup, invalidated on writes
@@ -56,6 +56,8 @@ async def _build_graph(db: AsyncSession) -> KnowledgeGraph:
         prerequisites=[{
             "kc_id": str(e.kc_id),
             "prereq_id": str(e.prereq_id),
+            "label": e.label,
+            "weight": e.weight,
         } for e in edges],
     )
     return kg
@@ -101,6 +103,8 @@ async def add_prerequisite(
     db: AsyncSession,
     kc_id: str,
     prereq_id: str,
+    label: str | None = None,
+    weight: float = 1.0,
     performed_by: str | None = None,
 ) -> dict:
     """
@@ -111,7 +115,7 @@ async def add_prerequisite(
     kg = await get_graph(db)
     try:
         # Validate on in-memory graph (cheap, no DB write yet)
-        kg.add_prerequisite(kc_id=kc_id, prereq_id=prereq_id)
+        kg.add_prerequisite(kc_id=kc_id, prereq_id=prereq_id, label=label, weight=weight)
     except ValueError as e:
         return {"ok": False, "error": str(e)}
 
@@ -119,18 +123,204 @@ async def add_prerequisite(
     edge = KCPrerequisite(
         kc_id=uuid.UUID(kc_id),
         prereq_id=uuid.UUID(prereq_id),
+        label=label,
+        weight=weight,
+        created_by=uuid.UUID(performed_by) if performed_by else None,
     )
     db.add(edge)
 
     db.add(GraphEditHistory(
         action="add_edge",
         entity_type="edge",
-        payload={"kc_id": kc_id, "prereq_id": prereq_id},
+        payload={"kc_id": kc_id, "prereq_id": prereq_id, "label": label, "weight": weight},
         performed_by=uuid.UUID(performed_by) if performed_by else None,
     ))
 
     await db.commit()
     # Note: do NOT invalidate cache — we already mutated the in-memory graph
+    return {"ok": True}
+
+
+async def get_edge_detail(db: AsyncSession, kc_id: str, prereq_id: str) -> dict | None:
+    # 1. Fetch the edge
+    kc_uuid = uuid.UUID(kc_id)
+    prereq_uuid = uuid.UUID(prereq_id)
+
+    edge_stmt = select(KCPrerequisite).where(
+        KCPrerequisite.kc_id == kc_uuid,
+        KCPrerequisite.prereq_id == prereq_uuid
+    )
+    edge_res = await db.execute(edge_stmt)
+    edge = edge_res.scalar_one_or_none()
+    if not edge:
+        return None
+
+    # Fetch source & target KCs details
+    source_kc = await db.get(KnowledgeComponent, prereq_uuid)
+    target_kc = await db.get(KnowledgeComponent, kc_uuid)
+
+    if not source_kc or not target_kc:
+        return None
+
+    # Fetch creator name if created_by is set
+    creator_name = None
+    if edge.created_by:
+        creator = await db.get(CMSUser, edge.created_by)
+        if creator:
+            creator_name = creator.name
+
+    # 2. Fetch last 5 history logs
+    hist_stmt = (
+        select(GraphEditHistory, CMSUser.name)
+        .outerjoin(CMSUser, GraphEditHistory.performed_by == CMSUser.id)
+        .where(
+            GraphEditHistory.entity_type == "edge",
+            (
+                (GraphEditHistory.payload["kc_id"].astext == kc_id) & (GraphEditHistory.payload["prereq_id"].astext == prereq_id)
+            ) | (
+                (GraphEditHistory.payload["kc_id"].astext == prereq_id) & (GraphEditHistory.payload["prereq_id"].astext == kc_id)
+            )
+        )
+        .order_by(GraphEditHistory.created_at.desc())
+        .limit(5)
+    )
+    hist_res = await db.execute(hist_stmt)
+    history = []
+    for row in hist_res.all():
+        h = row[0]
+        perf_name = row[1]
+        history.append({
+            "id": str(h.id),
+            "action": h.action,
+            "payload": h.payload,
+            "created_at": h.created_at.isoformat(),
+            "performed_by_name": perf_name or "System",
+        })
+
+    return {
+        "kc_id": kc_id,
+        "prereq_id": prereq_id,
+        "label": edge.label,
+        "weight": edge.weight,
+        "created_at": edge.created_at.isoformat() if edge.created_at else None,
+        "created_by": str(edge.created_by) if edge.created_by else None,
+        "created_by_name": creator_name,
+        "source_code": source_kc.code,
+        "source_name": source_kc.name,
+        "target_code": target_kc.code,
+        "target_name": target_kc.name,
+        "history": history
+    }
+
+
+async def update_edge(
+    db: AsyncSession,
+    kc_id: str,
+    prereq_id: str,
+    label: str | None = None,
+    weight: float = 1.0,
+    performed_by: str | None = None,
+) -> dict:
+    kc_uuid = uuid.UUID(kc_id)
+    prereq_uuid = uuid.UUID(prereq_id)
+    stmt = select(KCPrerequisite).where(
+        KCPrerequisite.kc_id == kc_uuid,
+        KCPrerequisite.prereq_id == prereq_uuid
+    )
+    res = await db.execute(stmt)
+    edge = res.scalar_one_or_none()
+    if not edge:
+        raise ValueError("Edge not found")
+
+    edge.label = label
+    edge.weight = weight
+
+    db.add(GraphEditHistory(
+        action="update_edge",
+        entity_type="edge",
+        payload={"kc_id": kc_id, "prereq_id": prereq_id, "label": label, "weight": weight},
+        performed_by=uuid.UUID(performed_by) if performed_by else None,
+    ))
+    await db.commit()
+    invalidate_graph_cache()
+    return {"ok": True}
+
+
+async def reverse_edge(
+    db: AsyncSession,
+    kc_id: str,
+    prereq_id: str,
+    performed_by: str | None = None,
+) -> dict:
+    """
+    Reverse the edge from prereq_id → kc_id (old_prereq → old_kc)
+    to kc_id → prereq_id (new_prereq → new_kc).
+    Validates DAG cycle safety before committing.
+    """
+    # Load current graph and test cycle safety
+    kg = await get_graph(db)
+
+    # In NetworkX graph representation, B is prereq_id, A is kc_id. Edge is B -> A.
+    # We want to remove B -> A and add A -> B.
+    # Test on a copy
+    test_G = kg._G.copy()
+    if test_G.has_edge(prereq_id, kc_id):
+        test_G.remove_edge(prereq_id, kc_id)
+    
+    test_G.add_edge(kc_id, prereq_id)  # new direction: old target (kc_id) -> old source (prereq_id)
+    
+    import networkx as nx
+    if not nx.is_directed_acyclic_graph(test_G):
+        return {
+            "ok": False,
+            "error": "Reversing prerequisite direction would create a cycle."
+        }
+
+    # If it is a DAG, we can proceed with DB updates
+    kc_uuid = uuid.UUID(kc_id)
+    prereq_uuid = uuid.UUID(prereq_id)
+
+    # 1. Fetch old edge metadata to preserve it (label, weight)
+    stmt = select(KCPrerequisite).where(
+        KCPrerequisite.kc_id == kc_uuid,
+        KCPrerequisite.prereq_id == prereq_uuid
+    )
+    res = await db.execute(stmt)
+    old_edge = res.scalar_one_or_none()
+    if not old_edge:
+        return {"ok": False, "error": "Edge not found"}
+
+    label = old_edge.label
+    weight = old_edge.weight
+
+    # 2. Delete old edge
+    await db.delete(old_edge)
+
+    # 3. Create new reversed edge
+    new_edge = KCPrerequisite(
+        kc_id=prereq_uuid,
+        prereq_id=kc_uuid,
+        label=label,
+        weight=weight,
+        created_by=uuid.UUID(performed_by) if performed_by else None,
+    )
+    db.add(new_edge)
+
+    # 4. Log history
+    db.add(GraphEditHistory(
+        action="reverse_edge",
+        entity_type="edge",
+        payload={
+            "old_kc_id": kc_id,
+            "old_prereq_id": prereq_id,
+            "new_kc_id": prereq_id,
+            "new_prereq_id": kc_id,
+        },
+        performed_by=uuid.UUID(performed_by) if performed_by else None,
+    ))
+
+    await db.commit()
+    invalidate_graph_cache()
     return {"ok": True}
 
 
