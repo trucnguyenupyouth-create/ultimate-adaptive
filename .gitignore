@@ -1,0 +1,19 @@
+# OS files
+.DS_Store
+
+# Python virtual environment & cache
+backend/.venv/
+backend/.pytest_cache/
+**/__pycache__/
+**/*.pyc
+backend/.env
+
+# Next.js / Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/.env
+
+# Local agent configuration user files (installer-managed)
+_bmad/config.user.toml
+_bmad/custom/config.user.toml
