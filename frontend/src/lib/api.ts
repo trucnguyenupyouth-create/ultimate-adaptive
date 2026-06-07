@@ -23,6 +23,12 @@ export interface KCNode {
   grade: number;
   subject: string;
   description?: string;
+  notes?: string;
+}
+
+export interface KCDetail extends KCNode {
+  prerequisites: { id: string; code: string; name: string }[];
+  successors: { id: string; code: string; name: string }[];
 }
 
 export interface GraphEdge {
@@ -62,6 +68,47 @@ export interface CreateKCPayload {
   description?: string;
 }
 
+export interface UpdateKCPayload {
+  name?: string;
+  grade?: number;
+  subject?: string;
+  description?: string;
+  notes?: string;
+}
+
+export type DifficultyLabel = "easy" | "medium" | "hard";
+
+export interface MCQAnswer {
+  label: string;
+  text: string;
+  is_correct: boolean;
+}
+
+export interface MCQContent {
+  question: string;
+  answers: MCQAnswer[];
+}
+
+export interface Item {
+  id: string;
+  kc_id: string;
+  version: number;
+  content: MCQContent;
+  difficulty_label: DifficultyLabel;
+  format_type: string;
+  irt_b: number;
+  irt_c?: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CreateItemPayload {
+  kc_id: string;
+  difficulty_label: DifficultyLabel;
+  format_type: "mcq";
+  content: MCQContent;
+}
+
 // ── Graph API ──────────────────────────────────────────────────────────────
 
 export const graphApi = {
@@ -72,6 +119,21 @@ export const graphApi = {
     request<{ id: string; code: string; name: string; grade: number }>(
       "/graph/kc",
       { method: "POST", body: JSON.stringify(payload) }
+    ),
+
+  getKCDetail: (id: string) =>
+    request<KCDetail>(`/graph/kc/${id}`),
+
+  updateKC: (id: string, payload: UpdateKCPayload) =>
+    request<KCNode>(`/graph/kc/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  deleteKC: (id: string) =>
+    request<{ ok: boolean; deleted_items: number; deleted_edges: number }>(
+      `/graph/kc/${id}`,
+      { method: "DELETE" }
     ),
 
   addPrerequisite: (kc_id: string, prereq_id: string) =>
@@ -85,4 +147,26 @@ export const graphApi = {
       `/graph/prerequisite?kc_id=${kc_id}&prereq_id=${prereq_id}`,
       { method: "DELETE" }
     ),
+};
+
+// ── Item Bank API ──────────────────────────────────────────────────────────
+
+export const itemApi = {
+  list: (kcId: string, activeOnly = true) =>
+    request<Item[]>(`/items/?kc_id=${kcId}&active_only=${activeOnly}`),
+
+  create: (payload: CreateItemPayload) =>
+    request<Item>("/items/", { method: "POST", body: JSON.stringify(payload) }),
+
+  edit: (itemId: string, payload: CreateItemPayload) =>
+    request<{ old_id: string; new_item: Item }>(`/items/${itemId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  toggle: (itemId: string, isActive: boolean) =>
+    request<{ ok: boolean; is_active: boolean }>(`/items/${itemId}/toggle`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_active: isActive }),
+    }),
 };

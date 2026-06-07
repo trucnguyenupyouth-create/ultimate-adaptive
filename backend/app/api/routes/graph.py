@@ -28,6 +28,14 @@ class CreateKCRequest(BaseModel):
     description: Optional[str] = None
 
 
+class UpdateKCRequest(BaseModel):
+    name: Optional[str] = None
+    grade: Optional[int] = None
+    subject: Optional[str] = None
+    description: Optional[str] = None
+    notes: Optional[str] = None
+
+
 class AddPrerequisiteRequest(BaseModel):
     kc_id: str       # the KC that REQUIRES the prerequisite
     prereq_id: str   # the KC that must be mastered first
@@ -57,6 +65,50 @@ async def create_kc(body: CreateKCRequest, db: AsyncSession = Depends(get_db)):
             description=body.description,
         )
         return {"id": str(kc.id), "code": kc.code, "name": kc.name, "grade": kc.grade}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/kc/{kc_id}", summary="Get full KC detail (info + prerequisites + successors)")
+async def get_kc_detail(kc_id: str, db: AsyncSession = Depends(get_db)):
+    detail = await graph_service.get_kc_detail(db, kc_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail=f"KC {kc_id} not found")
+    return detail
+
+
+@router.put("/kc/{kc_id}", summary="Update KC metadata (name, grade, subject, description, notes)")
+async def update_kc(kc_id: str, body: UpdateKCRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        kc = await graph_service.update_kc(
+            db,
+            kc_id=kc_id,
+            name=body.name,
+            grade=body.grade,
+            subject=body.subject,
+            description=body.description,
+            notes=body.notes,
+        )
+        return {
+            "id": str(kc.id),
+            "code": kc.code,
+            "name": kc.name,
+            "grade": kc.grade,
+            "subject": kc.subject,
+            "description": kc.description,
+            "notes": kc.notes,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/kc/{kc_id}", summary="Delete KC (deactivates items, removes edges)")
+async def delete_kc(kc_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        result = await graph_service.delete_kc(db, kc_id)
+        return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

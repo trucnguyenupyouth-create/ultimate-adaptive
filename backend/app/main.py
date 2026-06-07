@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import graph, assessment
+from app.api.routes import graph, assessment, items
 from app.core.config import settings
 
 
@@ -38,6 +38,7 @@ app.add_middleware(
 
 app.include_router(graph.router)
 app.include_router(assessment.router)
+app.include_router(items.router)
 
 
 @app.get("/health")

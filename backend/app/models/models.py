@@ -46,6 +46,7 @@ class KnowledgeComponent(Base):
     grade: Mapped[int] = mapped_column(Integer, nullable=False)
     subject: Mapped[str] = mapped_column(String(32), nullable=False, default="math")
     description: Mapped[Optional[str]] = mapped_column(Text)
+    notes: Mapped[Optional[str]] = mapped_column(Text)  # pedagogical notes (Tab "Ghi chú")
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
     created_at: Mapped[datetime] = now_col()
     updated_at: Mapped[datetime] = now_col()
@@ -238,3 +239,37 @@ class ItemVersion(Base):
         UUID(as_uuid=True), ForeignKey("cms_users.id")
     )
     deactivated_at: Mapped[datetime] = now_col()
+
+
+class ItemEditLog(Base):
+    """Audit log for every item create/deactivate/replace action."""
+    __tablename__ = "item_edit_log"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    item_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("items.id"), nullable=False
+    )
+    action: Mapped[str] = mapped_column(String(20), nullable=False)  # created | deactivated | replaced
+    old_item_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("items.id"), nullable=True
+    )
+    reason: Mapped[Optional[str]] = mapped_column(Text)
+    performed_by: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("cms_users.id")
+    )
+    created_at: Mapped[datetime] = now_col()
+
+
+class KCNotes(Base):
+    """Pedagogical notes for a KC — one row per KC, upserted on save."""
+    __tablename__ = "kc_notes"
+
+    kc_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("knowledge_components.id", ondelete="CASCADE"),
+        primary_key=True
+    )
+    notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    updated_by: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("cms_users.id")
+    )
+    updated_at: Mapped[datetime] = now_col()

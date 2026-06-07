@@ -45,76 +45,99 @@ function KCNodeComponent({ data, selected }: NodeProps) {
         background: bgColor,
         border: `2px solid ${borderColor}`,
         borderRadius: 10,
-        padding: "10px 14px",
         minWidth: 180,
         maxWidth: 220,
         boxShadow: selected
           ? `0 0 0 3px rgba(88,166,255,0.25)`
           : "0 2px 8px rgba(0,0,0,0.4)",
         transition: "all 0.15s ease",
-        cursor: "grab",
         animation: "fadeIn 0.2s ease",
+        userSelect: "none",
       }}
     >
-      {/* Top handle — incoming edges (this KC is a successor of something) */}
+      {/* Top handle — target (incoming edges) */}
       <Handle
         type="target"
         position={Position.Top}
-        style={{ background: borderColor, border: "none", width: 8, height: 8 }}
+        style={{
+          background: borderColor,
+          border: "2px solid #0d1117",
+          width: 12,
+          height: 12,
+          top: -6,
+        }}
+        isConnectable={true}
       />
 
-      {/* Header row */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-        <span
-          className="badge"
+      {/* Drag handle area — ONLY this region moves the node */}
+      <div
+        className="node-drag-handle"
+        style={{
+          cursor: "grab",
+          padding: "10px 14px 6px",
+        }}
+      >
+        {/* Header row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+          <span
+            className="badge"
+            style={{
+              background: `${borderColor}22`,
+              color: borderColor,
+              border: `1px solid ${borderColor}44`,
+              fontSize: 10,
+            }}
+          >
+            {colors.label}
+          </span>
+          {d.isRoot && (
+            <span className="badge badge-green" style={{ fontSize: 10 }}>
+              Root
+            </span>
+          )}
+          {d.isLeaf && (
+            <span className="badge badge-purple" style={{ fontSize: 10 }}>
+              Leaf
+            </span>
+          )}
+        </div>
+
+        {/* Code */}
+        <div
           style={{
-            background: `${borderColor}22`,
-            color: borderColor,
-            border: `1px solid ${borderColor}44`,
             fontSize: 10,
+            color: "var(--text-muted)",
+            fontFamily: "monospace",
+            marginBottom: 3,
           }}
         >
-          {colors.label}
-        </span>
-        {d.isRoot && (
-          <span className="badge badge-green" style={{ fontSize: 10 }}>
-            Root
-          </span>
-        )}
-        {d.isLeaf && (
-          <span className="badge badge-purple" style={{ fontSize: 10 }}>
-            Leaf
-          </span>
-        )}
+          {d.code}
+        </div>
+
+        {/* Name */}
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: "var(--text-primary)",
+            lineHeight: 1.3,
+            marginBottom: 8,
+          }}
+        >
+          {d.name}
+        </div>
       </div>
 
-      {/* Code */}
+      {/* Item count health bar — NOT a drag handle so clicks work */}
       <div
         style={{
-          fontSize: 10,
-          color: "var(--text-muted)",
-          fontFamily: "monospace",
-          marginBottom: 3,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "0 14px 10px",
+          cursor: "default",
         }}
       >
-        {d.code}
-      </div>
-
-      {/* Name */}
-      <div
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: "var(--text-primary)",
-          lineHeight: 1.3,
-          marginBottom: 8,
-        }}
-      >
-        {d.name}
-      </div>
-
-      {/* Item count health bar */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <BookOpen size={11} color="var(--text-muted)" />
         {d.itemCounts ? (
           <>
@@ -136,11 +159,18 @@ function KCNodeComponent({ data, selected }: NodeProps) {
         )}
       </div>
 
-      {/* Bottom handle — outgoing edges (this KC is a prerequisite of something) */}
+      {/* Bottom handle — source (outgoing edges) */}
       <Handle
         type="source"
         position={Position.Bottom}
-        style={{ background: borderColor, border: "none", width: 8, height: 8 }}
+        style={{
+          background: borderColor,
+          border: "2px solid #0d1117",
+          width: 12,
+          height: 12,
+          bottom: -6,
+        }}
+        isConnectable={true}
       />
     </div>
   );

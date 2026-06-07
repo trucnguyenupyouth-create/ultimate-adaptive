@@ -11,6 +11,7 @@ import {
   addEdge,
   applyNodeChanges,
   applyEdgeChanges,
+  ConnectionMode,
   type Node,
   type Edge,
   type Connection,
@@ -19,6 +20,7 @@ import {
   type OnConnect,
   MarkerType,
   Panel,
+  useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
@@ -26,7 +28,6 @@ import {
   Plus,
   RefreshCw,
   AlertTriangle,
-  Trash2,
   GitBranch,
   Info,
 } from "lucide-react";
@@ -36,6 +37,7 @@ import { KCNodeData } from "@/components/KCNode";
 import KCNodeComponent from "@/components/KCNode";
 import CreateKCPanel from "@/components/CreateKCPanel";
 import HealthPanel from "@/components/HealthPanel";
+import KCDetailPanel from "@/components/KCDetailPanel";
 
 // Register custom node type
 const nodeTypes = { kcNode: KCNodeComponent };
@@ -54,7 +56,8 @@ function toFlowNodes(
   return apiNodes.map((n, i) => ({
     id: n.id,
     type: "kcNode",
-    position: { x: 250 * (i % 5), y: 180 * Math.floor(i / 5) },
+    position: { x: 260 * (i % 5), y: 190 * Math.floor(i / 5) },
+    dragHandle: ".node-drag-handle",   // ← FIX: only drag via the header handle
     data: {
       id: n.id,
       code: n.code,
@@ -93,7 +96,6 @@ function toFlowEdges(
         width: 14,
         height: 14,
       },
-      label: undefined,
     };
   });
 }
@@ -107,12 +109,12 @@ function GraphBuilderInner() {
   const [healthLoading, setHealthLoading] = useState(false);
 
   const [showCreatePanel, setShowCreatePanel] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
-  const [pendingEdge, setPendingEdge] = useState<{ kc_id: string; prereq_id: string } | null>(null);
   const [cycleEdges] = useState<Set<string>>(new Set());
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const { fitView } = useReactFlow();
 
   // ── Toast helper ─────────────────────────────────────────────────────
   const showToast = (msg: string, type: "ok" | "err" = "ok") => {
@@ -156,39 +158,50 @@ function GraphBuilderInner() {
   const onConnect: OnConnect = useCallback(
     async (connection: Connection) => {
       if (!connection.source || !connection.target) return;
+      if (connection.source === connection.target) return;
 
-      // source = prereq_id (the node you drag FROM = the prerequisite)
-      // target = kc_id    (the node you drag TO   = requires the prereq)
+      // source = prereq_id (drag FROM = prerequisite)
+      // target = kc_id    (drag TO   = successor that requires it)
       const prereq_id = connection.source;
       const kc_id     = connection.target;
+
+      // Optimistically show edge while API call runs
+      const tempEdge: Edge = {
+        id: `${prereq_id}->${kc_id}`,
+        source: prereq_id,
+        target: kc_id,
+        type: "smoothstep",
+        animated: true,
+        style: { stroke: "var(--accent-blue)", strokeWidth: 2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "var(--accent-blue)", width: 14, height: 14 },
+      };
+      setEdges((eds) => addEdge(tempEdge, eds));
 
       try {
         const result = await graphApi.addPrerequisite(kc_id, prereq_id);
         if (!result.ok) {
+          // Remove temp edge and show error
+          setEdges((eds) => eds.filter(e => e.id !== tempEdge.id));
           showToast(`⚠ Tạo vòng lặp! ${result.detail ?? ""}`, "err");
-          // Animate the rejected edge red for 2s
           return;
         }
+        // Solidify the edge (stop animation, use default style)
         setEdges((eds) =>
-          addEdge(
-            {
-              ...connection,
-              type: "smoothstep",
-              markerEnd: {
-                type: MarkerType.ArrowClosed,
-                color: "var(--edge-default)",
-                width: 14,
-                height: 14,
-              },
-              style: { stroke: "var(--edge-default)", strokeWidth: 2 },
-            },
-            eds
+          eds.map(e =>
+            e.id === tempEdge.id
+              ? {
+                  ...e,
+                  animated: false,
+                  style: { stroke: "var(--edge-default)", strokeWidth: 2 },
+                  markerEnd: { type: MarkerType.ArrowClosed, color: "var(--edge-default)", width: 14, height: 14 },
+                }
+              : e
           )
         );
-        showToast(`✓ ${prereq_id.slice(0, 6)}... → ${kc_id.slice(0, 6)}... đã thêm`);
-        // Refresh health
+        showToast(`✓ Đã thêm prerequisite`);
         graphApi.getHealth().then(setHealth);
       } catch {
+        setEdges((eds) => eds.filter(e => e.id !== tempEdge.id));
         showToast("Lỗi thêm prerequisite", "err");
       }
     },
@@ -215,6 +228,7 @@ function GraphBuilderInner() {
         id: kc.id,
         type: "kcNode",
         position: { x: 100 + Math.random() * 400, y: 100 + Math.random() * 300 },
+        dragHandle: ".node-drag-handle",
         data: {
           id: kc.id,
           code: kc.code,
@@ -233,6 +247,36 @@ function GraphBuilderInner() {
     },
     []
   );
+
+  // ── KC updated callback (from panel) ─────────────────────────────────
+  const handleKCUpdated = useCallback(
+    (id: string, data: Partial<KCNodeData>) => {
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === id ? { ...n, data: { ...n.data, ...data } } : n
+        )
+      );
+    },
+    []
+  );
+
+  // ── KC deleted callback (from panel) ─────────────────────────────────
+  const handleKCDeleted = useCallback(
+    (id: string) => {
+      setNodes((nds) => nds.filter((n) => n.id !== id));
+      setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
+      setSelectedNodeId(null);
+      showToast("✓ Đã xoá KC");
+      graphApi.getHealth().then(setHealth);
+    },
+    []
+  );
+
+  // ── Node click ────────────────────────────────────────────────────────
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNodeId(node.id);
+    setShowCreatePanel(false); // Close create panel if open
+  }, []);
 
   return (
     <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
@@ -285,7 +329,7 @@ function GraphBuilderInner() {
         </button>
         <button
           className="btn btn-primary"
-          onClick={() => setShowCreatePanel(!showCreatePanel)}
+          onClick={() => { setShowCreatePanel(!showCreatePanel); setSelectedNodeId(null); }}
         >
           <Plus size={14} />
           Thêm KC
@@ -302,19 +346,20 @@ function GraphBuilderInner() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onEdgesDelete={onEdgeDelete}
-          onNodeClick={(_, node) => setSelectedNode(node)}
-          onPaneClick={() => setSelectedNode(null)}
+          onNodeClick={onNodeClick}
+          onPaneClick={() => setSelectedNodeId(null)}
           fitView
           fitViewOptions={{ padding: 0.2 }}
           deleteKeyCode="Backspace"
           minZoom={0.2}
           maxZoom={2}
+          connectionMode={ConnectionMode.Loose}          // ← FIX: easier connecting
+          connectionLineStyle={{ stroke: "var(--accent-blue)", strokeWidth: 2, strokeDasharray: "5 5" }}
           defaultEdgeOptions={{
             type: "smoothstep",
             markerEnd: { type: MarkerType.ArrowClosed, color: "var(--edge-default)" },
             style: { stroke: "var(--edge-default)", strokeWidth: 2 },
           }}
-          connectionLineStyle={{ stroke: "var(--accent-blue)", strokeWidth: 2, strokeDasharray: "5 5" }}
         >
           <Background
             variant={BackgroundVariant.Dots}
@@ -338,7 +383,7 @@ function GraphBuilderInner() {
             <HealthPanel health={health} loading={healthLoading} />
           </Panel>
 
-          {/* Legend — bottom-left above controls */}
+          {/* Legend — top-center */}
           <Panel position="top-center">
             <div className="glass" style={{ padding: "6px 14px", borderRadius: 20, display: "flex", gap: 16 }}>
               {[
@@ -356,7 +401,7 @@ function GraphBuilderInner() {
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <Info size={11} color="var(--text-muted)" />
                 <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                  Kéo từ ● dưới node → ● trên node khác để thêm prerequisite
+                  Kéo ● dưới node → ● trên node khác để thêm prerequisite
                 </span>
               </div>
             </div>
@@ -370,6 +415,14 @@ function GraphBuilderInner() {
             onClose={() => setShowCreatePanel(false)}
           />
         )}
+
+        {/* KC Detail Panel */}
+        <KCDetailPanel
+          nodeId={selectedNodeId}
+          onClose={() => setSelectedNodeId(null)}
+          onKCUpdated={handleKCUpdated}
+          onKCDeleted={handleKCDeleted}
+        />
 
         {/* Toast notification */}
         {toast && (
