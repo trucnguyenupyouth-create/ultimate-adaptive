@@ -46,6 +46,7 @@ class KnowledgeComponent(Base):
     grade: Mapped[int] = mapped_column(Integer, nullable=False)
     subject: Mapped[str] = mapped_column(String(32), nullable=False, default="math")
     description: Mapped[Optional[str]] = mapped_column(Text)
+    chapter_info: Mapped[Optional[str]] = mapped_column(Text)
     notes: Mapped[Optional[str]] = mapped_column(Text)  # pedagogical notes (Tab "Ghi chú")
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
     created_at: Mapped[datetime] = now_col()

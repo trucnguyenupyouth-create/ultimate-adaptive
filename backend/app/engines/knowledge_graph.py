@@ -27,6 +27,7 @@ class KCNode:
     name: str
     grade: int
     subject: str = "math"
+    chapter_info: Optional[str] = None
 
 
 @dataclass

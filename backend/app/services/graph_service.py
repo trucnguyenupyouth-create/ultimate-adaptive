@@ -52,6 +52,7 @@ async def _build_graph(db: AsyncSession) -> KnowledgeGraph:
             "name": kc.name,
             "grade": kc.grade,
             "subject": kc.subject,
+            "chapter_info": kc.chapter_info,
         } for kc in kcs],
         prerequisites=[{
             "kc_id": str(e.kc_id),
@@ -72,14 +73,29 @@ async def create_kc(
     grade: int,
     subject: str = "math",
     description: str | None = None,
+    chapter_info: str | None = None,
     performed_by: str | None = None,
 ) -> KnowledgeComponent:
+    # Resolve code collision automatically
+    base_code = code.strip().upper()
+    resolved_code = base_code
+    
+    counter = 1
+    while True:
+        stmt = select(KnowledgeComponent).where(KnowledgeComponent.code == resolved_code)
+        res = await db.execute(stmt)
+        if res.scalar_one_or_none() is None:
+            break
+        resolved_code = f"{base_code}-{counter}"
+        counter += 1
+
     kc = KnowledgeComponent(
-        code=code,
+        code=resolved_code,
         name=name,
         grade=grade,
         subject=subject,
         description=description,
+        chapter_info=chapter_info,
     )
     db.add(kc)
     await db.flush()  # get kc.id before logging
@@ -89,7 +105,7 @@ async def create_kc(
         action="add_kc",
         entity_id=kc.id,
         entity_type="kc",
-        payload={"code": code, "name": name, "grade": grade},
+        payload={"code": resolved_code, "name": name, "grade": grade, "chapter_info": chapter_info},
         performed_by=uuid.UUID(performed_by) if performed_by else None,
     ))
 
@@ -429,6 +445,7 @@ async def get_kc_detail(db: AsyncSession, kc_id: str) -> dict:
         "grade": kc.grade,
         "subject": kc.subject,
         "description": kc.description,
+        "chapter_info": kc.chapter_info,
         "notes": kc.notes,
         "prerequisites": prereq_kcs,
         "successors": successor_kcs,
@@ -442,6 +459,7 @@ async def update_kc(
     grade: int | None = None,
     subject: str | None = None,
     description: str | None = None,
+    chapter_info: str | None = None,
     notes: str | None = None,
 ) -> KnowledgeComponent:
     """Partial update a KC. Only provided fields are updated."""
@@ -457,6 +475,8 @@ async def update_kc(
         kc.subject = subject
     if description is not None:
         kc.description = description
+    if chapter_info is not None:
+        kc.chapter_info = chapter_info
     if notes is not None:
         kc.notes = notes
 
@@ -464,7 +484,7 @@ async def update_kc(
         action="update_kc",
         entity_id=kc.id,
         entity_type="kc",
-        payload={"name": name, "grade": grade, "subject": subject},
+        payload={"name": name, "grade": grade, "subject": subject, "chapter_info": chapter_info},
     ))
     await db.commit()
     await db.refresh(kc)

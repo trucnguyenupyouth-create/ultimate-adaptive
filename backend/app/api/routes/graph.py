@@ -26,6 +26,7 @@ class CreateKCRequest(BaseModel):
     grade: int
     subject: str = "math"
     description: Optional[str] = None
+    chapter_info: str
 
 
 class UpdateKCRequest(BaseModel):
@@ -34,6 +35,7 @@ class UpdateKCRequest(BaseModel):
     subject: Optional[str] = None
     description: Optional[str] = None
     notes: Optional[str] = None
+    chapter_info: Optional[str] = None
 
 
 class AddPrerequisiteRequest(BaseModel):
@@ -77,8 +79,9 @@ async def create_kc(body: CreateKCRequest, db: AsyncSession = Depends(get_db)):
             grade=body.grade,
             subject=body.subject,
             description=body.description,
+            chapter_info=body.chapter_info,
         )
-        return {"id": str(kc.id), "code": kc.code, "name": kc.name, "grade": kc.grade}
+        return {"id": str(kc.id), "code": kc.code, "name": kc.name, "grade": kc.grade, "chapter_info": kc.chapter_info}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -101,6 +104,7 @@ async def update_kc(kc_id: str, body: UpdateKCRequest, db: AsyncSession = Depend
             grade=body.grade,
             subject=body.subject,
             description=body.description,
+            chapter_info=body.chapter_info,
             notes=body.notes,
         )
         return {
@@ -110,6 +114,7 @@ async def update_kc(kc_id: str, body: UpdateKCRequest, db: AsyncSession = Depend
             "grade": kc.grade,
             "subject": kc.subject,
             "description": kc.description,
+            "chapter_info": kc.chapter_info,
             "notes": kc.notes,
         }
     except ValueError as e:
