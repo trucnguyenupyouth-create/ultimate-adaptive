@@ -47,6 +47,25 @@ const edgeTypes = { prerequisite: CustomEdgeComponent };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
+const getStoredPositions = (): Record<string, { x: number; y: number }> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored = localStorage.getItem("kb_node_positions");
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveStoredPositions = (positions: Record<string, { x: number; y: number }>) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("kb_node_positions", JSON.stringify(positions));
+  } catch (e) {
+    console.error("Error saving positions to localStorage", e);
+  }
+};
+
 function toFlowNodes(
   apiNodes: { id: string; code: string; name: string; grade: number; subject: string }[],
   health: GraphHealth | null
@@ -56,23 +75,43 @@ function toFlowNodes(
   const lowSet  = new Set(health?.low_item_kcs ?? []);
   const itemCounts = health?.item_counts ?? {};
 
-  return apiNodes.map((n, i) => ({
-    id: n.id,
-    type: "kcNode",
-    position: { x: 260 * (i % 5), y: 190 * Math.floor(i / 5) },
-    dragHandle: ".node-drag-handle",   // ← FIX: only drag via the header handle
-    data: {
+  const storedPositions = getStoredPositions();
+  const updatedPositions = { ...storedPositions };
+  let positionsChanged = false;
+
+  const flowNodes = apiNodes.map((n, i) => {
+    let position = storedPositions[n.id];
+    
+    if (!position) {
+      position = { x: 260 * (i % 5), y: 190 * Math.floor(i / 5) };
+      updatedPositions[n.id] = position;
+      positionsChanged = true;
+    }
+
+    return {
       id: n.id,
-      code: n.code,
-      name: n.name,
-      grade: n.grade,
-      subject: n.subject,
-      isRoot: rootSet.has(n.id),
-      isLeaf: leafSet.has(n.id),
-      isLowItems: lowSet.has(n.id),
-      itemCounts: itemCounts[n.id] ?? null,
-    } satisfies KCNodeData,
-  }));
+      type: "kcNode",
+      position,
+      dragHandle: ".node-drag-handle",   // ← FIX: only drag via the header handle
+      data: {
+        id: n.id,
+        code: n.code,
+        name: n.name,
+        grade: n.grade,
+        subject: n.subject,
+        isRoot: rootSet.has(n.id),
+        isLeaf: leafSet.has(n.id),
+        isLowItems: lowSet.has(n.id),
+        itemCounts: itemCounts[n.id] ?? null,
+      } satisfies KCNodeData,
+    };
+  });
+
+  if (positionsChanged) {
+    saveStoredPositions(updatedPositions);
+  }
+
+  return flowNodes;
 }
 
 function toFlowEdges(
@@ -191,7 +230,27 @@ function GraphBuilderInner() {
 
   // ── Node/Edge change handlers ─────────────────────────────────────────
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    (changes: NodeChange[]) => {
+      setNodes((nds) => {
+        const nextNodes = applyNodeChanges(changes, nds);
+        
+        // Save node positions on drag
+        const positions = getStoredPositions();
+        let changed = false;
+        nextNodes.forEach((node) => {
+          const stored = positions[node.id];
+          if (!stored || stored.x !== node.position.x || stored.y !== node.position.y) {
+            positions[node.id] = node.position;
+            changed = true;
+          }
+        });
+        if (changed) {
+          saveStoredPositions(positions);
+        }
+        
+        return nextNodes;
+      });
+    },
     []
   );
   const onEdgesChange = useCallback(
@@ -286,6 +345,12 @@ function GraphBuilderInner() {
           itemCounts: undefined,
         } satisfies KCNodeData,
       };
+      
+      // Save the new node's position to localStorage
+      const positions = getStoredPositions();
+      positions[kc.id] = newNode.position;
+      saveStoredPositions(positions);
+
       setNodes((nds) => [...nds, newNode]);
       showToast(`✓ Đã tạo KC "${kc.name}"`);
       graphApi.getHealth().then(setHealth);
@@ -308,6 +373,13 @@ function GraphBuilderInner() {
   // ── KC deleted callback (from panel) ─────────────────────────────────
   const handleKCDeleted = useCallback(
     (id: string) => {
+      // Clean up position from localStorage
+      const positions = getStoredPositions();
+      if (positions[id]) {
+        delete positions[id];
+        saveStoredPositions(positions);
+      }
+
       setNodes((nds) => nds.filter((n) => n.id !== id));
       setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
       setSelectedNodeId(null);
