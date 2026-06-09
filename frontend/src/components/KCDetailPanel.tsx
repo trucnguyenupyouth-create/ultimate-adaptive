@@ -181,7 +181,7 @@ export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDelete
                   detail={detail}
                   onUpdated={(updated) => {
                     setDetail(prev => prev ? { ...prev, ...updated } : prev);
-                    onKCUpdated(detail.id, { name: updated.name, grade: updated.grade });
+                    onKCUpdated(detail.id, { name: updated.name, grade: updated.grade, chapter_info: updated.chapter_info });
                   }}
                   onDeleted={() => onKCDeleted(detail.id)}
                   onPrereqRemoved={refreshDetail}

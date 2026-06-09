@@ -24,16 +24,21 @@ export default function DetailsTab({ detail, onUpdated, onDeleted, onPrereqRemov
   const [grade, setGrade] = useState(detail.grade);
   const [subject, setSubject] = useState(detail.subject);
   const [description, setDescription] = useState(detail.description ?? "");
+  const [chapterInfo, setChapterInfo] = useState(detail.chapter_info ?? "");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
   const handleSave = async () => {
+    if (!chapterInfo.trim()) {
+      setSaveMsg("⚠ Thiếu 'Bài mấy kì mấy'");
+      return;
+    }
     setSaving(true);
     setSaveMsg(null);
     try {
-      const updated = await graphApi.updateKC(detail.id, { name, grade, subject, description });
+      const updated = await graphApi.updateKC(detail.id, { name, grade, subject, description, chapter_info: chapterInfo });
       onUpdated(updated);
       setSaveMsg("✓ Đã lưu");
       setTimeout(() => setSaveMsg(null), 2500);
@@ -80,6 +85,17 @@ export default function DetailsTab({ detail, onUpdated, onDeleted, onPrereqRemov
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="Tên Knowledge Component"
+          />
+        </div>
+
+        {/* Chapter Info (Bài mấy kì mấy) */}
+        <div style={{ marginBottom: 12 }}>
+          <label>Bài mấy kì mấy *</label>
+          <input
+            className="input"
+            value={chapterInfo}
+            onChange={e => setChapterInfo(e.target.value)}
+            placeholder="VD: Bài 3 Kì 1"
           />
         </div>
 

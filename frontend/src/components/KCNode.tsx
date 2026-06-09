@@ -10,6 +10,7 @@ export interface KCNodeData {
   name: string;
   grade: number;
   subject: string;
+  chapter_info?: string;
   itemCounts?: { total: number; easy: number; medium: number; hard: number };
   isRoot?: boolean;
   isLeaf?: boolean;
@@ -109,9 +110,17 @@ function KCNodeComponent({ data, selected }: NodeProps) {
             color: "var(--text-muted)",
             fontFamily: "monospace",
             marginBottom: 3,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          {d.code}
+          <span>{d.code}</span>
+          {d.chapter_info && (
+            <span style={{ color: "var(--accent-blue)", fontWeight: 600, fontSize: 9 }}>
+              {d.chapter_info}
+            </span>
+          )}
         </div>
 
         {/* Name */}

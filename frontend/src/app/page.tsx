@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -30,6 +30,9 @@ import {
   AlertTriangle,
   GitBranch,
   Info,
+  List,
+  Search,
+  X,
 } from "lucide-react";
 
 import { graphApi, GraphHealth, GraphEdge } from "@/lib/api";
@@ -67,7 +70,7 @@ const saveStoredPositions = (positions: Record<string, { x: number; y: number }>
 };
 
 function toFlowNodes(
-  apiNodes: { id: string; code: string; name: string; grade: number; subject: string }[],
+  apiNodes: { id: string; code: string; name: string; grade: number; subject: string; chapter_info?: string }[],
   health: GraphHealth | null
 ): Node[] {
   const rootSet = new Set(health?.root_kcs ?? []);
@@ -99,6 +102,7 @@ function toFlowNodes(
         name: n.name,
         grade: n.grade,
         subject: n.subject,
+        chapter_info: n.chapter_info,
         isRoot: rootSet.has(n.id),
         isLeaf: leafSet.has(n.id),
         isLowItems: lowSet.has(n.id),
@@ -170,8 +174,51 @@ function GraphBuilderInner() {
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [cycleEdges] = useState<Set<string>>(new Set());
 
+  // Search and List States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [navSearch, setNavSearch] = useState("");
+  const [showNavResults, setShowNavResults] = useState(false);
+  const [showListPanel, setShowListPanel] = useState(false);
+
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const { fitView } = useReactFlow();
+  const { fitView, setCenter, getViewport } = useReactFlow();
+
+  const focusNode = useCallback((node: Node) => {
+    setCenter(node.position.x + 90, node.position.y + 50, { zoom: 1.2, duration: 800 });
+    setSelectedNodeId(node.id);
+    setSelectedEdgeId(null);
+  }, [setCenter]);
+
+  const missingKCs = useMemo(() => {
+    return nodes
+      .map(n => n.data as unknown as KCNodeData)
+      .filter(d => !d.chapter_info || !d.chapter_info.trim());
+  }, [nodes]);
+
+  const filteredNodes = useMemo(() => {
+    if (!searchQuery.trim()) return nodes;
+    const query = searchQuery.toLowerCase();
+    return nodes.filter((n) => {
+      const d = n.data as unknown as KCNodeData;
+      return (
+        d.name.toLowerCase().includes(query) ||
+        d.code.toLowerCase().includes(query) ||
+        (d.chapter_info && d.chapter_info.toLowerCase().includes(query))
+      );
+    });
+  }, [nodes, searchQuery]);
+
+  const navFilteredNodes = useMemo(() => {
+    if (!navSearch.trim()) return [];
+    const query = navSearch.toLowerCase();
+    return nodes.filter((n) => {
+      const d = n.data as unknown as KCNodeData;
+      return (
+        d.name.toLowerCase().includes(query) ||
+        d.code.toLowerCase().includes(query)
+      );
+    });
+  }, [nodes, navSearch]);
 
   // ── Toast helper ─────────────────────────────────────────────────────
   const showToast = (msg: string, type: "ok" | "err" = "ok") => {
@@ -327,11 +374,21 @@ function GraphBuilderInner() {
 
   // ── KC created callback ───────────────────────────────────────────────
   const handleKCCreated = useCallback(
-    (kc: { id: string; code: string; name: string; grade: number }) => {
+    (kc: { id: string; code: string; name: string; grade: number; chapter_info?: string }) => {
+      let position = { x: 100 + Math.random() * 400, y: 100 + Math.random() * 300 };
+      try {
+        const { x, y, zoom } = getViewport();
+        const centerX = -x / zoom + (window.innerWidth / 2) / zoom;
+        const centerY = -y / zoom + (window.innerHeight / 2) / zoom;
+        position = { x: centerX - 90, y: centerY - 50 };
+      } catch (e) {
+        console.error("Failed to get viewport center", e);
+      }
+
       const newNode: Node = {
         id: kc.id,
         type: "kcNode",
-        position: { x: 100 + Math.random() * 400, y: 100 + Math.random() * 300 },
+        position,
         dragHandle: ".node-drag-handle",
         data: {
           id: kc.id,
@@ -339,6 +396,7 @@ function GraphBuilderInner() {
           name: kc.name,
           grade: kc.grade,
           subject: "math",
+          chapter_info: kc.chapter_info,
           isRoot: true,
           isLeaf: true,
           isLowItems: true,
@@ -355,7 +413,7 @@ function GraphBuilderInner() {
       showToast(`✓ Đã tạo KC "${kc.name}"`);
       graphApi.getHealth().then(setHealth);
     },
-    []
+    [getViewport]
   );
 
   // ── KC updated callback (from panel) ─────────────────────────────────
@@ -444,9 +502,88 @@ function GraphBuilderInner() {
           </div>
         </div>
 
+        {/* Search Box in Navbar */}
+        <div style={{ position: "relative", width: 220, marginLeft: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Search size={14} color="var(--text-muted)" style={{ position: "absolute", left: 10 }} />
+            <input
+              className="input"
+              placeholder="Tìm nhanh KC..."
+              value={navSearch}
+              onChange={(e) => {
+                setNavSearch(e.target.value);
+                setShowNavResults(true);
+              }}
+              onFocus={() => setShowNavResults(true)}
+              style={{ height: 32, fontSize: 12, paddingLeft: 30 }}
+            />
+          </div>
+          {showNavResults && navSearch.trim() && (
+            <>
+              <div 
+                onClick={() => setShowNavResults(false)}
+                style={{ position: "fixed", inset: 0, zIndex: 998 }}
+              />
+              <div
+                className="glass"
+                style={{
+                  position: "absolute",
+                  top: 38,
+                  left: 0,
+                  width: 280,
+                  maxHeight: 300,
+                  overflowY: "auto",
+                  borderRadius: 8,
+                  padding: 8,
+                  zIndex: 999,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                }}
+              >
+                {navFilteredNodes.length === 0 ? (
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "6px 10px", fontStyle: "italic" }}>
+                    Không tìm thấy KC nào
+                  </div>
+                ) : (
+                  navFilteredNodes.map((n) => {
+                    const d = n.data as unknown as KCNodeData;
+                    return (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          focusNode(n);
+                          setShowNavResults(false);
+                          setNavSearch("");
+                        }}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: 6,
+                          cursor: "pointer",
+                          fontSize: 12,
+                          transition: "background 0.15s",
+                        }}
+                        className="list-item-hover"
+                      >
+                        <div style={{ fontSize: 9, fontFamily: "monospace", color: "var(--text-muted)" }}>{d.code}</div>
+                        <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{d.name}</div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
         <div style={{ flex: 1 }} />
 
         {/* Actions */}
+        <button className="btn btn-secondary" onClick={() => setShowListPanel(!showListPanel)} style={{ gap: 6 }}>
+          <List size={13} />
+          Danh sách KC
+        </button>
         <button className="btn btn-secondary" onClick={loadGraph} style={{ gap: 6 }}>
           <RefreshCw size={13} />
           Refresh
@@ -533,6 +670,142 @@ function GraphBuilderInner() {
             </div>
           </Panel>
         </ReactFlow>
+
+        {/* Missing chapter_info notification banner */}
+        {missingKCs.length > 0 && (
+          <div
+            className="glass fade-in"
+            style={{
+              position: "absolute",
+              top: 16,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "80%",
+              maxWidth: 800,
+              padding: "10px 16px",
+              borderRadius: 8,
+              border: "1px solid rgba(248,81,73,0.3)",
+              background: "rgba(248,81,73,0.1)",
+              color: "var(--text-primary)",
+              fontSize: 12,
+              zIndex: 40,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--accent-red)" }}>
+              <AlertTriangle size={14} />
+              <span>Cảnh báo: Có {missingKCs.length} nodes thiếu thông tin "Bài mấy kì mấy"!</span>
+            </div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ color: "var(--text-secondary)" }}>Nhấp vào node để bổ sung:</span>
+              {missingKCs.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => {
+                    const flowNode = nodes.find(fn => fn.id === n.id);
+                    if (flowNode) {
+                      focusNode(flowNode);
+                    }
+                  }}
+                  className="btn btn-secondary"
+                  style={{
+                    padding: "2px 6px",
+                    fontSize: 10,
+                    fontFamily: "monospace",
+                    borderColor: "rgba(248,81,73,0.4)",
+                    background: "rgba(248,81,73,0.05)",
+                    color: "var(--accent-red)",
+                  }}
+                >
+                  {n.code}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Left Side: KC List Panel */}
+        {showListPanel && (
+          <div
+            className="glass fade-in"
+            style={{
+              position: "absolute",
+              top: 16,
+              left: 16,
+              bottom: 16,
+              width: 320,
+              borderRadius: 12,
+              padding: 20,
+              zIndex: 100,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexShrink: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+                Danh sách KCs
+              </div>
+              <button className="btn btn-ghost" onClick={() => setShowListPanel(false)} style={{ padding: "4px 6px" }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: 16, flexShrink: 0 }}>
+              <input
+                className="input"
+                placeholder="Tìm theo tên, mã hoặc bài..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ fontSize: 13 }}
+              />
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+              {filteredNodes.length === 0 ? (
+                <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic", textAlign: "center", marginTop: 20 }}>
+                  Không tìm thấy KC nào
+                </div>
+              ) : (
+                filteredNodes.map((n) => {
+                  const d = n.data as unknown as KCNodeData;
+                  return (
+                    <div
+                      key={n.id}
+                      onClick={() => focusNode(n)}
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        background: selectedNodeId === n.id ? "rgba(56,139,253,0.15)" : "var(--bg-elevated)",
+                        border: `1px solid ${selectedNodeId === n.id ? "var(--accent-blue)" : "var(--border)"}`,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                      className="list-item-hover"
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                        <span style={{ fontSize: 9, fontFamily: "monospace", color: "var(--text-muted)" }}>
+                          {d.code}
+                        </span>
+                        <span style={{ fontSize: 9, color: "var(--accent-blue)", fontWeight: 600 }}>
+                          {d.chapter_info || "Thiếu bài học"}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3 }}>
+                        {d.name}
+                      </div>
+                      <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
+                        Lớp {d.grade} · {d.subject === "math" ? "Toán" : d.subject}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Create KC panel */}
         {showCreatePanel && (

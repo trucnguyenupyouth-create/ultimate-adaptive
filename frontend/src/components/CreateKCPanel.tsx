@@ -19,6 +19,7 @@ export default function CreateKCPanel({ onCreated, onClose }: Props) {
     grade: 9,
     subject: "math",
     description: "",
+    chapter_info: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,6 +127,18 @@ export default function CreateKCPanel({ onCreated, onClose }: Props) {
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             onBlur={autoCode}
+            required
+          />
+        </div>
+
+        {/* Chapter Info (Bài mấy kì mấy) */}
+        <div style={{ marginBottom: 12 }}>
+          <label>Bài mấy kì mấy *</label>
+          <input
+            className="input"
+            placeholder="VD: Bài 3 Kì 1"
+            value={form.chapter_info}
+            onChange={(e) => setForm((f) => ({ ...f, chapter_info: e.target.value }))}
             required
           />
         </div>

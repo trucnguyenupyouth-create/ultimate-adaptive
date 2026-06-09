@@ -23,6 +23,7 @@ export interface KCNode {
   grade: number;
   subject: string;
   description?: string;
+  chapter_info?: string;
   notes?: string;
 }
 
@@ -91,6 +92,7 @@ export interface CreateKCPayload {
   grade: number;
   subject?: string;
   description?: string;
+  chapter_info: string;
 }
 
 export interface UpdateKCPayload {
@@ -98,6 +100,7 @@ export interface UpdateKCPayload {
   grade?: number;
   subject?: string;
   description?: string;
+  chapter_info?: string;
   notes?: string;
 }
 
