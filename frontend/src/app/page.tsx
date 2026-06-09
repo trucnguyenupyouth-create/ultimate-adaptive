@@ -179,6 +179,7 @@ function GraphBuilderInner() {
   const [navSearch, setNavSearch] = useState("");
   const [showNavResults, setShowNavResults] = useState(false);
   const [showListPanel, setShowListPanel] = useState(false);
+  const [nodeToDelete, setNodeToDelete] = useState<Node | null>(null);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { fitView, setCenter, getViewport } = useReactFlow();
@@ -447,6 +448,48 @@ function GraphBuilderInner() {
     []
   );
 
+  const executeNodeDelete = useCallback(async () => {
+    if (!nodeToDelete) return;
+    try {
+      await graphApi.deleteKC(nodeToDelete.id);
+      handleKCDeleted(nodeToDelete.id);
+      showToast("✓ Đã xoá KC");
+    } catch {
+      showToast("Lỗi xoá KC", "err");
+    } finally {
+      setNodeToDelete(null);
+    }
+  }, [nodeToDelete, handleKCDeleted]);
+
+  const onBeforeDelete = useCallback(
+    async ({ nodes: nodesToDelete }: { nodes: Node[]; edges: Edge[] }) => {
+      if (nodesToDelete.length > 0) {
+        setNodeToDelete(nodesToDelete[0]);
+        return false; // Abort automatic delete so we can confirm
+      }
+      return true;
+    },
+    []
+  );
+
+  // Handle keyboard shortcuts when deletion modal is open
+  useEffect(() => {
+    if (!nodeToDelete) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        executeNodeDelete();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setNodeToDelete(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [nodeToDelete, executeNodeDelete]);
+
   // ── Node click ────────────────────────────────────────────────────────
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNodeId(node.id);
@@ -608,12 +651,13 @@ function GraphBuilderInner() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onEdgesDelete={onEdgeDelete}
+          onBeforeDelete={onBeforeDelete}
           onNodeClick={onNodeClick}
           onEdgeClick={onEdgeClick}
           onPaneClick={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }}
           fitView
           fitViewOptions={{ padding: 0.2 }}
-          deleteKeyCode="Backspace"
+          deleteKeyCode={["Backspace", "Delete"]}
           minZoom={0.2}
           maxZoom={2}
           connectionMode={ConnectionMode.Loose}          // ← FIX: easier connecting
@@ -870,6 +914,83 @@ function GraphBuilderInner() {
           >
             {toast.type === "err" && <AlertTriangle size={14} />}
             {toast.msg}
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {nodeToDelete && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+            }}
+            onClick={() => setNodeToDelete(null)}
+          >
+            <div
+              className="glass"
+              style={{
+                width: 400,
+                padding: 24,
+                borderRadius: 12,
+                border: "1px solid var(--border)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    background: "rgba(248,81,73,0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--accent-red)",
+                  }}
+                >
+                  <AlertTriangle size={18} />
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>
+                  Xác nhận xoá Knowledge Component
+                </div>
+              </div>
+
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                Bạn có chắc chắn muốn xoá KC <strong>{(nodeToDelete.data as any).name}</strong> (<code>{(nodeToDelete.data as any).code}</code>) không?
+                <br />
+                <span style={{ color: "var(--accent-red)", fontWeight: 500, display: "inline-block", marginTop: 6 }}>
+                  ⚠ Thao tác này sẽ xoá tất cả câu hỏi và liên kết liên quan!
+                </span>
+              </div>
+
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 8 }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setNodeToDelete(null)}
+                  style={{ padding: "8px 16px" }}
+                >
+                  Huỷ (Esc)
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={executeNodeDelete}
+                  style={{ padding: "8px 16px", background: "var(--accent-red)", color: "#fff" }}
+                >
+                  Xoá (Enter)
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
