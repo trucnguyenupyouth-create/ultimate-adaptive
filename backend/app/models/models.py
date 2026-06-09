@@ -37,6 +37,22 @@ def now_col() -> Mapped[datetime]:
 # CORE TABLES
 # ─────────────────────────────────────────────────────────────────────────────
 
+class GraphBlock(Base):
+    __tablename__ = "graph_blocks"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    x: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    y: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    width: Mapped[float] = mapped_column(Float, nullable=False, default=400.0)
+    height: Mapped[float] = mapped_column(Float, nullable=False, default=300.0)
+    created_at: Mapped[datetime] = now_col()
+    updated_at: Mapped[datetime] = now_col()
+
+    # relationships
+    kcs: Mapped[list["KnowledgeComponent"]] = relationship("KnowledgeComponent", back_populates="block")
+
+
 class KnowledgeComponent(Base):
     __tablename__ = "knowledge_components"
 
@@ -49,10 +65,14 @@ class KnowledgeComponent(Base):
     chapter_info: Mapped[Optional[str]] = mapped_column(Text)
     notes: Mapped[Optional[str]] = mapped_column(Text)  # pedagogical notes (Tab "Ghi chú")
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
+    block_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("graph_blocks.id", ondelete="SET NULL"), nullable=True
+    )
     created_at: Mapped[datetime] = now_col()
     updated_at: Mapped[datetime] = now_col()
 
     # relationships
+    block: Mapped[Optional["GraphBlock"]] = relationship("GraphBlock", back_populates="kcs")
     prerequisites: Mapped[list["KCPrerequisite"]] = relationship(
         "KCPrerequisite", foreign_keys="KCPrerequisite.kc_id", back_populates="kc"
     )

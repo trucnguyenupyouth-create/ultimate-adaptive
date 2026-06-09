@@ -16,6 +16,8 @@ export interface KCNodeData {
   isLeaf?: boolean;
   isLowItems?: boolean;
   isSelected?: boolean;
+  block_id?: string | null;
+  blockName?: string | null;
 }
 
 const GRADE_COLOR: Record<number, { bg: string; border: string; label: string }> = {
@@ -99,6 +101,24 @@ function KCNodeComponent({ data, selected }: NodeProps) {
           {d.isLeaf && (
             <span className="badge badge-purple" style={{ fontSize: 10 }}>
               Leaf
+            </span>
+          )}
+          {d.blockName && (
+            <span
+              className="badge"
+              style={{
+                background: "rgba(56, 139, 253, 0.15)",
+                color: "var(--accent-blue)",
+                border: "1px solid rgba(56, 139, 253, 0.3)",
+                fontSize: 10,
+                maxWidth: 80,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              title={`Block: ${d.blockName}`}
+            >
+              {d.blockName}
             </span>
           )}
         </div>

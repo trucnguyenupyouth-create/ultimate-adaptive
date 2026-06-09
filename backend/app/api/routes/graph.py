@@ -27,6 +27,7 @@ class CreateKCRequest(BaseModel):
     subject: str = "math"
     description: Optional[str] = None
     chapter_info: str
+    block_id: Optional[str] = None
 
 
 class UpdateKCRequest(BaseModel):
@@ -36,6 +37,23 @@ class UpdateKCRequest(BaseModel):
     description: Optional[str] = None
     notes: Optional[str] = None
     chapter_info: Optional[str] = None
+    block_id: Optional[str] = None
+
+
+class CreateBlockRequest(BaseModel):
+    name: str
+    x: float
+    y: float
+    width: Optional[float] = 400.0
+    height: Optional[float] = 300.0
+
+
+class UpdateBlockRequest(BaseModel):
+    name: Optional[str] = None
+    x: Optional[float] = None
+    y: Optional[float] = None
+    width: Optional[float] = None
+    height: Optional[float] = None
 
 
 class AddPrerequisiteRequest(BaseModel):
@@ -80,8 +98,9 @@ async def create_kc(body: CreateKCRequest, db: AsyncSession = Depends(get_db)):
             subject=body.subject,
             description=body.description,
             chapter_info=body.chapter_info,
+            block_id=body.block_id,
         )
-        return {"id": str(kc.id), "code": kc.code, "name": kc.name, "grade": kc.grade, "chapter_info": kc.chapter_info}
+        return {"id": str(kc.id), "code": kc.code, "name": kc.name, "grade": kc.grade, "chapter_info": kc.chapter_info, "block_id": str(kc.block_id) if kc.block_id else None}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -97,6 +116,9 @@ async def get_kc_detail(kc_id: str, db: AsyncSession = Depends(get_db)):
 @router.put("/kc/{kc_id}", summary="Update KC metadata (name, grade, subject, description, notes)")
 async def update_kc(kc_id: str, body: UpdateKCRequest, db: AsyncSession = Depends(get_db)):
     try:
+        req_dict = body.dict(exclude_unset=True)
+        update_block_id = "block_id" in req_dict
+
         kc = await graph_service.update_kc(
             db,
             kc_id=kc_id,
@@ -106,6 +128,8 @@ async def update_kc(kc_id: str, body: UpdateKCRequest, db: AsyncSession = Depend
             description=body.description,
             chapter_info=body.chapter_info,
             notes=body.notes,
+            block_id=body.block_id,
+            update_block_id=update_block_id,
         )
         return {
             "id": str(kc.id),
@@ -116,6 +140,7 @@ async def update_kc(kc_id: str, body: UpdateKCRequest, db: AsyncSession = Depend
             "description": kc.description,
             "chapter_info": kc.chapter_info,
             "notes": kc.notes,
+            "block_id": str(kc.block_id) if kc.block_id else None,
         }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -209,7 +234,8 @@ async def get_db_info(db: AsyncSession = Depends(get_db)):
     tables = [
         "kc_prerequisites", "responses", "student_kc", "student_irt",
         "item_edit_log", "item_versions", "items", "content_assets",
-        "graph_edit_history", "kc_notes", "knowledge_components", "cms_users"
+        "graph_edit_history", "kc_notes", "knowledge_components", "cms_users",
+        "graph_blocks"
     ]
     counts = {}
     for table in tables:
@@ -227,7 +253,8 @@ async def db_clean(db: AsyncSession = Depends(get_db)):
     tables = [
         "kc_prerequisites", "responses", "student_kc", "student_irt",
         "item_edit_log", "item_versions", "items", "content_assets",
-        "graph_edit_history", "kc_notes", "knowledge_components", "cms_users"
+        "graph_edit_history", "kc_notes", "knowledge_components", "cms_users",
+        "graph_blocks"
     ]
     truncated = []
     for table in tables:
@@ -239,4 +266,62 @@ async def db_clean(db: AsyncSession = Depends(get_db)):
     await db.commit()
     graph_service.invalidate_graph_cache()
     return {"status": "success", "truncated": truncated}
+
+
+@router.post("/block", status_code=status.HTTP_201_CREATED, summary="Create a new visual group block")
+async def create_block(body: CreateBlockRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        block = await graph_service.create_block(
+            db,
+            name=body.name,
+            x=body.x,
+            y=body.y,
+            width=body.width or 400.0,
+            height=body.height or 300.0,
+        )
+        return {
+            "id": str(block.id),
+            "name": block.name,
+            "x": block.x,
+            "y": block.y,
+            "width": block.width,
+            "height": block.height,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/block/{block_id}", summary="Update a block's details (name, coordinates, dimensions)")
+async def update_block(block_id: str, body: UpdateBlockRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        block = await graph_service.update_block(
+            db,
+            block_id=block_id,
+            name=body.name,
+            x=body.x,
+            y=body.y,
+            width=body.width,
+            height=body.height,
+        )
+        return {
+            "id": str(block.id),
+            "name": block.name,
+            "x": block.x,
+            "y": block.y,
+            "width": block.width,
+            "height": block.height,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/block/{block_id}", summary="Delete a block (dissociating all member nodes)")
+async def delete_block(block_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        result = await graph_service.delete_block(db, block_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 

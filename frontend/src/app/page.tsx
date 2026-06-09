@@ -35,9 +35,10 @@ import {
   X,
 } from "lucide-react";
 
-import { graphApi, GraphHealth, GraphEdge } from "@/lib/api";
+import { graphApi, GraphHealth, GraphEdge, GraphBlock } from "@/lib/api";
 import { KCNodeData } from "@/components/KCNode";
 import KCNodeComponent from "@/components/KCNode";
+import BlockNodeComponent from "@/components/BlockNode";
 import CreateKCPanel from "@/components/CreateKCPanel";
 import HealthPanel from "@/components/HealthPanel";
 import KCDetailPanel from "@/components/KCDetailPanel";
@@ -45,7 +46,10 @@ import CustomEdgeComponent from "@/components/CustomEdge";
 import EdgeDetailPanel from "@/components/EdgeDetailPanel";
 
 // Register custom node and edge types
-const nodeTypes = { kcNode: KCNodeComponent };
+const nodeTypes = {
+  kcNode: KCNodeComponent,
+  blockNode: BlockNodeComponent,
+};
 const edgeTypes = { prerequisite: CustomEdgeComponent };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -70,8 +74,12 @@ const saveStoredPositions = (positions: Record<string, { x: number; y: number }>
 };
 
 function toFlowNodes(
-  apiNodes: { id: string; code: string; name: string; grade: number; subject: string; chapter_info?: string }[],
-  health: GraphHealth | null
+  apiNodes: { id: string; code: string; name: string; grade: number; subject: string; chapter_info?: string; block_id?: string | null }[],
+  apiBlocks: GraphBlock[],
+  health: GraphHealth | null,
+  onBlockRename: (id: string, name: string) => void,
+  onBlockDelete: (id: string) => void,
+  onBlockResize: (id: string, x: number, y: number, width: number, height: number) => void
 ): Node[] {
   const rootSet = new Set(health?.root_kcs ?? []);
   const leafSet = new Set(health?.leaf_kcs ?? []);
@@ -91,6 +99,8 @@ function toFlowNodes(
       positionsChanged = true;
     }
 
+    const containingBlock = apiBlocks.find((b) => b.id === n.block_id);
+
     return {
       id: n.id,
       type: "kcNode",
@@ -103,6 +113,8 @@ function toFlowNodes(
         grade: n.grade,
         subject: n.subject,
         chapter_info: n.chapter_info,
+        block_id: n.block_id,
+        blockName: containingBlock ? containingBlock.name : null,
         isRoot: rootSet.has(n.id),
         isLeaf: leafSet.has(n.id),
         isLowItems: lowSet.has(n.id),
@@ -111,11 +123,27 @@ function toFlowNodes(
     };
   });
 
+  // Map blocks to flow nodes
+  const blockFlowNodes = apiBlocks.map((b) => ({
+    id: b.id,
+    type: "blockNode",
+    position: { x: b.x, y: b.y },
+    style: { width: b.width, height: b.height },
+    zIndex: -1,
+    data: {
+      id: b.id,
+      name: b.name,
+      onRename: onBlockRename,
+      onDelete: onBlockDelete,
+    },
+  }));
+
   if (positionsChanged) {
     saveStoredPositions(updatedPositions);
   }
 
-  return flowNodes;
+  // Render blocks first so they stay in background
+  return [...blockFlowNodes, ...flowNodes];
 }
 
 function toFlowEdges(
@@ -228,6 +256,206 @@ function GraphBuilderInner() {
     toastTimer.current = setTimeout(() => setToast(null), 3500);
   };
 
+  // ── Block callbacks and handlers ──────────────────────────────────────
+  const handleBlockRename = useCallback(async (id: string, newName: string) => {
+    try {
+      await graphApi.updateBlock(id, { name: newName });
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === id ? { ...n, data: { ...n.data, name: newName } } : n
+        )
+      );
+      showToast("✓ Đã đổi tên block");
+    } catch {
+      showToast("Lỗi đổi tên block", "err");
+    }
+  }, []);
+
+  const handleBlockDelete = useCallback(async (id: string) => {
+    const confirm = window.confirm("Bạn có chắc chắn muốn xoá block này? Các nodes bên trong sẽ không bị xoá.");
+    if (!confirm) return;
+    try {
+      await graphApi.deleteBlock(id);
+      
+      // Remove block node from state
+      setNodes((nds) => nds.filter((n) => n.id !== id));
+      
+      // Update all child nodes to have block_id = null
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.type === "kcNode" && (n.data as any).block_id === id
+            ? { ...n, data: { ...n.data, block_id: null, blockName: null } }
+            : n
+        )
+      );
+      
+      showToast("✓ Đã xoá block");
+      graphApi.getHealth().then(setHealth);
+    } catch {
+      showToast("Lỗi xoá block", "err");
+    }
+  }, [setHealth]);
+
+  const handleBlockResize = useCallback(
+    async (id: string, x: number, y: number, width: number, height: number) => {
+      try {
+        await graphApi.updateBlock(id, { x, y, width, height });
+        
+        // Update local state so coords and dimensions are in sync
+        setNodes((nds) =>
+          nds.map((n) =>
+            n.id === id
+              ? {
+                  ...n,
+                  position: { x, y },
+                  style: { ...n.style, width, height },
+                }
+              : n
+          )
+        );
+        showToast("✓ Đã lưu kích thước block");
+      } catch (e) {
+        showToast("Lỗi lưu kích thước block", "err");
+      }
+    },
+    []
+  );
+
+  const handleCreateBlock = useCallback(async () => {
+    let position = { x: 100, y: 100 };
+    try {
+      const { x, y, zoom } = getViewport();
+      const centerX = -x / zoom + (window.innerWidth / 2) / zoom;
+      const centerY = -y / zoom + (window.innerHeight / 2) / zoom;
+      position = { x: centerX - 200, y: centerY - 150 };
+    } catch (e) {
+      console.error("Failed to get viewport center", e);
+    }
+
+    try {
+      const newBlock = await graphApi.createBlock({
+        name: "Block mới",
+        x: position.x,
+        y: position.y,
+        width: 400,
+        height: 300,
+      });
+
+      const flowNode: Node = {
+        id: newBlock.id,
+        type: "blockNode",
+        position: { x: newBlock.x, y: newBlock.y },
+        style: { width: newBlock.width, height: newBlock.height },
+        zIndex: -1,
+        data: {
+          id: newBlock.id,
+          name: newBlock.name,
+          onRename: handleBlockRename,
+          onDelete: handleBlockDelete,
+          onResize: handleBlockResize,
+        },
+      };
+
+      setNodes((nds) => [...nds, flowNode]);
+      showToast("✓ Đã tạo Block mới");
+    } catch {
+      showToast("Lỗi tạo Block", "err");
+    }
+  }, [getViewport, handleBlockRename, handleBlockDelete, handleBlockResize]);
+
+  const onNodeDragStop = useCallback(
+    async (event: any, node: Node) => {
+      if (node.type === "blockNode") {
+        try {
+          const width = node.style?.width ? Number(node.style.width) : 400;
+          const height = node.style?.height ? Number(node.style.height) : 300;
+          await graphApi.updateBlock(node.id, {
+            x: node.position.x,
+            y: node.position.y,
+            width,
+            height,
+          });
+        } catch (e) {
+          showToast("Lỗi lưu vị trí block", "err");
+        }
+      } else if (node.type === "kcNode") {
+        const kcCenter = {
+          x: node.position.x + 100,
+          y: node.position.y + 60,
+        };
+        
+        // Find containing block
+        setNodes((nds) => {
+          const blockNodes = nds.filter((n) => n.type === "blockNode");
+          const containingBlock = blockNodes.find((block) => {
+            const bx = block.position.x;
+            const by = block.position.y;
+            const bw = block.style?.width ? Number(block.style.width) : 400;
+            const bh = block.style?.height ? Number(block.style.height) : 300;
+            
+            return (
+              kcCenter.x >= bx &&
+              kcCenter.x <= bx + bw &&
+              kcCenter.y >= by &&
+              kcCenter.y <= by + bh
+            );
+          });
+          
+          const currentBlockId = (node.data as any).block_id || null;
+          const newBlockId = containingBlock ? containingBlock.id : null;
+          
+          if (currentBlockId !== newBlockId) {
+            // Trigger API update
+            graphApi.updateKC(node.id, { block_id: newBlockId })
+              .then(() => {
+                showToast(
+                  newBlockId
+                    ? `✓ Đã đưa KC vào block "${containingBlock?.data.name}"`
+                    : `✓ Đã đưa KC ra khỏi block`
+                );
+                graphApi.getHealth().then(setHealth);
+              })
+              .catch(() => {
+                showToast("Lỗi cập nhật block cho KC", "err");
+                // Revert node state
+                setNodes((currentNodes) =>
+                  currentNodes.map((n) =>
+                    n.id === node.id
+                      ? {
+                          ...n,
+                          data: {
+                            ...n.data,
+                            block_id: currentBlockId,
+                            blockName: currentBlockId
+                              ? (blockNodes.find((b) => b.id === currentBlockId)?.data.name || "")
+                              : null,
+                          },
+                        }
+                      : n
+                  )
+                );
+              });
+            
+            return nds.map((n) =>
+              n.id === node.id
+                ? {
+                    ...n,
+                    data: {
+                      ...n.data,
+                      block_id: newBlockId,
+                      blockName: containingBlock ? containingBlock.data.name : null,
+                    },
+                  }
+                : n
+            );
+          }
+          return nds;
+        });
+      }
+    },
+    [setHealth]
+  );
+
   // ── Load graph ────────────────────────────────────────────────────────
   const loadGraph = useCallback(async () => {
     try {
@@ -237,7 +465,16 @@ function GraphBuilderInner() {
         graphApi.getHealth(),
       ]);
       setHealth(healthData);
-      setNodes(toFlowNodes(graphData.nodes, healthData));
+      setNodes(
+        toFlowNodes(
+          graphData.nodes,
+          graphData.blocks || [],
+          healthData,
+          handleBlockRename,
+          handleBlockDelete,
+          handleBlockResize
+        )
+      );
       setEdges(toFlowEdges(graphData.edges, cycleEdges, selectedEdgeId));
     } catch {
       showToast("Không kết nối được với backend", "err");
@@ -245,7 +482,7 @@ function GraphBuilderInner() {
       setHealthLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleBlockRename, handleBlockDelete, handleBlockResize]);
 
   useEffect(() => { loadGraph(); }, [loadGraph]);
 
@@ -280,7 +517,41 @@ function GraphBuilderInner() {
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       setNodes((nds) => {
-        const nextNodes = applyNodeChanges(changes, nds);
+        // Find if any block is being dragged and by how much
+        const blockDragChanges = changes.filter(
+          (c) => c.type === "position" && c.dragging === true
+        );
+        
+        const adjustedChanges = [...changes];
+        
+        blockDragChanges.forEach((change: any) => {
+          const blockNode = nds.find((n) => n.id === change.id);
+          if (blockNode && blockNode.type === "blockNode" && change.position) {
+            const dx = change.position.x - blockNode.position.x;
+            const dy = change.position.y - blockNode.position.y;
+            
+            if (dx !== 0 || dy !== 0) {
+              // Find all KC nodes that are associated with this block
+              const childKCs = nds.filter(
+                (n) => n.type === "kcNode" && (n.data as any).block_id === blockNode.id
+              );
+              
+              // Add artificial position changes for children
+              childKCs.forEach((child) => {
+                adjustedChanges.push({
+                  id: child.id,
+                  type: "position",
+                  position: {
+                    x: child.position.x + dx,
+                    y: child.position.y + dy,
+                  },
+                });
+              });
+            }
+          }
+        });
+
+        const nextNodes = applyNodeChanges(adjustedChanges, nds);
         
         // Save node positions on drag
         const positions = getStoredPositions();
@@ -627,6 +898,10 @@ function GraphBuilderInner() {
           <List size={13} />
           Danh sách KC
         </button>
+        <button className="btn btn-secondary" onClick={handleCreateBlock} style={{ gap: 6 }}>
+          <Plus size={13} />
+          Thêm Block
+        </button>
         <button className="btn btn-secondary" onClick={loadGraph} style={{ gap: 6 }}>
           <RefreshCw size={13} />
           Refresh
@@ -654,6 +929,7 @@ function GraphBuilderInner() {
           onBeforeDelete={onBeforeDelete}
           onNodeClick={onNodeClick}
           onEdgeClick={onEdgeClick}
+          onNodeDragStop={onNodeDragStop}
           onPaneClick={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }}
           fitView
           fitViewOptions={{ padding: 0.2 }}

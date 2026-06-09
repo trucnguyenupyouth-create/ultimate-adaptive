@@ -16,7 +16,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.engines.knowledge_graph import KnowledgeGraph, KCNode
-from app.models.models import KnowledgeComponent, KCPrerequisite, GraphEditHistory, CMSUser
+from app.models.models import KnowledgeComponent, KCPrerequisite, GraphEditHistory, CMSUser, GraphBlock
 
 
 # Module-level singleton graph — loaded once on startup, invalidated on writes
@@ -53,6 +53,7 @@ async def _build_graph(db: AsyncSession) -> KnowledgeGraph:
             "grade": kc.grade,
             "subject": kc.subject,
             "chapter_info": kc.chapter_info,
+            "block_id": str(kc.block_id) if kc.block_id else None,
         } for kc in kcs],
         prerequisites=[{
             "kc_id": str(e.kc_id),
@@ -75,6 +76,7 @@ async def create_kc(
     description: str | None = None,
     chapter_info: str | None = None,
     performed_by: str | None = None,
+    block_id: str | None = None,
 ) -> KnowledgeComponent:
     # Resolve code collision automatically
     base_code = code.strip().upper()
@@ -96,6 +98,7 @@ async def create_kc(
         subject=subject,
         description=description,
         chapter_info=chapter_info,
+        block_id=uuid.UUID(block_id) if block_id else None,
     )
     db.add(kc)
     await db.flush()  # get kc.id before logging
@@ -105,7 +108,7 @@ async def create_kc(
         action="add_kc",
         entity_id=kc.id,
         entity_type="kc",
-        payload={"code": resolved_code, "name": name, "grade": grade, "chapter_info": chapter_info},
+        payload={"code": resolved_code, "name": name, "grade": grade, "chapter_info": chapter_info, "block_id": block_id},
         performed_by=uuid.UUID(performed_by) if performed_by else None,
     ))
 
@@ -365,7 +368,22 @@ async def remove_prerequisite(
 async def get_graph_json(db: AsyncSession) -> dict:
     """Serialised graph for React Flow frontend."""
     kg = await get_graph(db)
-    return kg.to_dict()
+    data = kg.to_dict()
+    
+    blocks_res = await db.execute(select(GraphBlock))
+    blocks = blocks_res.scalars().all()
+    data["blocks"] = [
+        {
+            "id": str(b.id),
+            "name": b.name,
+            "x": b.x,
+            "y": b.y,
+            "width": b.width,
+            "height": b.height,
+        }
+        for b in blocks
+    ]
+    return data
 
 
 async def get_graph_health(db: AsyncSession) -> dict:
@@ -447,6 +465,7 @@ async def get_kc_detail(db: AsyncSession, kc_id: str) -> dict:
         "description": kc.description,
         "chapter_info": kc.chapter_info,
         "notes": kc.notes,
+        "block_id": str(kc.block_id) if kc.block_id else None,
         "prerequisites": prereq_kcs,
         "successors": successor_kcs,
     }
@@ -461,30 +480,42 @@ async def update_kc(
     description: str | None = None,
     chapter_info: str | None = None,
     notes: str | None = None,
+    block_id: str | None = None,
+    update_block_id: bool = False,
 ) -> KnowledgeComponent:
     """Partial update a KC. Only provided fields are updated."""
     kc = await db.get(KnowledgeComponent, uuid.UUID(kc_id))
     if not kc:
         raise ValueError(f"KC {kc_id} not found")
 
+    payload = {}
     if name is not None:
         kc.name = name
+        payload["name"] = name
     if grade is not None:
         kc.grade = grade
+        payload["grade"] = grade
     if subject is not None:
         kc.subject = subject
+        payload["subject"] = subject
     if description is not None:
         kc.description = description
+        payload["description"] = description
     if chapter_info is not None:
         kc.chapter_info = chapter_info
+        payload["chapter_info"] = chapter_info
     if notes is not None:
         kc.notes = notes
+        payload["notes"] = notes
+    if update_block_id:
+        kc.block_id = uuid.UUID(block_id) if block_id else None
+        payload["block_id"] = block_id
 
     db.add(GraphEditHistory(
         action="update_kc",
         entity_id=kc.id,
         entity_type="kc",
-        payload={"name": name, "grade": grade, "subject": subject, "chapter_info": chapter_info},
+        payload=payload,
     ))
     await db.commit()
     await db.refresh(kc)
@@ -730,3 +761,94 @@ async def toggle_item(
     ))
     await db.commit()
     return {"ok": True, "is_active": is_active}
+
+
+# ── Block CRUD ───────────────────────────────────────────────────────────────
+
+async def create_block(
+    db: AsyncSession,
+    name: str,
+    x: float,
+    y: float,
+    width: float = 400.0,
+    height: float = 300.0,
+) -> GraphBlock:
+    block = GraphBlock(
+        name=name,
+        x=x,
+        y=y,
+        width=width,
+        height=height,
+    )
+    db.add(block)
+    await db.flush()
+    
+    db.add(GraphEditHistory(
+        action="create_block",
+        entity_id=block.id,
+        entity_type="block",
+        payload={"name": name, "x": x, "y": y, "width": width, "height": height},
+    ))
+    await db.commit()
+    await db.refresh(block)
+    return block
+
+
+async def update_block(
+    db: AsyncSession,
+    block_id: str,
+    name: str | None = None,
+    x: float | None = None,
+    y: float | None = None,
+    width: float | None = None,
+    height: float | None = None,
+) -> GraphBlock:
+    block_uuid = uuid.UUID(block_id)
+    block = await db.get(GraphBlock, block_uuid)
+    if not block:
+        raise ValueError(f"Block {block_id} not found")
+    
+    payload = {}
+    if name is not None:
+        block.name = name
+        payload["name"] = name
+    if x is not None:
+        block.x = x
+        payload["x"] = x
+    if y is not None:
+        block.y = y
+        payload["y"] = y
+    if width is not None:
+        block.width = width
+        payload["width"] = width
+    if height is not None:
+        block.height = height
+        payload["height"] = height
+        
+    block.updated_at = datetime.now(timezone.utc)
+    
+    db.add(GraphEditHistory(
+        action="update_block",
+        entity_id=block.id,
+        entity_type="block",
+        payload=payload,
+    ))
+    await db.commit()
+    await db.refresh(block)
+    return block
+
+
+async def delete_block(db: AsyncSession, block_id: str) -> dict:
+    block_uuid = uuid.UUID(block_id)
+    block = await db.get(GraphBlock, block_uuid)
+    if block:
+        await db.delete(block)
+        db.add(GraphEditHistory(
+            action="delete_block",
+            entity_id=block_uuid,
+            entity_type="block",
+            payload={"block_id": block_id},
+        ))
+        await db.commit()
+        invalidate_graph_cache()
+    return {"ok": True}

@@ -25,6 +25,7 @@ export interface KCNode {
   description?: string;
   chapter_info?: string;
   notes?: string;
+  block_id?: string | null;
 }
 
 export interface KCDetail extends KCNode {
@@ -62,9 +63,35 @@ export interface EdgeDetail {
   history: EdgeHistoryEntry[];
 }
 
+export interface GraphBlock {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface CreateBlockPayload {
+  name: string;
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+}
+
+export interface UpdateBlockPayload {
+  name?: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
+
 export interface GraphData {
   nodes: KCNode[];
   edges: GraphEdge[];
+  blocks: GraphBlock[];
 }
 
 export interface ItemCount {
@@ -93,6 +120,7 @@ export interface CreateKCPayload {
   subject?: string;
   description?: string;
   chapter_info: string;
+  block_id?: string | null;
 }
 
 export interface UpdateKCPayload {
@@ -102,6 +130,7 @@ export interface UpdateKCPayload {
   description?: string;
   chapter_info?: string;
   notes?: string;
+  block_id?: string | null;
 }
 
 export type DifficultyLabel = "easy" | "medium" | "hard";
@@ -189,6 +218,23 @@ export const graphApi = {
     request<{ ok: boolean }>("/graph/edge/reverse", {
       method: "POST",
       body: JSON.stringify({ kc_id, prereq_id }),
+    }),
+
+  createBlock: (payload: CreateBlockPayload) =>
+    request<GraphBlock>("/graph/block", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateBlock: (id: string, payload: UpdateBlockPayload) =>
+    request<GraphBlock>(`/graph/block/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  deleteBlock: (id: string) =>
+    request<{ ok: boolean }>(`/graph/block/${id}`, {
+      method: "DELETE",
     }),
 };
 
