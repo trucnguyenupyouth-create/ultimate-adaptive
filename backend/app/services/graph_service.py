@@ -54,6 +54,7 @@ async def _build_graph(db: AsyncSession) -> KnowledgeGraph:
             "subject": kc.subject,
             "chapter_info": kc.chapter_info,
             "block_id": str(kc.block_id) if kc.block_id else None,
+            "metadata": kc.metadata_,
         } for kc in kcs],
         prerequisites=[{
             "kc_id": str(e.kc_id),
@@ -503,6 +504,8 @@ async def update_kc(
     notes: str | None = None,
     block_id: str | None = None,
     update_block_id: bool = False,
+    x: float | None = None,
+    y: float | None = None,
 ) -> KnowledgeComponent:
     """Partial update a KC. Only provided fields are updated."""
     kc = await db.get(KnowledgeComponent, uuid.UUID(kc_id))
@@ -531,6 +534,14 @@ async def update_kc(
     if update_block_id:
         kc.block_id = uuid.UUID(block_id) if block_id else None
         payload["block_id"] = block_id
+    if x is not None or y is not None:
+        meta = dict(kc.metadata_) if kc.metadata_ else {}
+        if x is not None:
+            meta["x"] = x
+        if y is not None:
+            meta["y"] = y
+        kc.metadata_ = meta
+        payload["metadata"] = meta
 
     db.add(GraphEditHistory(
         action="update_kc",

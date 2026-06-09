@@ -26,6 +26,11 @@ export interface KCNode {
   chapter_info?: string;
   notes?: string;
   block_id?: string | null;
+  metadata?: {
+    x?: number;
+    y?: number;
+    [key: string]: any;
+  } | null;
 }
 
 export interface KCDetail extends KCNode {
@@ -162,6 +167,8 @@ export interface UpdateKCPayload {
   chapter_info?: string;
   notes?: string;
   block_id?: string | null;
+  x?: number;
+  y?: number;
 }
 
 export type DifficultyLabel = "easy" | "medium" | "hard";

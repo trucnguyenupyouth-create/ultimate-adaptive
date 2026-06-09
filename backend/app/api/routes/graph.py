@@ -38,6 +38,8 @@ class UpdateKCRequest(BaseModel):
     notes: Optional[str] = None
     chapter_info: Optional[str] = None
     block_id: Optional[str] = None
+    x: Optional[float] = None
+    y: Optional[float] = None
 
 
 class CreateBlockRequest(BaseModel):
@@ -155,6 +157,8 @@ async def update_kc(kc_id: str, body: UpdateKCRequest, db: AsyncSession = Depend
             notes=body.notes,
             block_id=body.block_id,
             update_block_id=update_block_id,
+            x=body.x,
+            y=body.y,
         )
         return {
             "id": str(kc.id),

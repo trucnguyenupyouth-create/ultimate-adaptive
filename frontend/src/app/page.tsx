@@ -35,7 +35,7 @@ import {
   X,
 } from "lucide-react";
 
-import { graphApi, GraphHealth, GraphEdge, GraphBlock, GraphNote, EdgeType } from "@/lib/api";
+import { graphApi, GraphHealth, GraphEdge, GraphBlock, GraphNote, EdgeType, KCNode } from "@/lib/api";
 import { KCNodeData } from "@/components/KCNode";
 import KCNodeComponent from "@/components/KCNode";
 import BlockNodeComponent from "@/components/BlockNode";
@@ -76,7 +76,7 @@ const saveStoredPositions = (positions: Record<string, { x: number; y: number }>
 };
 
 function toFlowNodes(
-  apiNodes: { id: string; code: string; name: string; grade: number; subject: string; chapter_info?: string; block_id?: string | null }[],
+  apiNodes: KCNode[],
   apiBlocks: GraphBlock[],
   health: GraphHealth | null,
   onBlockRename: (id: string, name: string) => void,
@@ -93,7 +93,10 @@ function toFlowNodes(
   let positionsChanged = false;
 
   const flowNodes = apiNodes.map((n, i) => {
-    let position = storedPositions[n.id];
+    // Read from DB metadata position if available, else fallback to stored local storage
+    let position = (n.metadata && typeof n.metadata.x === "number" && typeof n.metadata.y === "number")
+      ? { x: n.metadata.x, y: n.metadata.y }
+      : storedPositions[n.id];
     
     if (!position) {
       position = { x: 260 * (i % 5), y: 190 * Math.floor(i / 5) };
@@ -387,6 +390,20 @@ function GraphBuilderInner() {
             width,
             height,
           });
+          
+          // Also save positions of containing KC nodes to DB so they sync
+          setNodes((nds) => {
+            const childKCs = nds.filter(
+              (n) => n.type === "kcNode" && (n.data as any).block_id === node.id
+            );
+            childKCs.forEach((child) => {
+              graphApi.updateKC(child.id, {
+                x: child.position.x,
+                y: child.position.y,
+              }).catch((err) => console.error("Lỗi cập nhật vị trí child KC", err));
+            });
+            return nds;
+          });
         } catch (e) {
           showToast("Lỗi lưu vị trí block", "err");
         }
@@ -417,8 +434,12 @@ function GraphBuilderInner() {
           const newBlockId = containingBlock ? containingBlock.id : null;
           
           if (currentBlockId !== newBlockId) {
-            // Trigger API update
-            graphApi.updateKC(node.id, { block_id: newBlockId })
+            // Trigger API update with new block and position coordinates
+            graphApi.updateKC(node.id, { 
+              block_id: newBlockId,
+              x: node.position.x,
+              y: node.position.y,
+            })
               .then(() => {
                 showToast(
                   newBlockId
@@ -460,6 +481,14 @@ function GraphBuilderInner() {
                   }
                 : n
             );
+          } else {
+            // Block didn't change, but coordinates did. Save to DB.
+            graphApi.updateKC(node.id, {
+              x: node.position.x,
+              y: node.position.y,
+            }).catch((err) => {
+              console.error("Lỗi cập nhật vị trí KC lên database", err);
+            });
           }
           return nds;
         });
