@@ -100,6 +100,7 @@ class KCPrerequisite(Base):
 
     label: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     weight: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
+    edge_type: Mapped[str] = mapped_column(String(20), nullable=False, default="prerequisite")
     created_at: Mapped[datetime] = now_col()
     created_by: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("cms_users.id"), nullable=True
@@ -300,4 +301,19 @@ class KCNotes(Base):
     updated_by: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("cms_users.id")
     )
+    updated_at: Mapped[datetime] = now_col()
+
+
+class GraphNote(Base):
+    """Sticky note pinned to the graph canvas."""
+    __tablename__ = "graph_notes"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    content: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    x: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    y: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    width: Mapped[float] = mapped_column(Float, nullable=False, default=200.0)
+    height: Mapped[float] = mapped_column(Float, nullable=False, default=150.0)
+    color: Mapped[str] = mapped_column(String(20), nullable=False, default="yellow")
+    created_at: Mapped[datetime] = now_col()
     updated_at: Mapped[datetime] = now_col()

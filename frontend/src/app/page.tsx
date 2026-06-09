@@ -35,10 +35,11 @@ import {
   X,
 } from "lucide-react";
 
-import { graphApi, GraphHealth, GraphEdge, GraphBlock } from "@/lib/api";
+import { graphApi, GraphHealth, GraphEdge, GraphBlock, GraphNote, EdgeType } from "@/lib/api";
 import { KCNodeData } from "@/components/KCNode";
 import KCNodeComponent from "@/components/KCNode";
 import BlockNodeComponent from "@/components/BlockNode";
+import NoteNodeComponent from "@/components/NoteNode";
 import CreateKCPanel from "@/components/CreateKCPanel";
 import HealthPanel from "@/components/HealthPanel";
 import KCDetailPanel from "@/components/KCDetailPanel";
@@ -49,6 +50,7 @@ import EdgeDetailPanel from "@/components/EdgeDetailPanel";
 const nodeTypes = {
   kcNode: KCNodeComponent,
   blockNode: BlockNodeComponent,
+  noteNode: NoteNodeComponent,
 };
 const edgeTypes = { prerequisite: CustomEdgeComponent };
 
@@ -155,13 +157,20 @@ function toFlowEdges(
     const id = `${e.source}->${e.target}`;
     const isCycle = cycleEdges.has(id);
     const isSelected = selectedEdgeId === id;
-    
-    const strokeColor = isCycle
-      ? "var(--accent-red)"
-      : isSelected
-      ? "var(--accent-blue)"
-      : "var(--edge-default)";
-      
+    const edgeType = e.edge_type ?? "prerequisite";
+
+    const strokeColor =
+      isCycle
+        ? "var(--accent-red)"
+        : edgeType === "unsure"
+        ? (isSelected ? "#f0c040" : "#d29922")
+        : edgeType === "inference"
+        ? (isSelected ? "#79c0ff" : "#8b949e")
+        : (isSelected ? "var(--accent-blue)" : "var(--edge-default)");
+
+    const strokeDashArray =
+      isCycle ? "6 3" : edgeType === "inference" ? "8 5" : undefined;
+
     return {
       id,
       source: e.source,
@@ -172,11 +181,12 @@ function toFlowEdges(
         label: e.label,
         weight: e.weight,
         isCycle,
+        edge_type: edgeType,
       },
       style: {
         stroke: strokeColor,
         strokeWidth: isCycle || isSelected ? 3 : 2,
-        strokeDasharray: isCycle ? "6 3" : undefined,
+        strokeDasharray: strokeDashArray,
       },
       markerEnd: {
         type: MarkerType.ArrowClosed,
@@ -201,6 +211,8 @@ function GraphBuilderInner() {
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [cycleEdges] = useState<Set<string>>(new Set());
+  const [toolbarOpen, setToolbarOpen] = useState(false);
+  const [activeEdgeType, setActiveEdgeType] = useState<EdgeType>("prerequisite");
 
   // Search and List States
   const [searchQuery, setSearchQuery] = useState("");
@@ -451,12 +463,105 @@ function GraphBuilderInner() {
           }
           return nds;
         });
+      } else if (node.type === "noteNode") {
+        // Save note position after drag
+        graphApi.updateNote(node.id, { x: node.position.x, y: node.position.y }).catch(() => {
+          showToast("Lỗi lưu vị trí ghi chú", "err");
+        });
       }
     },
     [setHealth]
   );
 
   // ── Load graph ────────────────────────────────────────────────────────
+  const handleNoteDelete = useCallback(async (id: string) => {
+    try {
+      await graphApi.deleteNote(id);
+      setNodes((nds) => nds.filter((n) => n.id !== id));
+      showToast("✓ Đã xoá ghi chú");
+    } catch {
+      showToast("Lỗi xoá ghi chú", "err");
+    }
+  }, []);
+
+  const handleNoteContentSave = useCallback((id: string, content: string) => {
+    setNodes((nds) =>
+      nds.map((n) => n.id === id ? { ...n, data: { ...n.data, content } } : n)
+    );
+  }, []);
+
+  const makeNoteFlowNode = useCallback((n: GraphNote): Node => ({
+    id: n.id,
+    type: "noteNode",
+    position: { x: n.x, y: n.y },
+    style: { width: n.width, height: n.height },
+    dragHandle: undefined,
+    data: {
+      content: n.content,
+      color: n.color,
+      onDelete: handleNoteDelete,
+      onContentSave: handleNoteContentSave,
+    },
+  }), [handleNoteDelete, handleNoteContentSave]);
+
+  const handleCreateNote = useCallback(async () => {
+    let position = { x: 100, y: 100 };
+    try {
+      const { x, y, zoom } = getViewport();
+      const centerX = -x / zoom + (window.innerWidth / 2) / zoom;
+      const centerY = -y / zoom + (window.innerHeight / 2) / zoom;
+      position = { x: centerX - 100, y: centerY - 75 };
+    } catch { /* fallback */ }
+    try {
+      const note = await graphApi.createNote({
+        content: "",
+        x: position.x,
+        y: position.y,
+        width: 200,
+        height: 150,
+      });
+      setNodes((nds) => [...nds, makeNoteFlowNode(note)]);
+      showToast("✓ Đã tạo ghi chú mới");
+    } catch {
+      showToast("Lỗi tạo ghi chú", "err");
+    }
+  }, [getViewport, makeNoteFlowNode]);
+
+  const handleChangeEdgeType = useCallback(async (newType: EdgeType) => {
+    if (!selectedEdgeId) return;
+    // edge id format: "${source}->${target}"
+    const [prereq_id, kc_id] = selectedEdgeId.split("->");
+    if (!prereq_id || !kc_id) return;
+    try {
+      await graphApi.changeEdgeType(kc_id, prereq_id, newType);
+      // Update local edge state immediately
+      setEdges((eds) =>
+        eds.map((e) =>
+          e.id === selectedEdgeId
+            ? {
+                ...e,
+                data: { ...e.data, edge_type: newType },
+              }
+            : e
+        )
+      );
+      setActiveEdgeType(newType);
+      showToast(`✓ Đã đổi loại nét → ${newType}`);
+    } catch {
+      showToast("Lỗi đổi loại nét", "err");
+    }
+  }, [selectedEdgeId]);
+
+  // Sync activeEdgeType when a different edge is selected
+  useEffect(() => {
+    if (!selectedEdgeId) return;
+    setEdges((eds) => {
+      const edge = eds.find((e) => e.id === selectedEdgeId);
+      if (edge) setActiveEdgeType((edge.data as any)?.edge_type ?? "prerequisite");
+      return eds;
+    });
+  }, [selectedEdgeId]);
+
   const loadGraph = useCallback(async () => {
     try {
       setHealthLoading(true);
@@ -465,16 +570,16 @@ function GraphBuilderInner() {
         graphApi.getHealth(),
       ]);
       setHealth(healthData);
-      setNodes(
-        toFlowNodes(
-          graphData.nodes,
-          graphData.blocks || [],
-          healthData,
-          handleBlockRename,
-          handleBlockDelete,
-          handleBlockResize
-        )
+      const kcAndBlockNodes = toFlowNodes(
+        graphData.nodes,
+        graphData.blocks || [],
+        healthData,
+        handleBlockRename,
+        handleBlockDelete,
+        handleBlockResize
       );
+      const noteNodes = (graphData.notes || []).map(makeNoteFlowNode);
+      setNodes([...kcAndBlockNodes, ...noteNodes]);
       setEdges(toFlowEdges(graphData.edges, cycleEdges, selectedEdgeId));
     } catch {
       showToast("Không kết nối được với backend", "err");
@@ -482,7 +587,7 @@ function GraphBuilderInner() {
       setHealthLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleBlockRename, handleBlockDelete, handleBlockResize]);
+  }, [handleBlockRename, handleBlockDelete, handleBlockResize, makeNoteFlowNode]);
 
   useEffect(() => { loadGraph(); }, [loadGraph]);
 
@@ -987,6 +1092,144 @@ function GraphBuilderInner() {
                   Kéo ● dưới node → ● trên node khác để thêm prerequisite
                 </span>
               </div>
+            </div>
+          </Panel>
+
+          {/* ── Bottom collapsible toolbar ─────────────────────────── */}
+          <Panel position="bottom-center">
+            <div
+              className="glass"
+              style={{
+                borderRadius: toolbarOpen ? 14 : 28,
+                padding: toolbarOpen ? "10px 16px" : "6px 12px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 10,
+                transition: "all 0.22s cubic-bezier(0.4,0,0.2,1)",
+                border: "1px solid var(--border)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
+                minWidth: toolbarOpen ? 360 : 0,
+                overflow: "hidden",
+                marginBottom: 8,
+              }}
+            >
+              {/* Toggle button — always visible */}
+              <button
+                id="toolbar-toggle-btn"
+                onClick={() => setToolbarOpen((o) => !o)}
+                title={toolbarOpen ? "Thu gọn toolbar" : "Mở toolbar công cụ"}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--text-secondary)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: "2px 4px",
+                  borderRadius: 8,
+                  transition: "color 0.15s",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+              >
+                <span style={{ fontSize: 15 }}>{toolbarOpen ? "⚙ Công cụ ▾" : "⚙"}</span>
+                {!toolbarOpen && <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Công cụ</span>}
+              </button>
+
+              {/* Expanded toolbar content */}
+              {toolbarOpen && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
+                  {/* ── Edge type row ───────────────────────── */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                      Loại kết nối {selectedEdgeId ? "(đã chọn)" : "(chọn edge trước)"}
+                    </div>
+                    <div style={{ display: "flex", gap: 7 }}>
+                      {([
+                        { type: "prerequisite" as EdgeType, label: "── Prerequisite", color: "var(--edge-default)", dashStyle: "none" },
+                        { type: "inference" as EdgeType, label: "- - Inference", color: "#8b949e", dashStyle: "8px 4px" },
+                        { type: "unsure" as EdgeType, label: "── Unsure?", color: "#d29922", dashStyle: "none" },
+                      ]).map(({ type, label, color, dashStyle }) => {
+                        const isActive = activeEdgeType === type;
+                        const hasEdge = !!selectedEdgeId;
+                        return (
+                          <button
+                            key={type}
+                            id={`edge-type-${type}`}
+                            onClick={() => hasEdge && handleChangeEdgeType(type)}
+                            disabled={!hasEdge}
+                            title={hasEdge ? `Đổi loại nét → ${type}` : "Chọn một edge trước"}
+                            style={{
+                              flex: 1,
+                              padding: "5px 8px",
+                              borderRadius: 8,
+                              border: `1.5px solid ${isActive && hasEdge ? color : "var(--border)"}`,
+                              background: isActive && hasEdge ? `${color}18` : "var(--bg-elevated)",
+                              color: hasEdge ? (isActive ? color : "var(--text-secondary)") : "var(--text-muted)",
+                              cursor: hasEdge ? "pointer" : "not-allowed",
+                              fontSize: 10,
+                              fontWeight: isActive ? 700 : 400,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 5,
+                              transition: "all 0.15s",
+                              opacity: hasEdge ? 1 : 0.5,
+                            }}
+                          >
+                            {/* Visual dash preview */}
+                            <svg width={22} height={8} style={{ flexShrink: 0 }}>
+                              <line
+                                x1={0} y1={4} x2={22} y2={4}
+                                stroke={hasEdge ? color : "var(--text-muted)"}
+                                strokeWidth={2}
+                                strokeDasharray={dashStyle === "none" ? undefined : dashStyle}
+                              />
+                            </svg>
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div style={{ height: 1, background: "var(--border)", margin: "0 -4px" }} />
+
+                  {/* ── Add note row ───────────────────────── */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                      Ghi chú
+                    </div>
+                    <button
+                      id="add-note-btn"
+                      onClick={handleCreateNote}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: 8,
+                        border: "1.5px solid #e8d44d",
+                        background: "rgba(255,253,231,0.12)",
+                        color: "#d4b400",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 7,
+                        transition: "background 0.15s",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,253,231,0.22)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,253,231,0.12)")}
+                    >
+                      📝 Thêm ghi chú
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </Panel>
         </ReactFlow>

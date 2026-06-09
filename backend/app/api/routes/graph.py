@@ -61,6 +61,7 @@ class AddPrerequisiteRequest(BaseModel):
     prereq_id: str   # the KC that must be mastered first
     label: Optional[str] = None
     weight: Optional[float] = 1.0
+    edge_type: Optional[str] = "prerequisite"
 
 
 class UpdateEdgeRequest(BaseModel):
@@ -68,11 +69,35 @@ class UpdateEdgeRequest(BaseModel):
     prereq_id: str
     label: Optional[str] = None
     weight: Optional[float] = 1.0
+    edge_type: Optional[str] = None
+
+
+class ChangeEdgeTypeRequest(BaseModel):
+    kc_id: str
+    prereq_id: str
+    edge_type: str  # 'prerequisite' | 'inference' | 'unsure'
 
 
 class ReverseEdgeRequest(BaseModel):
     kc_id: str
     prereq_id: str
+
+
+class CreateNoteRequest(BaseModel):
+    content: Optional[str] = ""
+    x: float = 0.0
+    y: float = 0.0
+    width: Optional[float] = 200.0
+    height: Optional[float] = 150.0
+    color: Optional[str] = "yellow"
+
+
+class UpdateNoteRequest(BaseModel):
+    content: Optional[str] = None
+    x: Optional[float] = None
+    y: Optional[float] = None
+    width: Optional[float] = None
+    height: Optional[float] = None
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -164,7 +189,8 @@ async def add_prerequisite(body: AddPrerequisiteRequest, db: AsyncSession = Depe
         kc_id=body.kc_id,
         prereq_id=body.prereq_id,
         label=body.label,
-        weight=body.weight or 1.0
+        weight=body.weight or 1.0,
+        edge_type=body.edge_type or "prerequisite",
     )
     if not result["ok"]:
         raise HTTPException(status_code=409, detail=result["error"])
@@ -204,13 +230,30 @@ async def update_edge(
             kc_id=body.kc_id,
             prereq_id=body.prereq_id,
             label=body.label,
-            weight=body.weight or 1.0
+            weight=body.weight or 1.0,
+            edge_type=body.edge_type,
         )
         return {"ok": True}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/edge/change-type", summary="Change edge type (prerequisite/inference/unsure) — deletes and recreates")
+async def change_edge_type(
+    body: ChangeEdgeTypeRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await graph_service.change_edge_type(
+        db,
+        kc_id=body.kc_id,
+        prereq_id=body.prereq_id,
+        edge_type=body.edge_type,
+    )
+    if not result.get("ok"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Unknown error"))
+    return {"ok": True}
 
 
 @router.post("/edge/reverse", summary="Reverse edge direction with cycle detection")
@@ -325,3 +368,51 @@ async def delete_block(block_id: str, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
+# ── Note (Sticky Notes) Routes ────────────────────────────────────────────────
+
+@router.post("/note", status_code=status.HTTP_201_CREATED, summary="Create a sticky note on the canvas")
+async def create_note(body: CreateNoteRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        note = await graph_service.create_note(
+            db,
+            content=body.content or "",
+            x=body.x,
+            y=body.y,
+            width=body.width or 200.0,
+            height=body.height or 150.0,
+            color=body.color or "yellow",
+        )
+        return note
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/note/{note_id}", summary="Update a sticky note's content or position")
+async def update_note(note_id: str, body: UpdateNoteRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        note = await graph_service.update_note(
+            db,
+            note_id=note_id,
+            content=body.content,
+            x=body.x,
+            y=body.y,
+            width=body.width,
+            height=body.height,
+        )
+        if not isinstance(note, dict) or note.get("ok") is False:
+            raise HTTPException(status_code=404, detail=note.get("error", "Not found"))
+        return note
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/note/{note_id}", summary="Delete a sticky note")
+async def delete_note(note_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        result = await graph_service.delete_note(db, note_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

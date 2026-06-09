@@ -16,7 +16,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.engines.knowledge_graph import KnowledgeGraph, KCNode
-from app.models.models import KnowledgeComponent, KCPrerequisite, GraphEditHistory, CMSUser, GraphBlock
+from app.models.models import KnowledgeComponent, KCPrerequisite, GraphEditHistory, CMSUser, GraphBlock, GraphNote
 
 
 # Module-level singleton graph — loaded once on startup, invalidated on writes
@@ -60,6 +60,7 @@ async def _build_graph(db: AsyncSession) -> KnowledgeGraph:
             "prereq_id": str(e.prereq_id),
             "label": e.label,
             "weight": e.weight,
+            "edge_type": e.edge_type,
         } for e in edges],
     )
     return kg
@@ -124,6 +125,7 @@ async def add_prerequisite(
     prereq_id: str,
     label: str | None = None,
     weight: float = 1.0,
+    edge_type: str = "prerequisite",
     performed_by: str | None = None,
 ) -> dict:
     """
@@ -144,6 +146,7 @@ async def add_prerequisite(
         prereq_id=uuid.UUID(prereq_id),
         label=label,
         weight=weight,
+        edge_type=edge_type,
         created_by=uuid.UUID(performed_by) if performed_by else None,
     )
     db.add(edge)
@@ -151,7 +154,7 @@ async def add_prerequisite(
     db.add(GraphEditHistory(
         action="add_edge",
         entity_type="edge",
-        payload={"kc_id": kc_id, "prereq_id": prereq_id, "label": label, "weight": weight},
+        payload={"kc_id": kc_id, "prereq_id": prereq_id, "label": label, "weight": weight, "edge_type": edge_type},
         performed_by=uuid.UUID(performed_by) if performed_by else None,
     ))
 
@@ -238,6 +241,7 @@ async def update_edge(
     prereq_id: str,
     label: str | None = None,
     weight: float = 1.0,
+    edge_type: str | None = None,
     performed_by: str | None = None,
 ) -> dict:
     kc_uuid = uuid.UUID(kc_id)
@@ -253,11 +257,13 @@ async def update_edge(
 
     edge.label = label
     edge.weight = weight
+    if edge_type is not None:
+        edge.edge_type = edge_type
 
     db.add(GraphEditHistory(
         action="update_edge",
         entity_type="edge",
-        payload={"kc_id": kc_id, "prereq_id": prereq_id, "label": label, "weight": weight},
+        payload={"kc_id": kc_id, "prereq_id": prereq_id, "label": label, "weight": weight, "edge_type": edge_type},
         performed_by=uuid.UUID(performed_by) if performed_by else None,
     ))
     await db.commit()
@@ -369,7 +375,7 @@ async def get_graph_json(db: AsyncSession) -> dict:
     """Serialised graph for React Flow frontend."""
     kg = await get_graph(db)
     data = kg.to_dict()
-    
+
     blocks_res = await db.execute(select(GraphBlock))
     blocks = blocks_res.scalars().all()
     data["blocks"] = [
@@ -382,6 +388,21 @@ async def get_graph_json(db: AsyncSession) -> dict:
             "height": b.height,
         }
         for b in blocks
+    ]
+
+    notes_res = await db.execute(select(GraphNote))
+    notes = notes_res.scalars().all()
+    data["notes"] = [
+        {
+            "id": str(n.id),
+            "content": n.content,
+            "x": n.x,
+            "y": n.y,
+            "width": n.width,
+            "height": n.height,
+            "color": n.color,
+        }
+        for n in notes
     ]
     return data
 
@@ -851,4 +872,137 @@ async def delete_block(db: AsyncSession, block_id: str) -> dict:
         ))
         await db.commit()
         invalidate_graph_cache()
+    return {"ok": True}
+
+
+# ── Edge Type Change ──────────────────────────────────────────────────────────
+
+async def change_edge_type(
+    db: AsyncSession,
+    kc_id: str,
+    prereq_id: str,
+    edge_type: str,
+    performed_by: str | None = None,
+) -> dict:
+    """Delete old edge and re-create with new edge_type (preserves label/weight)."""
+    VALID_TYPES = {"prerequisite", "inference", "unsure"}
+    if edge_type not in VALID_TYPES:
+        return {"ok": False, "error": f"Invalid edge_type '{edge_type}'. Must be one of {VALID_TYPES}"}
+
+    kc_uuid = uuid.UUID(kc_id)
+    prereq_uuid = uuid.UUID(prereq_id)
+
+    stmt = select(KCPrerequisite).where(
+        KCPrerequisite.kc_id == kc_uuid,
+        KCPrerequisite.prereq_id == prereq_uuid
+    )
+    res = await db.execute(stmt)
+    old_edge = res.scalar_one_or_none()
+    if not old_edge:
+        return {"ok": False, "error": "Edge not found"}
+
+    old_label = old_edge.label
+    old_weight = old_edge.weight
+
+    # Delete old edge
+    await db.delete(old_edge)
+    await db.flush()
+
+    # Re-create with new type
+    new_edge = KCPrerequisite(
+        kc_id=kc_uuid,
+        prereq_id=prereq_uuid,
+        label=old_label,
+        weight=old_weight,
+        edge_type=edge_type,
+        created_by=uuid.UUID(performed_by) if performed_by else None,
+    )
+    db.add(new_edge)
+
+    db.add(GraphEditHistory(
+        action="change_edge_type",
+        entity_type="edge",
+        payload={"kc_id": kc_id, "prereq_id": prereq_id, "edge_type": edge_type},
+        performed_by=uuid.UUID(performed_by) if performed_by else None,
+    ))
+
+    await db.commit()
+    invalidate_graph_cache()
+    return {"ok": True}
+
+
+# ── Note (Sticky Notes) CRUD ──────────────────────────────────────────────────
+
+async def create_note(
+    db: AsyncSession,
+    content: str = "",
+    x: float = 0.0,
+    y: float = 0.0,
+    width: float = 200.0,
+    height: float = 150.0,
+    color: str = "yellow",
+) -> dict:
+    note = GraphNote(
+        content=content,
+        x=x,
+        y=y,
+        width=width,
+        height=height,
+        color=color,
+    )
+    db.add(note)
+    await db.commit()
+    await db.refresh(note)
+    return {
+        "id": str(note.id),
+        "content": note.content,
+        "x": note.x,
+        "y": note.y,
+        "width": note.width,
+        "height": note.height,
+        "color": note.color,
+    }
+
+
+async def update_note(
+    db: AsyncSession,
+    note_id: str,
+    content: str | None = None,
+    x: float | None = None,
+    y: float | None = None,
+    width: float | None = None,
+    height: float | None = None,
+) -> dict:
+    note = await db.get(GraphNote, uuid.UUID(note_id))
+    if not note:
+        return {"ok": False, "error": "Note not found"}
+    if content is not None:
+        note.content = content
+    if x is not None:
+        note.x = x
+    if y is not None:
+        note.y = y
+    if width is not None:
+        note.width = width
+    if height is not None:
+        note.height = height
+    note.updated_at = datetime.now(timezone.utc)
+    await db.commit()
+    await db.refresh(note)
+    return {
+        "id": str(note.id),
+        "content": note.content,
+        "x": note.x,
+        "y": note.y,
+        "width": note.width,
+        "height": note.height,
+        "color": note.color,
+    }
+
+
+async def delete_note(db: AsyncSession, note_id: str) -> dict:
+    note = await db.get(GraphNote, uuid.UUID(note_id))
+    if note:
+        await db.delete(note)
+        await db.commit()
     return {"ok": True}

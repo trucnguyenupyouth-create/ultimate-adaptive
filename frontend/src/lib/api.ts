@@ -38,6 +38,7 @@ export interface GraphEdge {
   target: string; // kc_id
   label?: string | null;
   weight?: number;
+  edge_type?: "prerequisite" | "inference" | "unsure";
 }
 
 export interface EdgeHistoryEntry {
@@ -88,10 +89,40 @@ export interface UpdateBlockPayload {
   height?: number;
 }
 
+export type EdgeType = "prerequisite" | "inference" | "unsure";
+
+export interface GraphNote {
+  id: string;
+  content: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+}
+
+export interface CreateNotePayload {
+  content?: string;
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export interface UpdateNotePayload {
+  content?: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
+
 export interface GraphData {
   nodes: KCNode[];
   edges: GraphEdge[];
   blocks: GraphBlock[];
+  notes: GraphNote[];
 }
 
 export interface ItemCount {
@@ -193,10 +224,10 @@ export const graphApi = {
       { method: "DELETE" }
     ),
 
-  addPrerequisite: (kc_id: string, prereq_id: string, label?: string | null, weight?: number) =>
+  addPrerequisite: (kc_id: string, prereq_id: string, label?: string | null, weight?: number, edge_type?: string) =>
     request<{ ok: boolean; message?: string; detail?: string }>(
       "/graph/prerequisite",
-      { method: "POST", body: JSON.stringify({ kc_id, prereq_id, label, weight }) }
+      { method: "POST", body: JSON.stringify({ kc_id, prereq_id, label, weight, edge_type: edge_type ?? "prerequisite" }) }
     ),
 
   removePrerequisite: (kc_id: string, prereq_id: string) =>
@@ -234,6 +265,29 @@ export const graphApi = {
 
   deleteBlock: (id: string) =>
     request<{ ok: boolean }>(`/graph/block/${id}`, {
+      method: "DELETE",
+    }),
+
+  changeEdgeType: (kc_id: string, prereq_id: string, edge_type: EdgeType) =>
+    request<{ ok: boolean }>("/graph/edge/change-type", {
+      method: "POST",
+      body: JSON.stringify({ kc_id, prereq_id, edge_type }),
+    }),
+
+  createNote: (payload: CreateNotePayload) =>
+    request<GraphNote>("/graph/note", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateNote: (id: string, payload: UpdateNotePayload) =>
+    request<GraphNote>(`/graph/note/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  deleteNote: (id: string) =>
+    request<{ ok: boolean }>(`/graph/note/${id}`, {
       method: "DELETE",
     }),
 };
