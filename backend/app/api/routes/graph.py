@@ -196,3 +196,42 @@ async def reverse_edge(
     if not result["ok"]:
         raise HTTPException(status_code=409, detail=result["error"])
     return {"ok": True}
+
+
+@router.get("/db-info", summary="Get database table info/counts")
+async def get_db_info(db: AsyncSession = Depends(get_db)):
+    from sqlalchemy import text
+    tables = [
+        "kc_prerequisites", "responses", "student_kc", "student_irt",
+        "item_edit_log", "item_versions", "items", "content_assets",
+        "graph_edit_history", "kc_notes", "knowledge_components", "cms_users"
+    ]
+    counts = {}
+    for table in tables:
+        try:
+            res = await db.execute(text(f"SELECT COUNT(*) FROM {table}"))
+            counts[table] = res.scalar()
+        except Exception as e:
+            counts[table] = f"Error: {e}"
+    return counts
+
+
+@router.post("/db-clean", summary="Dangerously truncate all tables in database")
+async def db_clean(db: AsyncSession = Depends(get_db)):
+    from sqlalchemy import text
+    tables = [
+        "kc_prerequisites", "responses", "student_kc", "student_irt",
+        "item_edit_log", "item_versions", "items", "content_assets",
+        "graph_edit_history", "kc_notes", "knowledge_components", "cms_users"
+    ]
+    truncated = []
+    for table in tables:
+        try:
+            await db.execute(text(f"TRUNCATE TABLE {table} CASCADE;"))
+            truncated.append(table)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to truncate {table}: {e}")
+    await db.commit()
+    graph_service.invalidate_graph_cache()
+    return {"status": "success", "truncated": truncated}
+
