@@ -610,6 +610,25 @@ function GraphBuilderInner() {
       const noteNodes = (graphData.notes || []).map(makeNoteFlowNode);
       setNodes([...kcAndBlockNodes, ...noteNodes]);
       setEdges(toFlowEdges(graphData.edges, cycleEdges, selectedEdgeId));
+
+      // Auto-migrate coordinates from localStorage to DB if missing in DB metadata
+      const storedPositions = getStoredPositions();
+      const nodesToSync = graphData.nodes.filter((n) => {
+        const hasDbPos = n.metadata && typeof n.metadata.x === "number" && typeof n.metadata.y === "number";
+        const hasLocalPos = storedPositions[n.id] !== undefined;
+        return !hasDbPos && hasLocalPos;
+      });
+      if (nodesToSync.length > 0) {
+        Promise.all(
+          nodesToSync.map((n) => {
+            const pos = storedPositions[n.id];
+            return graphApi.updateKC(n.id, { x: pos.x, y: pos.y })
+              .catch((err) => console.error(`Lỗi đồng bộ vị trí KC ${n.id} lên DB:`, err));
+          })
+        ).then(() => {
+          console.log(`Đã tự động đồng bộ ${nodesToSync.length} vị trí KC từ localStorage lên DB.`);
+        });
+      }
     } catch {
       showToast("Không kết nối được với backend", "err");
     } finally {
