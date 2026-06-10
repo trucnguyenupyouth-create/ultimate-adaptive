@@ -33,6 +33,7 @@ import {
   List,
   Search,
   X,
+  Link2,
 } from "lucide-react";
 
 import { graphApi, GraphHealth, GraphEdge, GraphBlock, GraphNote, EdgeType, KCNode } from "@/lib/api";
@@ -45,6 +46,7 @@ import HealthPanel from "@/components/HealthPanel";
 import KCDetailPanel from "@/components/KCDetailPanel";
 import CustomEdgeComponent from "@/components/CustomEdge";
 import EdgeDetailPanel from "@/components/EdgeDetailPanel";
+import ConnectKCDialog from "@/components/ConnectKCDialog";
 
 // Register custom node and edge types
 const nodeTypes = {
@@ -216,6 +218,7 @@ function GraphBuilderInner() {
   const [cycleEdges] = useState<Set<string>>(new Set());
   const [toolbarOpen, setToolbarOpen] = useState(false);
   const [activeEdgeType, setActiveEdgeType] = useState<EdgeType>("prerequisite");
+  const [showConnectDialog, setShowConnectDialog] = useState(false);
 
   // Search and List States
   const [searchQuery, setSearchQuery] = useState("");
@@ -918,6 +921,57 @@ function GraphBuilderInner() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [nodeToDelete, executeNodeDelete]);
 
+  // ── Global keyboard shortcut: C = open Connect dialog ─────────────
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger when no input/textarea/contenteditable is focused
+      const tag = (e.target as HTMLElement).tagName;
+      const isEditable = tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable;
+      if (isEditable) return;
+      if (e.key === "c" || e.key === "C") {
+        e.preventDefault();
+        setShowConnectDialog(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // ── Handle edge created from dialog ──────────────────────────────
+  const handleEdgeCreated = useCallback(
+    (prereqId: string, kcId: string, edgeType: EdgeType, label: string | null) => {
+      const edgeId = `${prereqId}->${kcId}`;
+      const edgeColors: Record<EdgeType, string> = {
+        prerequisite: "var(--edge-default)",
+        inference: "#8b949e",
+        unsure: "#d29922",
+      };
+      const color = edgeColors[edgeType];
+      const newEdge: Edge = {
+        id: edgeId,
+        source: prereqId,
+        target: kcId,
+        type: "prerequisite",
+        animated: false,
+        data: { label, isCycle: false, edge_type: edgeType },
+        style: {
+          stroke: color,
+          strokeWidth: 2,
+          strokeDasharray: edgeType === "inference" ? "8 5" : undefined,
+        },
+        markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 },
+      };
+      setEdges((eds) => {
+        // Avoid duplicate if already drawn via handle drag
+        if (eds.find((e) => e.id === edgeId)) return eds;
+        return [...eds, newEdge];
+      });
+      showToast(`✓ Đã thêm kết nối`);
+      graphApi.getHealth().then(setHealth);
+    },
+    [setHealth]
+  );
+
   // ── Node click ────────────────────────────────────────────────────────
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNodeId(node.id);
@@ -1064,6 +1118,17 @@ function GraphBuilderInner() {
           Refresh
         </button>
         <button
+          id="connect-kc-btn"
+          className="btn btn-secondary"
+          onClick={() => setShowConnectDialog(true)}
+          title="Kết nối KC bằng tìm kiếm (phím C)"
+          style={{ gap: 6, borderColor: "rgba(163,113,247,0.5)", color: "var(--accent-purple)" }}
+        >
+          <Link2 size={13} />
+          Kết nối KC
+          <span style={{ fontSize: 9, opacity: 0.6, background: "rgba(163,113,247,0.15)", padding: "1px 4px", borderRadius: 3, marginLeft: 2 }}>C</span>
+        </button>
+        <button
           className="btn btn-primary"
           onClick={() => { setShowCreatePanel(!showCreatePanel); setSelectedNodeId(null); }}
         >
@@ -1193,64 +1258,62 @@ function GraphBuilderInner() {
                 {!toolbarOpen && <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Công cụ</span>}
               </button>
 
-              {/* Expanded toolbar content */}
+              {/* ── Edge type selector — always visible when edge selected ── */}
+              {selectedEdgeId && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 5, width: "100%" }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase", textAlign: "center" }}>
+                    Loại nét đã chọn
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {([
+                      { type: "prerequisite" as EdgeType, label: "Prereq", color: "var(--edge-default)", dashStyle: "none" },
+                      { type: "inference" as EdgeType, label: "⚡ Inference", color: "#8b949e", dashStyle: "8px 4px" },
+                      { type: "unsure" as EdgeType, label: "❓ Unsure", color: "#d29922", dashStyle: "none" },
+                    ]).map(({ type, label, color, dashStyle }) => {
+                      const isActive = activeEdgeType === type;
+                      return (
+                        <button
+                          key={type}
+                          id={`edge-type-${type}`}
+                          onClick={() => handleChangeEdgeType(type)}
+                          title={`Đổi loại nét → ${type}`}
+                          style={{
+                            flex: 1,
+                            padding: "4px 6px",
+                            borderRadius: 7,
+                            border: `1.5px solid ${isActive ? color : "var(--border)"}`,
+                            background: isActive ? `${color}18` : "var(--bg-elevated)",
+                            color: isActive ? color : "var(--text-secondary)",
+                            cursor: "pointer",
+                            fontSize: 10,
+                            fontWeight: isActive ? 700 : 400,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            transition: "all 0.15s",
+                          }}
+                        >
+                          <svg width={18} height={8} style={{ flexShrink: 0 }}>
+                            <line
+                              x1={0} y1={4} x2={18} y2={4}
+                              stroke={color}
+                              strokeWidth={2}
+                              strokeDasharray={dashStyle === "none" ? undefined : dashStyle}
+                            />
+                          </svg>
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Expanded toolbar content — note only */}
               {toolbarOpen && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
-                  {/* ── Edge type row ───────────────────────── */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                      Loại kết nối {selectedEdgeId ? "(đã chọn)" : "(chọn edge trước)"}
-                    </div>
-                    <div style={{ display: "flex", gap: 7 }}>
-                      {([
-                        { type: "prerequisite" as EdgeType, label: "── Prerequisite", color: "var(--edge-default)", dashStyle: "none" },
-                        { type: "inference" as EdgeType, label: "- - Inference", color: "#8b949e", dashStyle: "8px 4px" },
-                        { type: "unsure" as EdgeType, label: "── Unsure?", color: "#d29922", dashStyle: "none" },
-                      ]).map(({ type, label, color, dashStyle }) => {
-                        const isActive = activeEdgeType === type;
-                        const hasEdge = !!selectedEdgeId;
-                        return (
-                          <button
-                            key={type}
-                            id={`edge-type-${type}`}
-                            onClick={() => hasEdge && handleChangeEdgeType(type)}
-                            disabled={!hasEdge}
-                            title={hasEdge ? `Đổi loại nét → ${type}` : "Chọn một edge trước"}
-                            style={{
-                              flex: 1,
-                              padding: "5px 8px",
-                              borderRadius: 8,
-                              border: `1.5px solid ${isActive && hasEdge ? color : "var(--border)"}`,
-                              background: isActive && hasEdge ? `${color}18` : "var(--bg-elevated)",
-                              color: hasEdge ? (isActive ? color : "var(--text-secondary)") : "var(--text-muted)",
-                              cursor: hasEdge ? "pointer" : "not-allowed",
-                              fontSize: 10,
-                              fontWeight: isActive ? 700 : 400,
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 5,
-                              transition: "all 0.15s",
-                              opacity: hasEdge ? 1 : 0.5,
-                            }}
-                          >
-                            {/* Visual dash preview */}
-                            <svg width={22} height={8} style={{ flexShrink: 0 }}>
-                              <line
-                                x1={0} y1={4} x2={22} y2={4}
-                                stroke={hasEdge ? color : "var(--text-muted)"}
-                                strokeWidth={2}
-                                strokeDasharray={dashStyle === "none" ? undefined : dashStyle}
-                              />
-                            </svg>
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-                  <div style={{ height: 1, background: "var(--border)", margin: "0 -4px" }} />
+                  {/* Divider only when edge type row is also shown */}
+                  {selectedEdgeId && <div style={{ height: 1, background: "var(--border)", margin: "0 -4px" }} />}
 
                   {/* ── Add note row ───────────────────────── */}
                   <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
@@ -1285,6 +1348,15 @@ function GraphBuilderInner() {
             </div>
           </Panel>
         </ReactFlow>
+
+        {/* ── Connect KC Dialog ──────────────────────────────────────── */}
+        {showConnectDialog && (
+          <ConnectKCDialog
+            nodes={nodes}
+            onClose={() => setShowConnectDialog(false)}
+            onEdgeCreated={handleEdgeCreated}
+          />
+        )}
 
         {/* Missing chapter_info notification banner */}
         {missingKCs.length > 0 && (
