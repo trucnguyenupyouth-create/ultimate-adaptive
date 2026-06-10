@@ -235,19 +235,21 @@ function GraphBuilderInner() {
 
   const missingKCs = useMemo(() => {
     return nodes
-      .map(n => n.data as unknown as KCNodeData)
-      .filter(d => !d.chapter_info || !d.chapter_info.trim());
+      .filter((n) => n.type === "kcNode")
+      .map((n) => n.data as unknown as KCNodeData)
+      .filter((d) => !d.chapter_info || !d.chapter_info.trim());
   }, [nodes]);
 
   const filteredNodes = useMemo(() => {
-    if (!searchQuery.trim()) return nodes;
+    const kcNodes = nodes.filter((n) => n.type === "kcNode");
+    if (!searchQuery.trim()) return kcNodes;
     const query = searchQuery.toLowerCase();
-    return nodes.filter((n) => {
+    return kcNodes.filter((n) => {
       const d = n.data as unknown as KCNodeData;
       return (
-        d.name.toLowerCase().includes(query) ||
-        d.code.toLowerCase().includes(query) ||
-        (d.chapter_info && d.chapter_info.toLowerCase().includes(query))
+        (d.name?.toLowerCase().includes(query) ?? false) ||
+        (d.code?.toLowerCase().includes(query) ?? false) ||
+        (d.chapter_info?.toLowerCase().includes(query) ?? false)
       );
     });
   }, [nodes, searchQuery]);
@@ -255,13 +257,15 @@ function GraphBuilderInner() {
   const navFilteredNodes = useMemo(() => {
     if (!navSearch.trim()) return [];
     const query = navSearch.toLowerCase();
-    return nodes.filter((n) => {
-      const d = n.data as unknown as KCNodeData;
-      return (
-        d.name.toLowerCase().includes(query) ||
-        d.code.toLowerCase().includes(query)
-      );
-    });
+    return nodes
+      .filter((n) => n.type === "kcNode")
+      .filter((n) => {
+        const d = n.data as unknown as KCNodeData;
+        return (
+          (d.name?.toLowerCase().includes(query) ?? false) ||
+          (d.code?.toLowerCase().includes(query) ?? false)
+        );
+      });
   }, [nodes, navSearch]);
 
   // ── Toast helper ─────────────────────────────────────────────────────

@@ -1,20 +1,20 @@
 import asyncio
-import os
+import traceback
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
 
-DATABASE_URL = "postgresql+asyncpg://postgres:Wizzdom2026@db.xfzbmwsbyzbehbwuidah.supabase.co:6543/postgres"
-
 async def test_conn():
-    print("Connecting to Supabase...")
+    url = "postgresql+asyncpg://postgres:Wizzdom2026@db.xfzbmwsbyzbehbwuidah.supabase.co:6543/postgres"
+    print("Connecting to:", url)
     try:
-        engine = create_async_engine(DATABASE_URL, echo=True)
-        async with engine.connect() as conn:
-            res = await conn.execute(text("SELECT 1;"))
-            print("Connection successful! Result:", res.scalar())
+        engine = create_async_engine(url, echo=False)
+        async with engine.begin() as conn:
+            res = await conn.execute(text("SELECT 1"))
+            print("Success! Result:", res.scalar())
         await engine.dispose()
     except Exception as e:
-        print("Connection failed:", e)
+        print("Failed to connect!")
+        traceback.print_exc()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(test_conn())
