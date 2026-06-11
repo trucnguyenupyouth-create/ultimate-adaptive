@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KST Items — B1 Tập Hợp, B2 Chữ Số & B9 Chia Hết</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --border: #e2e0d8;
+    --border-strong: #c8c5ba;
+    --text: #1a1a18;
+    --text-muted: #6b6960;
+    --text-faint: #9b9890;
+    --kc-tag: #1a1a18;
+    --tag-bg: #f0ede4;
+    --correct: #1a6b3c;
+    --correct-bg: #eaf5ee;
+    --correct-border: #a8d8b8;
+    --distractor: #8b3a1a;
+    --distractor-bg: #fdf0eb;
+    --distractor-border: #f0c4ae;
+    --fm-bg: #fffbf0;
+    --fm-border: #f0d890;
+    --fm-text: #6b5200;
+    --diff-1: #2563a8;
+    --diff-2: #1a7a50;
+    --diff-3: #8b6800;
+    --diff-4: #9b3d00;
+    --diff-5: #7a1a1a;
+    --pill-r: 4px;
+    --accent: #3d3a30;
+    font-size: 15px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Georgia', serif;
+    line-height: 1.65;
+    padding: 0 0 80px;
+  }
+  .page-header {
+    background: var(--text);
+    color: #f0ede4;
+    padding: 36px 48px 28px;
+  }
+  .page-header h1 {
+    font-family: 'Georgia', serif;
+    font-size: 22px;
+    font-weight: normal;
+    letter-spacing: 0.01em;
+    margin-bottom: 6px;
+  }
+  .page-header p {
+    font-size: 13px;
+    color: #a8a49a;
+    font-family: 'Courier New', monospace;
+  }
+  .nav-strip {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .nav-btn {
+    padding: 14px 18px 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn.active { color: var(--text); border-bottom-color: var(--text); }
+  .kc-section { display: none; padding: 40px 48px 0; max-width: 900px; }
+  .kc-section.visible { display: block; }
+  .kc-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+  .kc-code {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .kc-name {
+    font-size: 20px;
+    font-weight: normal;
+    margin-bottom: 10px;
+  }
+  .kc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .pill {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--pill-r);
+    padding: 3px 9px;
+    font-family: 'Courier New', monospace;
+    color: var(--text-muted);
+  }
+  .pill.prereq { background: #f0f4fb; border-color: #c5d4ee; color: #2a4a8b; }
+  .pill.downstream { background: #f4f0fb; border-color: #cfc5ee; color: #4a2a8b; }
+  .pill.chapter { background: #f0f4f0; border-color: #c5d8c5; color: #2a5a2a; }
+  .failure-modes {
+    background: var(--fm-bg);
+    border: 1px solid var(--fm-border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+  .failure-modes h3 {
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fm-text);
+    margin-bottom: 10px;
+  }
+  .fm-list { list-style: none; }
+  .fm-list li {
+    font-size: 13.5px;
+    color: #5a4800;
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .fm-list li::before {
+    content: attr(data-id);
+    position: absolute;
+    left: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--fm-text);
+    font-weight: bold;
+    top: 6px;
+  }
+  .items-grid { display: flex; flex-direction: column; gap: 20px; margin-bottom: 48px; }
+  .item-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .item-card-header {
+    background: var(--tag-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .item-num {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    min-width: 32px;
+  }
+  .diff-badge {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: var(--pill-r);
+    font-weight: bold;
+    letter-spacing: 0.04em;
+  }
+  .diff-1 { background: #deeaf8; color: var(--diff-1); border: 1px solid #b8d0f0; }
+  .diff-2 { background: #dff2e8; color: var(--diff-2); border: 1px solid #b0dcc0; }
+  .diff-3 { background: #fef8d8; color: var(--diff-3); border: 1px solid #f0d870; }
+  .diff-4 { background: #feeee0; color: var(--diff-4); border: 1px solid #f0c098; }
+  .diff-5 { background: #fde8e8; color: var(--diff-5); border: 1px solid #f0a8a8; }
+  .fm-badge {
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--pill-r);
+    padding: 2px 7px;
+  }
+  .type-badge {
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    padding: 2px 7px;
+    border-radius: var(--pill-r);
+    background: #f0ede4;
+    color: #6b6050;
+    border: 1px solid #dbd8ce;
+    margin-left: auto;
+  }
+  .item-body { padding: 18px 20px 16px; }
+  .stem {
+    font-size: 15px;
+    margin-bottom: 16px;
+    line-height: 1.7;
+  }
+  .stem .math {
+    font-family: 'Courier New', monospace;
+    background: var(--tag-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+  .options { display: flex; flex-direction: column; gap: 7px; }
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 13px;
+    border-radius: 5px;
+    font-size: 14px;
+    border: 1px solid transparent;
+  }
+  .option.correct {
+    background: var(--correct-bg);
+    border-color: var(--correct-border);
+  }
+  .option.wrong {
+    background: var(--distractor-bg);
+    border-color: var(--distractor-border);
+  }
+  .opt-label {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 18px;
+    padding-top: 1px;
+  }
+  .option.correct .opt-label { color: var(--correct); }
+  .option.wrong .opt-label { color: var(--distractor); }
+  .opt-text { flex: 1; }
+  .opt-why {
+    font-size: 11px;
+    color: var(--text-faint);
+    font-style: italic;
+    margin-top: 3px;
+    padding-left: 28px;
+    border-left: 2px solid var(--border);
+    padding-top: 2px;
+  }
+  .opt-why::before {
+    content: "⚑ ";
+    font-style: normal;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    opacity: 0.6;
+  }
+  .open-answer {
+    background: var(--correct-bg);
+    border: 1px solid var(--correct-border);
+    border-radius: 5px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--correct);
+  }
+  .open-answer .label {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    opacity: 0.7;
+  }
+  .graph-note {
+    background: #f4f0fb;
+    border: 1px solid #cfc5ee;
+    border-radius: 5px;
+    padding: 13px 16px;
+    font-size: 12.5px;
+    color: #4a2a7a;
+    margin-bottom: 24px;
+    font-family: 'Courier New', monospace;
+  }
+  .graph-note strong { font-weight: bold; }
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0 20px;
+  }
+  .items-label {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
+    margin-bottom: 14px;
+  }
+  @media (max-width: 680px) {
+    .page-header, .kc-section { padding-left: 20px; padding-right: 20px; }
+    .nav-strip { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>KST Items — Lớp 6: Tập Hợp, Chữ Số, Chia Hết &amp; So Sánh</h1>
+  <p>B1–B3 · B9K1 &nbsp;·&nbsp; 16 knowledge components &nbsp;·&nbsp; 97 items</p>
+</div>
+
+<nav class="nav-strip">
+  <button class="nav-btn active" onclick="show('kc1', this)">KC1 · Nhận biết tập hợp</button>
+  <button class="nav-btn" onclick="show('kc2', this)">KC2 · Phần tử thuộc/không thuộc</button>
+  <button class="nav-btn" onclick="show('kc3', this)">KC3 · Biểu diễn tập hợp</button>
+  <button class="nav-btn" onclick="show('kc4', this)">KC4 · Tập hợp rỗng</button>
+  <button class="nav-btn" onclick="show('kc5', this)">KC5 · Đọc &amp; viết chữ số</button>
+  <button class="nav-btn" onclick="show('kc6', this)">KC6 · Chia hết cho 2</button>
+  <button class="nav-btn" onclick="show('kc7', this)">KC7 · Chia hết cho 5</button>
+  <button class="nav-btn" onclick="show('kc8', this)">KC8 · Phân biệt chữ số &amp; số</button>
+  <button class="nav-btn" onclick="show('kc9', this)">KC9 · Giá trị chữ số</button>
+  <button class="nav-btn" onclick="show('kc10', this)">KC10 · Biểu diễn thành tổng</button>
+  <button class="nav-btn" onclick="show('kc11', this)">KC11 · Chia hết cho 3</button>
+  <button class="nav-btn" onclick="show('kc12', this)">KC12 · Chia hết cho 9</button>
+  <button class="nav-btn" onclick="show('kc13', this)">KC13 · Số La Mã &lt;30</button>
+  <button class="nav-btn" onclick="show('kc14', this)">KC14 · Ký hiệu ≤ và ≥</button>
+  <button class="nav-btn" onclick="show('kc15', this)">KC15 · Số liền trước/sau</button>
+  <button class="nav-btn" onclick="show('kc16', this)">KC16 · So sánh số TN</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════
+     KC1: NHẬN BIẾT TẬP HỢP VÀ LIỆT KÊ TẬP HỢP
+     ═══════════════════════════════════════════════════ -->
+<section id="kc1" class="kc-section visible">
+  <div class="kc-header">
+    <div class="kc-code">G6-MATH-NHAN-BIET-TAP &nbsp;·&nbsp; B1K1</div>
+    <div class="kc-name">Nhận biết tập hợp và liệt kê tập hợp</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 1 — Kì 1</span>
+      <span class="pill prereq">Prereq: không có (root node)</span>
+      <span class="pill downstream">Downstream: Nhận biết phần tử thuộc/không thuộc</span>
+    </div>
+  </div>
+
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm tập hợp với danh sách tự do: học sinh liệt kê lặp phần tử, hoặc không dùng dấu ngoặc nhọn, hoặc thêm dấu phẩy sau phần tử cuối (nhầm cú pháp ký hiệu).</li>
+      <li data-id="FM2">FM2 — Nhầm điều kiện xác định tập hợp: học sinh đưa vào tập hợp các đối tượng không thỏa điều kiện đề bài, hoặc bỏ sót đối tượng thỏa điều kiện.</li>
+      <li data-id="FM3">FM3 — Nhầm tập hợp với phần tử: học sinh không phân biệt được "tập hợp chứa một phần tử" với "chính phần tử đó" (ví dụ {3} ≠ 3).</li>
+    </ul>
+  </div>
+
+  <div class="items-label">7 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <!-- Item 1 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#1</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cách viết nào dưới đây là cách viết đúng của tập hợp gồm các số <span class="math">1, 2, 3</span>?</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{1; 2; 3}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">1, 2, 3</span></span>
+            <div class="opt-why">FM1 — liệt kê tự do, không có dấu ngoặc nhọn</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">{1, 2, 3,}</span></span>
+            <div class="opt-why">FM1 — có dấu phẩy thừa sau phần tử cuối</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">(1; 2; 3)</span></span>
+            <div class="opt-why">FM1 — dùng dấu ngoặc tròn thay ngoặc nhọn</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 2 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#2</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tập hợp các chữ cái trong từ "TOÁN" được viết là:</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{T; O; A; N}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">{T; O; A; N; T}</span></span>
+            <div class="opt-why">FM1 — liệt kê lặp chữ T (phần tử trùng lặp)</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">{T; O; A}</span></span>
+            <div class="opt-why">FM2 — bỏ sót phần tử N</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{T; O; A; N; O; A; N}</span></span>
+            <div class="opt-why">FM1 — liệt kê theo thứ tự xuất hiện, chấp nhận trùng</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 3 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#3</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tập hợp các số tự nhiên nhỏ hơn 5 là:</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{0; 1; 2; 3; 4}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">{1; 2; 3; 4}</span></span>
+            <div class="opt-why">FM2 — bỏ sót số 0 (quên 0 là số tự nhiên)</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">{0; 1; 2; 3; 4; 5}</span></span>
+            <div class="opt-why">FM2 — đưa vào số 5 dù đề bài yêu cầu "nhỏ hơn 5"</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{1; 2; 3; 4; 5}</span></span>
+            <div class="opt-why">FM2 — cả hai lỗi: bỏ 0, thêm 5</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 4 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#4</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cho tập hợp <span class="math">A = {7}</span>. Khẳng định nào sau đây là đúng?</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text">A là tập hợp có đúng một phần tử, phần tử đó là 7</span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text">A chính là số 7</span>
+            <div class="opt-why">FM3 — đồng nhất tập hợp {7} với phần tử 7</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text">A là tập hợp rỗng vì trong ngoặc chỉ có một số</span>
+            <div class="opt-why">FM3 — nhầm "ít phần tử" với "rỗng"</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text">A là tập hợp gồm các phần tử trong số 7 (tức là {0; 7})</span>
+            <div class="opt-why">FM2 — thêm phần tử không có trong định nghĩa</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 5 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#5</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Liệt kê tập hợp A gồm các số tự nhiên chẵn lớn hơn 3 và nhỏ hơn 12.</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          A = {4; 6; 8; 10}
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 6 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#6</span>
+        <span class="diff-badge diff-4">Độ khó 4</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tập hợp B gồm các chữ số xuất hiện trong số <span class="math">20 262</span> là:</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{0; 2; 6}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">{2; 0; 2; 6; 2}</span></span>
+            <div class="opt-why">FM1 — liệt kê lặp, không loại trùng</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">{2; 6}</span></span>
+            <div class="opt-why">FM2 — bỏ sót chữ số 0</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{0; 2; 6; 2}</span></span>
+            <div class="opt-why">FM1 — có 0 nhưng vẫn lặp số 2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 7 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#7</span>
+        <span class="diff-badge diff-5">Độ khó 5</span>
+        <span class="fm-badge">FM2 + FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tập hợp C gồm các số tự nhiên x thỏa mãn <span class="math">x · 0 = 0</span> và <span class="math">x &lt; 4</span> là:</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{0; 1; 2; 3}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">{0}</span></span>
+            <div class="opt-why">FM2 — nhầm điều kiện x·0=0 chỉ đúng với x=0 (quên đây là đẳng thức luôn đúng)</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text">Không tồn tại tập hợp C (tập rỗng)</span>
+            <div class="opt-why">FM3 — nhầm điều kiện, kết luận không có x nào thỏa</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{1; 2; 3}</span></span>
+            <div class="opt-why">FM2 — bỏ sót x=0 vì nghĩ "0 không tính"</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC2: NHẬN BIẾT PHẦN TỬ THUỘC / KHÔNG THUỘC
+     ═══════════════════════════════════════════════════ -->
+<section id="kc2" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G6-MATH-NHAN-BIET-PHAN &nbsp;·&nbsp; B1K1</div>
+    <div class="kc-name">Nhận biết phần tử thuộc hoặc không thuộc tập hợp</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 1 — Kì 1</span>
+      <span class="pill prereq">Prereq: Nhận biết tập hợp và liệt kê tập hợp</span>
+      <span class="pill downstream">Downstream: Tập hợp rỗng · Biểu diễn tập hợp</span>
+    </div>
+  </div>
+
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm ký hiệu ∈ và ∉: học sinh đọc đúng tập hợp nhưng viết/chọn ngược chiều ký hiệu (∈ thành ∉ hoặc ngược lại).</li>
+      <li data-id="FM2">FM2 — Nhầm phần tử với tập con: học sinh viết <span style="font-family:monospace">{3} ∈ A</span> thay vì <span style="font-family:monospace">3 ∈ A</span>, hoặc ngược lại nhầm tập con thành phần tử.</li>
+      <li data-id="FM3">FM3 — Đọc sai điều kiện của tập hợp: khi tập hợp cho theo tính chất (không liệt kê), học sinh kiểm tra sai và kết luận nhầm phần tử có thuộc hay không.</li>
+    </ul>
+  </div>
+
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <!-- Item 1 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#1</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cho tập hợp <span class="math">A = {1; 3; 5; 7}</span>. Khẳng định nào sau đây đúng?</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">3 ∈ A</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">3 ∉ A</span></span>
+            <div class="opt-why">FM1 — đọc đúng nhưng chọn ngược ký hiệu</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">2 ∈ A</span></span>
+            <div class="opt-why">FM3 — kiểm tra sai (2 không có trong A)</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{3} ∈ A</span></span>
+            <div class="opt-why">FM2 — nhầm phần tử với tập con chứa phần tử</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 2 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#2</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cho <span class="math">B = {a; b; c; d; e}</span>. Điền ký hiệu <span class="math">∈</span> hoặc <span class="math">∉</span> vào chỗ trống:<br><br>
+        <span class="math">a ___ B</span> &nbsp;&nbsp;&nbsp; <span class="math">f ___ B</span> &nbsp;&nbsp;&nbsp; <span class="math">c ___ B</span> &nbsp;&nbsp;&nbsp; <span class="math">g ___ B</span></div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          a ∈ B &nbsp;·&nbsp; f ∉ B &nbsp;·&nbsp; c ∈ B &nbsp;·&nbsp; g ∉ B
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 3 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#3</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cho <span class="math">C = {2; 4; 6; 8}</span>. Trong các cách viết dưới đây, cách viết nào SAI?</div>
+        <div class="options">
+          <div class="option wrong">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{4} ∈ C</span></span>
+            <div class="opt-why">FM2 — {4} là tập hợp, không phải phần tử của C → đây là cách viết sai (đây là đáp án đúng của câu hỏi)</div>
+          </div>
+          <div class="option correct">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">4 ∈ C</span> &nbsp;(đây là cách viết đúng)</span>
+          </div>
+          <div class="option correct">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">5 ∉ C</span> &nbsp;(đây là cách viết đúng)</span>
+          </div>
+          <div class="option correct">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">8 ∈ C</span> &nbsp;(đây là cách viết đúng)</span>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:10px;font-style:italic">Yêu cầu: chọn cách viết SAI.</p>
+      </div>
+    </div>
+
+    <!-- Item 4 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#4</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cho tập hợp D gồm các số tự nhiên lẻ nhỏ hơn 10. Khẳng định nào sau đây đúng?</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">9 ∈ D</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">10 ∈ D</span></span>
+            <div class="opt-why">FM3 — đọc sai "nhỏ hơn 10", nghĩ 10 thỏa mãn</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">0 ∈ D</span></span>
+            <div class="opt-why">FM3 — nhầm 0 là số lẻ</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">9 ∉ D</span></span>
+            <div class="opt-why">FM1 — biết 9 trong D nhưng viết ngược ký hiệu</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 5 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#5</span>
+        <span class="diff-badge diff-4">Độ khó 4</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cho E là tập hợp các số tự nhiên x thỏa mãn <span class="math">12 ÷ x</span> là số tự nhiên (tức x là ước của 12).<br><br>
+        Trong các số 1, 2, 5, 6, 12, 13 — số nào thuộc E, số nào không thuộc E? Viết đầy đủ bằng ký hiệu ∈ và ∉.</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          1 ∈ E &nbsp;·&nbsp; 2 ∈ E &nbsp;·&nbsp; 5 ∉ E &nbsp;·&nbsp; 6 ∈ E &nbsp;·&nbsp; 12 ∈ E &nbsp;·&nbsp; 13 ∉ E
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 6 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#6</span>
+        <span class="diff-badge diff-5">Độ khó 5</span>
+        <span class="fm-badge">FM2 + FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cho <span class="math">F = {x ∈ ℕ | x là số chẵn và x &lt; 10}</span>. Trong các khẳng định sau, có BAO NHIÊU khẳng định đúng?<br><br>
+        (i) <span class="math">4 ∈ F</span> &nbsp;&nbsp; (ii) <span class="math">{0; 2} ∈ F</span> &nbsp;&nbsp; (iii) <span class="math">10 ∉ F</span> &nbsp;&nbsp; (iv) <span class="math">8 ∈ F</span></div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text">3 khẳng định đúng (i), (iii), (iv)</span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text">4 khẳng định đúng (tất cả)</span>
+            <div class="opt-why">FM2 — không phát hiện (ii) sai ({0;2} là tập hợp, không phải phần tử)</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text">2 khẳng định đúng</span>
+            <div class="opt-why">FM3 — đọc sai điều kiện, nhầm 8 hoặc 4 không thuộc F</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text">1 khẳng định đúng</span>
+            <div class="opt-why">FM1 + FM3 — sai nhiều ký hiệu</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC3: BIỂU DIỄN TẬP HỢP — TÍNH CHẤT ĐẶC TRƯNG
+     ═══════════════════════════════════════════════════ -->
+<section id="kc3" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G6-MATH-BIEU-DIEN-TAP &nbsp;·&nbsp; B1K1</div>
+    <div class="kc-name">Biểu diễn tập hợp — Chỉ ra tính chất đặc trưng</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 1 — Kì 1</span>
+      <span class="pill prereq">Prereq: Nhận biết phần tử thuộc/không thuộc tập hợp</span>
+      <span class="pill downstream">Downstream: không có (terminal node)</span>
+    </div>
+  </div>
+
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Viết sai cú pháp biểu diễn theo tính chất: học sinh viết điều kiện bên ngoài ngoặc nhọn, hoặc không có ký hiệu "x ∈ ℕ |", hoặc nhầm dấu | với dấu /.</li>
+      <li data-id="FM2">FM2 — Tính chất đặc trưng không đủ mạnh: điều kiện viết ra mô tả được một tập hợp lớn hơn (không thu hẹp đúng về tập hợp đã cho), tức thiếu ràng buộc.</li>
+      <li data-id="FM3">FM3 — Tính chất đặc trưng sai: điều kiện loại trừ một số phần tử đúng của tập hợp, hoặc đưa vào phần tử không thuộc tập hợp.</li>
+    </ul>
+  </div>
+
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <!-- Item 1 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#1</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cách biểu diễn nào sau đây đúng cú pháp cho tập hợp các số tự nhiên nhỏ hơn 6?</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{x ∈ ℕ | x &lt; 6}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">{x &lt; 6, x ∈ ℕ}</span></span>
+            <div class="opt-why">FM1 — đặt điều kiện trước, thiếu dấu |, đảo trật tự</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">x ∈ ℕ | x &lt; 6</span></span>
+            <div class="opt-why">FM1 — thiếu dấu ngoặc nhọn bao ngoài</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{x / x &lt; 6, x ∈ ℕ}</span></span>
+            <div class="opt-why">FM1 — dùng dấu / thay dấu |, đảo thứ tự</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 2 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#2</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tập hợp <span class="math">A = {2; 4; 6; 8; 10}</span> được biểu diễn đúng bằng tính chất đặc trưng là:</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{x ∈ ℕ | x là số chẵn và 0 &lt; x ≤ 10}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">{x ∈ ℕ | x là số chẵn}</span></span>
+            <div class="opt-why">FM2 — điều kiện quá rộng (bao gồm 0, 12, 14…), không đặc trưng cho A</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">{x ∈ ℕ | x &lt; 10 và x chẵn}</span></span>
+            <div class="opt-why">FM2 — bỏ sót x=10 (dùng &lt; thay vì ≤)</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{x ∈ ℕ | x chẵn và x &lt; 12}</span></span>
+            <div class="opt-why">FM2 — điều kiện bao gồm thêm x=0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 3 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#3</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM2 + FM3</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Viết tập hợp sau bằng cách chỉ ra tính chất đặc trưng:<br><br><span class="math">B = {1; 4; 9; 16; 25}</span></div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          B = {x ∈ ℕ | x là số chính phương và x ≤ 25}<br>
+          <span style="font-size:12px;opacity:0.8">hoặc: {x ∈ ℕ | x = n² với n ∈ {1;2;3;4;5}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 4 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#4</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tập hợp <span class="math">C = {x ∈ ℕ | x là bội của 3 và x ≤ 15}</span> khi liệt kê ra là:</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{0; 3; 6; 9; 12; 15}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">{3; 6; 9; 12; 15}</span></span>
+            <div class="opt-why">FM3 — bỏ 0 (quên 0 là bội của mọi số tự nhiên khác 0)</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">{0; 3; 6; 9; 12}</span></span>
+            <div class="opt-why">FM3 — đọc sai "≤ 15" thành "&lt; 15", bỏ số 15</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{3; 6; 9; 12}</span></span>
+            <div class="opt-why">FM3 — cả hai lỗi: bỏ 0 và bỏ 15</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 5 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#5</span>
+        <span class="diff-badge diff-4">Độ khó 4</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong các cách biểu diễn sau cho tập hợp <span class="math">D = {0; 1; 2; 3; 4; 5; 6; 7; 8; 9}</span>, cách nào đúng?</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{x ∈ ℕ | x &lt; 10}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">{x ∈ ℕ | x ≤ 10}</span></span>
+            <div class="opt-why">FM2 — bao gồm thêm 10, không đúng với D</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">{x ∈ ℕ | x là chữ số}</span></span>
+            <div class="opt-why">FM2 — đúng nội dung nhưng thiếu chính xác toán học (phụ thuộc định nghĩa "chữ số")</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{x ∈ ℕ | 0 &lt; x &lt; 10}</span></span>
+            <div class="opt-why">FM3 — loại trừ x=0 dù 0 ∈ D</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 6 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#6</span>
+        <span class="diff-badge diff-5">Độ khó 5</span>
+        <span class="fm-badge">FM2 + FM3</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Bạn Minh viết: <span class="math">E = {x ∈ ℕ | x là ước của 12}</span>.<br>
+        Bạn Lan viết: <span class="math">E = {x ∈ ℕ | 12 chia hết cho x và x ≤ 6}</span>.<br><br>
+        Hai cách biểu diễn có mô tả cùng một tập hợp không? Giải thích.</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          Không. Cách Minh: {1;2;3;4;6;12} — Cách Lan: {1;2;3;4;6} (thiếu 12 vì 12 &gt; 6). Cách Minh đúng.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC4: TẬP HỢP RỖNG
+     ═══════════════════════════════════════════════════ -->
+<section id="kc4" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G6-MATH-CLAUDE-SUGGEST-TAP &nbsp;·&nbsp; B1K1</div>
+    <div class="kc-name">Tập hợp rỗng</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 1 — Kì 1</span>
+      <span class="pill prereq">Prereq: Nhận biết phần tử thuộc/không thuộc tập hợp</span>
+      <span class="pill downstream">Downstream: không có (terminal node)</span>
+    </div>
+  </div>
+
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm ký hiệu tập rỗng: học sinh viết <span style="font-family:monospace">{}</span> đúng nhưng không biết ký hiệu <span style="font-family:monospace">∅</span>, hoặc ngược lại viết <span style="font-family:monospace">{∅}</span> (tập chứa phần tử ∅) thay vì <span style="font-family:monospace">∅</span>.</li>
+      <li data-id="FM2">FM2 — Không nhận ra điều kiện vô lý: học sinh không phân tích được điều kiện của tập hợp là mâu thuẫn, nên nghĩ tập hợp có phần tử.</li>
+      <li data-id="FM3">FM3 — Nhầm tập rỗng với tập có số 0: học sinh cho rằng <span style="font-family:monospace">{0}</span> là tập rỗng vì "0 là không có gì".</li>
+    </ul>
+  </div>
+
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <!-- Item 1 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#1</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tập hợp rỗng được ký hiệu là:</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">∅</span> hoặc <span class="math">{}</span></span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">{∅}</span></span>
+            <div class="opt-why">FM1 — nhầm: {∅} là tập hợp có một phần tử là ∅, không phải tập rỗng</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">{0}</span></span>
+            <div class="opt-why">FM3 — nhầm tập rỗng với tập chứa số 0</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">0</span></span>
+            <div class="opt-why">FM3 — nhầm tập rỗng với số 0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 2 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#2</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tập hợp nào sau đây là tập hợp rỗng?</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text">Tập hợp các số tự nhiên lớn hơn 5 và nhỏ hơn 3</span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text">Tập hợp các số tự nhiên nhỏ hơn 1</span>
+            <div class="opt-why">FM2 — quên 0 ∈ ℕ, nghĩ không có số tự nhiên nào &lt; 1</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text">Tập hợp <span class="math">{0}</span></span>
+            <div class="opt-why">FM3 — nghĩ {0} là rỗng vì "0 bằng không có gì"</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text">Tập hợp các số tự nhiên lớn hơn 100</span>
+            <div class="opt-why">FM2 — nhầm "rất ít phần tử" hoặc "phần tử lớn" với "rỗng"</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 3 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#3</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Khẳng định nào sau đây SAI?</div>
+        <div class="options">
+          <div class="option wrong">
+            <span class="opt-label">A</span>
+            <span class="opt-text"><span class="math">{∅}</span> là tập hợp rỗng</span>
+            <div class="opt-why">FM1 — đây là khẳng định SAI (đây là đáp án cần chọn): {∅} có một phần tử là ∅, không rỗng</div>
+          </div>
+          <div class="option correct">
+            <span class="opt-label">B</span>
+            <span class="opt-text"><span class="math">∅</span> không có phần tử nào &nbsp;(đúng)</span>
+          </div>
+          <div class="option correct">
+            <span class="opt-label">C</span>
+            <span class="opt-text"><span class="math">{}</span> và <span class="math">∅</span> là hai cách viết của tập rỗng &nbsp;(đúng)</span>
+          </div>
+          <div class="option correct">
+            <span class="opt-label">D</span>
+            <span class="opt-text"><span class="math">{0} ≠ ∅</span> &nbsp;(đúng)</span>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:10px;font-style:italic">Yêu cầu: chọn khẳng định SAI.</p>
+      </div>
+    </div>
+
+    <!-- Item 4 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#4</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Xét tập hợp <span class="math">A = {x ∈ ℕ | x &lt; 5 và x &gt; 8}</span>.<br>Tập hợp A có bao nhiêu phần tử? Vì sao?</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          A = ∅ (tập rỗng). Vì không tồn tại số tự nhiên x nào vừa nhỏ hơn 5 vừa lớn hơn 8 — hai điều kiện mâu thuẫn nhau.
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 5 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#5</span>
+        <span class="diff-badge diff-4">Độ khó 4</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tập hợp nào sau đây là tập hợp rỗng?</div>
+        <div class="options">
+          <div class="option correct">
+            <span class="opt-label">A</span>
+            <span class="opt-text">Tập hợp các số tự nhiên chẵn chia hết cho 3 và có một chữ số, lớn hơn 9</span>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">B</span>
+            <span class="opt-text">Tập hợp các số tự nhiên chia hết cho cả 2 và 3</span>
+            <div class="opt-why">FM2 — nghĩ "chia hết cho cả 2 và 3" là vô lý (quên VD: 6, 12…)</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">C</span>
+            <span class="opt-text">Tập hợp các số tự nhiên lẻ chia hết cho 2</span>
+            <div class="opt-why">FM2 — đây thực ra cũng là rỗng, nhưng distractor này nhử học sinh "có cả hai tập rỗng" và không chọn được A</div>
+          </div>
+          <div class="option wrong">
+            <span class="opt-label">D</span>
+            <span class="opt-text">Tập hợp các số nguyên tố chẵn</span>
+            <div class="opt-why">FM2 — quên số 2 là số nguyên tố chẵn</div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:10px;font-style:italic">Lưu ý thiết kế: A đúng vì "có một chữ số và &gt; 9" mâu thuẫn. C là bẫy: cũng rỗng nhưng vì lý do khác — học sinh cần đọc kỹ câu hỏi. D: {2} không rỗng.</p>
+      </div>
+    </div>
+
+    <!-- Item 6 -->
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#6</span>
+        <span class="diff-badge diff-5">Độ khó 5</span>
+        <span class="fm-badge">FM1 + FM2 + FM3</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Bạn An nói: "Tập hợp <span class="math">{∅}</span> và tập hợp <span class="math">∅</span> là giống nhau."<br>
+        Bạn Bình nói: "Tập hợp các số tự nhiên x mà x + 1 = x là tập rỗng."<br><br>
+        Bạn nào nói đúng? Giải thích.</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          Bình đúng. Không có số tự nhiên nào thỏa x + 1 = x → tập rỗng. An sai: {∅} là tập hợp có một phần tử (chính là ∅), không phải tập rỗng.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC6: DẤU HIỆU CHIA HẾT CHO 2
+     ═══════════════════════════════════════════════════ -->
+<section id="kc6" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G6-MATH-DAU-HIEU-CHIA &nbsp;·&nbsp; B9K1</div>
+    <div class="kc-name">Dấu hiệu chia hết cho 2</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 9 — Kì 1</span>
+      <span class="pill prereq">Prereq: không có (root node)</span>
+      <span class="pill downstream">Downstream: Phân biệt chữ số và số</span>
+    </div>
+  </div>
+
+  <div class="graph-note">
+    <strong>⚠ Graph note:</strong> Root node — items không assume bất kỳ prereq nào. Items phải dừng tại việc ÁP DỤNG dấu hiệu (tận cùng chẵn), không yêu cầu phân tích cấu trúc chữ số (downstream).
+  </div>
+
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm dấu hiệu chia hết cho 2 với chia hết cho 3/9: học sinh kiểm tra tổng các chữ số thay vì chữ số tận cùng (áp dụng sai quy tắc).</li>
+      <li data-id="FM2">FM2 — Bỏ sót chữ số tận cùng 0: học sinh chỉ nhớ {2, 4, 6, 8} là tận cùng chẵn, quên rằng 0 cũng chẵn → bỏ sót các số tận cùng 0.</li>
+      <li data-id="FM3">FM3 — Áp dụng sai chiều: học sinh nhầm điều kiện, hoặc kết luận nhầm khi chữ số tận cùng lẻ mà số có chữ số chẵn ở vị trí khác.</li>
+    </ul>
+  </div>
+
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#1</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Số nào sau đây chia hết cho 2?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">40</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">33</span></span><div class="opt-why">FM1 — 3+3=6 chẵn, học sinh nhầm kiểm tra tổng thay vì tận cùng</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">51</span></span><div class="opt-why">FM1 — 5+1=6 chẵn, cùng lỗi nhầm tổng chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">35</span></span><div class="opt-why">FM2 — tận cùng 5, học sinh nhầm với dấu hiệu chia hết cho 5</div></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;font-style:italic">Note: 40 tận cùng 0 bẫy FM2 — học sinh hay quên 0 là chữ số chẵn.</p>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#2</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">33</span> có chia hết cho 2 không?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Không, vì tận cùng là 3 (lẻ)</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Có, vì 3 + 3 = 6 là số chẵn</span><div class="opt-why">FM1 — áp dụng dấu hiệu chia hết cho 3/9, kết luận sai</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Có, vì 33 &gt; 30 và 30 chia hết cho 2</span><div class="opt-why">FM3 — suy luận sai chiều từ số gần đó</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Không, vì 33 không chia hết cho 3</span><div class="opt-why">FM1 — nhầm dấu hiệu cho 3 rồi kết luận ngược</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#3</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong các số <span class="math">10, 20, 35, 50, 70</span>, có bao nhiêu số chia hết cho 2?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">4 số (10, 20, 50, 70)</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">0 số (không có số nào)</span><div class="opt-why">FM2 — tất cả tận cùng 0, học sinh nghĩ 0 không phải chữ số chẵn nên không có số nào chia hết cho 2</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">5 số (tất cả)</span><div class="opt-why">FM3 — nhầm, đưa cả 35 vào (tận cùng 5 mà nghĩ chẵn)</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">1 số (chỉ 20)</span><div class="opt-why">FM2 — chỉ nhận 20 vì quen thuộc, bỏ sót 10, 50, 70</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#4</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">4□8</span> (trong đó □ là một chữ số bất kỳ từ 0 đến 9). Số này có chia hết cho 2 không, dù □ là chữ số nào?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Có, vì chữ số tận cùng luôn là 8 (chẵn), không phụ thuộc □</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Phụ thuộc, chỉ chia hết khi □ là số chẵn</span><div class="opt-why">FM3 — nhầm vị trí: nghĩ □ ở giữa quyết định tính chẵn lẻ</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Không, vì tổng 4 + □ + 8 có thể lẻ</span><div class="opt-why">FM1 — nhầm dấu hiệu, kiểm tra tổng các chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Chỉ chia hết khi □ = 0</span><div class="opt-why">FM3 — nhầm: nghĩ chỉ số 0 ở giữa làm số chia hết cho 2</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#5</span>
+        <span class="diff-badge diff-4">Độ khó 4</span>
+        <span class="fm-badge">FM1 + FM2</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong danh sách sau, hãy gạch chân các số KHÔNG chia hết cho 2:<br><br><span class="math">120 &nbsp;&nbsp; 135 &nbsp;&nbsp; 240 &nbsp;&nbsp; 333 &nbsp;&nbsp; 400 &nbsp;&nbsp; 501</span></div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          135 (tận cùng 5) &nbsp;·&nbsp; 333 (tận cùng 3) &nbsp;·&nbsp; 501 (tận cùng 1)<br>
+          <span style="font-size:12px;opacity:0.8">Bẫy FM1: 333 có 3+3+3=9 → học sinh nhầm chia hết cho 3 thành không chia hết cho 2. Bẫy FM2: 120, 240, 400 đều tận cùng 0.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#6</span>
+        <span class="diff-badge diff-5">Độ khó 5</span>
+        <span class="fm-badge">FM1 + FM2 + FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Bạn Minh nói: <em>"Số 330 không chia hết cho 2 vì 3 + 3 + 0 = 6, mà 6 = 2 × 3, nên 330 chia hết cho 3, không chia hết cho 2."</em> Đánh giá lập luận của Minh.</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Minh sai. 330 tận cùng 0 (chẵn) nên chia hết cho 2. Lập luận dùng sai dấu hiệu.</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Minh đúng. Tổng chữ số 6 chia hết cho 3 chứng tỏ 330 không chia hết cho 2.</span><div class="opt-why">FM1 — chấp nhận nhầm lẫn giữa dấu hiệu chia hết cho 3 và cho 2</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Minh sai về lý do, nhưng kết quả đúng: 330 thực sự không chia hết cho 2.</span><div class="opt-why">FM2 + FM3 — nhầm lý do và kết luận sai về 330</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Minh đúng vì 330 chia hết cho 3 nên không thể chia hết cho 2.</span><div class="opt-why">FM3 — nghĩ chia hết cho 3 loại trừ chia hết cho 2</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC7: DẤU HIỆU CHIA HẾT CHO 5
+     ═══════════════════════════════════════════════════ -->
+<section id="kc7" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G9-MATH-DAU-HIEU-CHIA &nbsp;·&nbsp; B9K1</div>
+    <div class="kc-name">Dấu hiệu chia hết cho 5</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 9 — Kì 1</span>
+      <span class="pill prereq">Prereq: không có (root node)</span>
+      <span class="pill downstream">Downstream: Phân biệt chữ số và số</span>
+    </div>
+  </div>
+
+  <div class="graph-note">
+    <strong>⚠ Graph note:</strong> Root node, song song với KC6. Items không được test phân biệt chữ số/số (downstream). Thiết kế items để phân biệt rõ dấu hiệu ÷5 (tận cùng 0 hoặc 5) với dấu hiệu ÷2 (tận cùng chẵn) — hai root nodes có failure modes chéo nhau.
+  </div>
+
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm với dấu hiệu chia hết cho 2: học sinh kiểm tra tận cùng chẵn thay vì tận cùng 0 hoặc 5 (áp dụng nhầm quy tắc).</li>
+      <li data-id="FM2">FM2 — Bỏ sót tận cùng 0: học sinh chỉ nhớ tận cùng 5 mới chia hết cho 5, quên tận cùng 0 cũng chia hết cho 5.</li>
+      <li data-id="FM3">FM3 — Nhầm quan hệ với chia hết cho 2: nghĩ số tận cùng 0 vừa chia hết cho 2 vừa chia hết cho 5, hoặc nhầm số tận cùng 5 cũng chia hết cho 2.</li>
+    </ul>
+  </div>
+
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#1</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Số nào sau đây chia hết cho 5?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">30</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">32</span></span><div class="opt-why">FM1 — tận cùng 2 (chẵn), nhầm sang dấu hiệu chia hết cho 2</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">34</span></span><div class="opt-why">FM1 — tận cùng 4 (chẵn), cùng lỗi FM1</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">36</span></span><div class="opt-why">FM1 — tận cùng 6 (chẵn), cùng lỗi FM1</div></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;font-style:italic">Note: 30 tận cùng 0 bẫy FM2. Học sinh hay quên 0 → cũng chia hết cho 5.</p>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#2</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong các số <span class="math">15, 20, 25, 30, 34</span>, những số nào chia hết cho 5?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">15, 20, 25, 30 (4 số)</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Chỉ 15 và 25 (2 số)</span><div class="opt-why">FM2 — bỏ sót 20 và 30 vì tận cùng 0, chỉ nhớ tận cùng 5</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">15, 20, 25, 30, 34 (5 số)</span><div class="opt-why">FM1 — đưa 34 vào vì tận cùng 4 (chẵn), nhầm dấu hiệu</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">20 và 30 (2 số)</span><div class="opt-why">FM2 — chỉ nhận tận cùng 0, bỏ sót 15 và 25</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#3</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM1 + FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">14</span> có chia hết cho 5 không?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Không, vì tận cùng là 4, không phải 0 hoặc 5</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Có, vì tận cùng là 4 (số chẵn)</span><div class="opt-why">FM1 — nhầm hoàn toàn sang dấu hiệu chia hết cho 2</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Có, vì 14 = 10 + 4 và 10 chia hết cho 5</span><div class="opt-why">FM3 — suy luận sai: tổng không chia hết nếu một hạng tử không chia hết</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Không, vì 14 là số chẵn, chỉ số lẻ mới chia hết cho 5</span><div class="opt-why">FM3 — nhầm nghĩ ÷5 và ÷2 loại trừ nhau</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#4</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Bạn Lan nói: <em>"Số tận cùng bằng 0 thì chia hết cho 5 nhưng không chia hết cho 2, vì 5 và 2 là hai số khác nhau."</em> Đúng hay sai?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Sai. Số tận cùng 0 vừa chia hết cho 2 (vì 0 chẵn) vừa chia hết cho 5.</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Đúng. Chia hết cho 5 và chia hết cho 2 không thể đồng thời xảy ra.</span><div class="opt-why">FM3 — nghĩ hai dấu hiệu loại trừ nhau</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Đúng, nhưng với điều kiện số đó phải lớn hơn 10.</span><div class="opt-why">FM3 — thêm điều kiện sai</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Sai. Số tận cùng 0 chia hết cho 2 nhưng không chia hết cho 5.</span><div class="opt-why">FM2 — nhầm chiều: quên 0 là tận cùng hợp lệ cho ÷5</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#5</span>
+        <span class="diff-badge diff-4">Độ khó 4</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Tìm tất cả chữ số x (0 ≤ x ≤ 9) để số <span class="math">37x</span> chia hết cho 5.</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          x = 0 → 370 chia hết cho 5 &nbsp;·&nbsp; x = 5 → 375 chia hết cho 5<br>
+          <span style="font-size:12px;opacity:0.8">Bẫy FM2: học sinh chỉ tìm được x = 5, bỏ sót x = 0.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#6</span>
+        <span class="diff-badge diff-5">Độ khó 5</span>
+        <span class="fm-badge">FM1 + FM2 + FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong các khẳng định sau, có bao nhiêu khẳng định đúng?<br><br>
+        (i) Số 150 chia hết cho cả 2 và 5.<br>
+        (ii) Số 125 chia hết cho 5 nhưng không chia hết cho 2.<br>
+        (iii) Số 24 chia hết cho 5 vì tận cùng là 4 (chẵn).<br>
+        (iv) Không có số nào vừa chia hết cho 2 vừa chia hết cho 5.</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">2 khẳng định đúng: (i) và (ii)</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">3 khẳng định đúng: (i), (ii) và (iii)</span><div class="opt-why">FM1 — chấp nhận (iii): nhầm tận cùng chẵn ÷ 5</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">3 khẳng định đúng: (i), (ii) và (iv)</span><div class="opt-why">FM3 — chấp nhận (iv): nghĩ ÷2 và ÷5 loại trừ nhau</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">1 khẳng định đúng: chỉ (ii)</span><div class="opt-why">FM2 — bỏ (i) vì 150 tận cùng 0, không nhận ra chia hết cho cả hai</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC8: PHÂN BIỆT CHỮ SỐ VÀ SỐ
+     ═══════════════════════════════════════════════════ -->
+<section id="kc8" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G6-MATH-PHAN-BIET-CHU &nbsp;·&nbsp; B2K1</div>
+    <div class="kc-name">Phân biệt chữ số và số</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 2 — Kì 1</span>
+      <span class="pill prereq">Prereq: Dấu hiệu chia hết cho 2 · 3 · 5 · 9</span>
+      <span class="pill downstream">Downstream: Nhận biết giá trị các chữ số</span>
+    </div>
+  </div>
+
+  <div class="graph-note">
+    <strong>⚠ Graph note — edge cần review:</strong> Graph định nghĩa 4 dấu hiệu chia hết (B9K1) là prereqs của KC này (B2K1), trong khi SGK dạy B2 trước B9. Khả năng đây là inference edge: nắm vững dấu hiệu chia hết (sử dụng "chữ số tận cùng", "tổng chữ số") đồng nghĩa với đã hiểu khái niệm chữ số. Items không được test giá trị các chữ số (downstream).
+  </div>
+
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm "số" với "chữ số": học sinh gọi số 47 là "chữ số 47", hoặc nói số 47 "là một chữ số", hoặc gọi chữ số 4 trong số 47 là "số 4".</li>
+      <li data-id="FM2">FM2 — Đếm sai số lượng chữ số: học sinh bỏ qua chữ số 0 khi đếm (e.g., 1 005 có "2 chữ số"), hoặc đếm số lần xuất hiện của từng loại thay vì tổng số vị trí.</li>
+      <li data-id="FM3">FM3 — Nhầm số lượng chữ số với số loại chữ số: trong số 333, học sinh nói "có 1 chữ số" vì chỉ có một loại chữ số khác nhau.</li>
+    </ul>
+  </div>
+
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#1</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong các đối tượng dưới đây, đối tượng nào là <em>chữ số</em>?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">7</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">17</span></span><div class="opt-why">FM1 — 17 là số (có 2 chữ số), không phải chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">70</span></span><div class="opt-why">FM1 — 70 là số (có 2 chữ số), không phải chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">100</span></span><div class="opt-why">FM1 — 100 là số (có 3 chữ số), không phải chữ số</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#2</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">38</span> gồm bao nhiêu chữ số?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">2 chữ số (chữ số 3 và chữ số 8)</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">1 chữ số (chữ số 38)</span><div class="opt-why">FM1 — coi nguyên số 38 là "một chữ số"</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">38 chữ số</span><div class="opt-why">FM1 — nhầm giá trị số với số lượng chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">2 số (số 3 và số 8)</span><div class="opt-why">FM1 — nhầm thuật ngữ "số" và "chữ số"</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#3</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">1 005</span> có bao nhiêu chữ số?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">4 chữ số</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">2 chữ số (bỏ qua các chữ số 0)</span><div class="opt-why">FM2 — bỏ sót cả 2 chữ số 0</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">3 chữ số (bỏ qua một chữ số 0)</span><div class="opt-why">FM2 — bỏ sót một chữ số 0</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">5 chữ số (đếm mỗi chữ số một lần dù lặp)</span><div class="opt-why">FM2 biến thể — đếm sai theo cách khác</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#4</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">555</span> có bao nhiêu chữ số?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">3 chữ số (có 3 chữ số, tất cả đều là chữ số 5)</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">1 chữ số (chỉ có một loại chữ số khác nhau là 5)</span><div class="opt-why">FM3 — nhầm "số lượng chữ số" với "số loại chữ số khác nhau"</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">15 chữ số (vì 5+5+5=15)</span><div class="opt-why">FM1 — cộng giá trị thay vì đếm vị trí</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">3 số (số 5, số 5, số 5)</span><div class="opt-why">FM1 — nhầm "số" với "chữ số"</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#5</span>
+        <span class="diff-badge diff-4">Độ khó 4</span>
+        <span class="fm-badge">FM2 + FM3</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cho số <span class="math">30 040</span>. Trả lời:<br>(a) Số này có bao nhiêu chữ số?<br>(b) Những chữ số nào xuất hiện trong số này (liệt kê từng loại chữ số khác nhau)?</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          (a) 5 chữ số (3, 0, 0, 4, 0 — 5 vị trí)<br>
+          (b) Hai loại chữ số khác nhau: chữ số 0, chữ số 3, chữ số 4<br>
+          <span style="font-size:12px;opacity:0.8">Bẫy FM2: học sinh nói "2 chữ số" (chỉ đếm 3 và 4, bỏ 0). Bẫy FM3: nhầm câu (a) với câu (b).</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#6</span>
+        <span class="diff-badge diff-5">Độ khó 5</span>
+        <span class="fm-badge">FM1 + FM2 + FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Xét 4 khẳng định:<br>
+        (i) Số 5 là một chữ số.<br>
+        (ii) Số 15 có hai chữ số là <em>số</em> 1 và <em>số</em> 5.<br>
+        (iii) Số 100 có 3 chữ số: 1, 0, 0.<br>
+        (iv) Số 66 chỉ có 1 chữ số vì chỉ xuất hiện 1 loại chữ số.<br><br>
+        Có bao nhiêu khẳng định đúng?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">2 khẳng định đúng: (i) và (iii)</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">3 khẳng định đúng: (i), (ii) và (iii)</span><div class="opt-why">FM1 — chấp nhận (ii): không nhận ra lỗi gọi chữ số là "số"</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">3 khẳng định đúng: (i), (iii) và (iv)</span><div class="opt-why">FM3 — chấp nhận (iv): nhầm số loại chữ số với số lượng chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">4 khẳng định đúng (tất cả)</span><div class="opt-why">FM1 + FM3 — không phát hiện lỗi ở (ii) và (iv)</div></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;font-style:italic">Note: (i) đúng — 5 vừa là chữ số vừa là số. (ii) sai — phải gọi là "chữ số 1 và chữ số 5". (iii) đúng — 100 có đúng 3 chữ số. (iv) sai — 66 có 2 chữ số dù chỉ 1 loại.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC9: NHẬN BIẾT GIÁ TRỊ CÁC CHỮ SỐ
+     ═══════════════════════════════════════════════════ -->
+<section id="kc9" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G9-MATH-NHAN-BIET-GIA &nbsp;·&nbsp; B2K1</div>
+    <div class="kc-name">Nhận biết giá trị các chữ số của một số tự nhiên viết trong hệ thập phân</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 2 — Kì 1</span>
+      <span class="pill prereq">Prereq: Phân biệt chữ số và số</span>
+      <span class="pill downstream">Downstream: Đọc &amp; viết chữ số · Biểu diễn thành tổng giá trị</span>
+    </div>
+  </div>
+
+  <div class="graph-note">
+    <strong>⚠ Graph note:</strong> Items test GIÁ TRỊ (700, không phải 7) của một chữ số tại một hàng cụ thể. Không được yêu cầu viết tổng đầy đủ (downstream KC10), không yêu cầu đọc/viết số (downstream KC5).
+  </div>
+
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm "giá trị chữ số" với "chữ số": trả lời 7 thay vì 700 khi hỏi giá trị chữ số 7 ở hàng trăm.</li>
+      <li data-id="FM2">FM2 — Nhầm hàng → sai giá trị: xác định sai vị trí của chữ số (e.g., nghĩ chữ số 8 trong 4 835 ở hàng chục thay vì hàng trăm).</li>
+      <li data-id="FM3">FM3 — Nhầm hàng khi có chữ số 0 ở giữa: trong 3 047, chữ số 4 ở hàng chục (giá trị 40) nhưng học sinh nhầm thành hàng trăm (giá trị 400).</li>
+    </ul>
+  </div>
+
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#1</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong số <span class="math">256</span>, giá trị của chữ số <span class="math">2</span> là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">200</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">2</span></span><div class="opt-why">FM1 — nhầm giá trị với chính chữ số đó</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">20</span></span><div class="opt-why">FM2 — nhầm 2 ở hàng chục (giá trị 20) thay vì hàng trăm</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">2 000</span></span><div class="opt-why">FM2 — nhầm 2 ở hàng nghìn</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#2</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong số <span class="math">4 835</span>, giá trị của chữ số <span class="math">8</span> là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">800</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">8</span></span><div class="opt-why">FM1 — nhầm giá trị với chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">80</span></span><div class="opt-why">FM2 — nhầm 8 ở hàng chục thay vì hàng trăm</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">8 000</span></span><div class="opt-why">FM2 — nhầm 8 ở hàng nghìn</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#3</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM1 + FM2</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Cho số <span class="math">7 362</span>. Điền giá trị của từng chữ số vào bảng:<br><br>
+        Chữ số <span class="math">7</span> (hàng nghìn): ___ &nbsp;&nbsp; Chữ số <span class="math">3</span> (hàng trăm): ___ &nbsp;&nbsp; Chữ số <span class="math">6</span> (hàng chục): ___ &nbsp;&nbsp; Chữ số <span class="math">2</span> (hàng đơn vị): ___</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          7 → 7 000 &nbsp;·&nbsp; 3 → 300 &nbsp;·&nbsp; 6 → 60 &nbsp;·&nbsp; 2 → 2
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#4</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong số <span class="math">3 047</span>, giá trị của chữ số <span class="math">4</span> là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">40</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">4</span></span><div class="opt-why">FM1 — nhầm giá trị với chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">400</span></span><div class="opt-why">FM3 — nhầm hàng do có chữ số 0 ở hàng trăm: 3 _ 0 _ 4 _ 7 → nghĩ 4 ở hàng trăm</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">4 000</span></span><div class="opt-why">FM3 — nhầm xa hơn</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#5</span>
+        <span class="diff-badge diff-4">Độ khó 4</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Trong số <span class="math">50 206</span>, giá trị của chữ số <span class="math">2</span> là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">200</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">2</span></span><div class="opt-why">FM1 — nhầm giá trị với chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">2 000</span></span><div class="opt-why">FM3 — nhầm hàng: số có nhiều chữ số 0 (50_0_206), nghĩ 2 ở hàng nghìn</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">20 000</span></span><div class="opt-why">FM3 — nhầm xa hơn do có chuỗi 0 dài</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#6</span>
+        <span class="diff-badge diff-5">Độ khó 5</span>
+        <span class="fm-badge">FM1 + FM2 + FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Bạn Lan nói: <em>"Trong số 4 053, chữ số 5 ở hàng trăm nên có giá trị là 500."</em> Đúng hay sai?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Sai. 4 053 = 4|0|5|3 → chữ số 5 ở hàng chục, giá trị là 50.</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Đúng. Chữ số 5 đứng ở vị trí thứ 3 từ phải sang, đó là hàng trăm.</span><div class="opt-why">FM3 — đếm sai vị trí: 3 là đơn vị, 5 là hàng chục (vị trí 2), nhưng nhầm thành vị trí 3</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Sai. Chữ số 5 ở hàng nghìn, giá trị là 5 000.</span><div class="opt-why">FM2 — nhầm hàng xa hơn</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Đúng, và giá trị của chữ số 5 luôn là 5 dù ở hàng nào.</span><div class="opt-why">FM1 — không phân biệt chữ số với giá trị</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC10: BIỂU DIỄN MỖI SỐ TỰ NHIÊN THÀNH TỔNG GIÁ TRỊ
+     ═══════════════════════════════════════════════════ -->
+<section id="kc10" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G9-MATH-BIEU-DIEN-MOI &nbsp;·&nbsp; B2K2</div>
+    <div class="kc-name">Biểu diễn mỗi số tự nhiên thành tổng giá trị các chữ số của nó</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 2 — Kì 2</span>
+      <span class="pill prereq">Prereq: Nhận biết giá trị các chữ số (KC9)</span>
+      <span class="pill downstream">Downstream: không có (terminal node)</span>
+    </div>
+  </div>
+
+  <div class="graph-note">
+    <strong>Graph note:</strong> Terminal node — KC này là ứng dụng tổng hợp của KC9. Failure mode trọng tâm là FM1 (viết tổng chữ số thay vì tổng giá trị). Items tuyệt đối không cho sẵn bảng hàng để điền (đó là KC9) — học sinh phải tự xác định giá trị và ghép thành tổng.
+  </div>
+
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Viết tổng các chữ số thay vì tổng các giá trị: 345 = 3 + 4 + 5 thay vì 300 + 40 + 5. Lỗi phổ biến nhất và nghiêm trọng nhất.</li>
+      <li data-id="FM2">FM2 — Nhầm giá trị của hàng khi có chữ số 0 ở giữa: 4 053 = 4 000 + 500 + 3 thay vì 4 000 + 50 + 3 (nhầm hàng của 5 do có 0 phía trước).</li>
+      <li data-id="FM3">FM3 — Nhầm thứ tự hàng dẫn đến sai một giá trị: e.g., 3 472 = 3 000 + 40 + 700 + 2 (hoán đổi giá trị hàng trăm và hàng chục).</li>
+    </ul>
+  </div>
+
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#1</span>
+        <span class="diff-badge diff-1">Độ khó 1</span>
+        <span class="fm-badge">FM1</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Biểu diễn <span class="math">234</span> thành tổng giá trị các chữ số:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">200 + 30 + 4</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">2 + 3 + 4</span></span><div class="opt-why">FM1 — viết tổng chữ số, không nhân với giá trị hàng</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">20 + 30 + 4</span></span><div class="opt-why">FM3 — nhầm hàng của chữ số 2 (dùng 20 thay vì 200)</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">200 + 3 + 4</span></span><div class="opt-why">FM3 — nhầm hàng của chữ số 3 (dùng 3 thay vì 30)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#2</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Biểu diễn <span class="math">5 618</span> thành tổng giá trị các chữ số:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">5 000 + 600 + 10 + 8</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">5 + 6 + 1 + 8</span></span><div class="opt-why">FM1 — tổng chữ số thuần túy</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">5 000 + 60 + 10 + 8</span></span><div class="opt-why">FM3 — nhầm hàng của 6: dùng 60 thay vì 600</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">500 + 600 + 10 + 8</span></span><div class="opt-why">FM3 — nhầm hàng của 5: dùng 500 thay vì 5 000</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#3</span>
+        <span class="diff-badge diff-2">Độ khó 2</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Biểu diễn <span class="math">4 053</span> thành tổng giá trị các chữ số:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">4 000 + 50 + 3</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">4 000 + 500 + 3</span></span><div class="opt-why">FM2 — nhầm hàng của 5: có 0 ở hàng trăm, nghĩ 5 ở hàng trăm → 500</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">4 + 0 + 5 + 3</span></span><div class="opt-why">FM1 — tổng chữ số thuần túy</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">4 000 + 5 + 3</span></span><div class="opt-why">FM2 biến thể — nhầm 5 xuống hàng đơn vị</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#4</span>
+        <span class="diff-badge diff-3">Độ khó 3</span>
+        <span class="fm-badge">FM1 + FM2</span>
+        <span class="type-badge">Open</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Viết số <span class="math">70 406</span> thành tổng giá trị các chữ số của nó.</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          70 406 = 70 000 + 400 + 6<br>
+          <span style="font-size:12px;opacity:0.8">Bẫy FM1: 7+0+4+0+6=17. Bẫy FM2: nhầm 4 → 40 do có chuỗi 0 xung quanh. Hàng có chữ số 0 (hàng nghìn và hàng chục) được bỏ qua trong kết quả tổng.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#5</span>
+        <span class="diff-badge diff-4">Độ khó 4</span>
+        <span class="fm-badge">FM2</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Bạn An viết: <span class="math">80 050 = 80 000 + 500</span>. Đúng hay sai?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Sai. Đúng là <span class="math">80 050 = 80 000 + 50</span> (chữ số 5 ở hàng chục, giá trị 50)</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Đúng.</span><div class="opt-why">FM2 — nhầm hàng của 5 do chuỗi 0: 8|0|0|5|0 → nhầm 5 ở hàng trăm</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Sai. Đúng là <span class="math">80 050 = 80 000 + 5</span>.</span><div class="opt-why">FM2 biến thể — nhầm 5 xuống hàng đơn vị</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Sai. Đúng là <span class="math">80 050 = 8 000 + 50</span>.</span><div class="opt-why">FM3 — nhầm hàng của 8: dùng 8 000 thay vì 80 000</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header">
+        <span class="item-num">#6</span>
+        <span class="diff-badge diff-5">Độ khó 5</span>
+        <span class="fm-badge">FM1 + FM2 + FM3</span>
+        <span class="type-badge">MCQ</span>
+      </div>
+      <div class="item-body">
+        <div class="stem">Biểu diễn <span class="math">309 005</span> thành tổng giá trị các chữ số:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">300 000 + 9 000 + 5</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">3 + 0 + 9 + 0 + 0 + 5</span></span><div class="opt-why">FM1 — tổng chữ số thuần túy</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">300 000 + 900 + 5</span></span><div class="opt-why">FM2 — nhầm hàng của 9 do 3 chữ số 0 xung quanh: nghĩ 9 ở hàng trăm thay vì hàng nghìn</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">300 000 + 9 000 + 500</span></span><div class="opt-why">FM3 — nhầm hàng của 5: 5 ở hàng đơn vị (giá trị 5) nhưng viết 500</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC11: DẤU HIỆU CHIA HẾT CHO 3
+     ═══════════════════════════════════════════════════ -->
+<section id="kc11" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G9-MATH-DAU-HIEU-CHIA-1 &nbsp;·&nbsp; B9K1</div>
+    <div class="kc-name">Dấu hiệu chia hết cho 3</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 9 — Kì 1</span>
+      <span class="pill prereq">Prereq: không có (root node)</span>
+      <span class="pill downstream">Downstream: Phân biệt chữ số và số</span>
+    </div>
+  </div>
+  <div class="graph-note">
+    <strong>Graph note:</strong> Root node song song với KC12 (÷9). Quy tắc: tổng chữ số ÷3. Items không được test phân biệt chữ số (downstream). Thiết kế chủ đích bẫy FM1 bằng cách dùng các số mà tổng chữ số ÷3 nhưng không ÷9, và bẫy FM2 bằng số có tận cùng chẵn nhưng không ÷3.
+  </div>
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm với ÷9: học sinh tưởng điều kiện tổng chữ số phải ÷9 (thay vì ÷3), hoặc nhầm rằng ÷3 kéo theo ÷9.</li>
+      <li data-id="FM2">FM2 — Nhầm dùng tận cùng: kiểm tra chữ số tận cùng thay vì tổng chữ số (áp dụng sai dấu hiệu của ÷2 hoặc ÷5).</li>
+      <li data-id="FM3">FM3 — Tính sai tổng chữ số: tính đúng quy trình nhưng cộng nhầm, dẫn đến kết luận sai dù hiểu đúng dấu hiệu.</li>
+    </ul>
+  </div>
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#1</span><span class="diff-badge diff-1">Độ khó 1</span><span class="fm-badge">FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số nào sau đây chia hết cho 3?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">15</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">14</span></span><div class="opt-why">FM2 — tận cùng 4 (chẵn), học sinh nhầm dấu hiệu ÷2 thành ÷3</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">20</span></span><div class="opt-why">FM2 — tận cùng 0, nhầm ÷5 hoặc ÷2 thành ÷3</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">22</span></span><div class="opt-why">FM2 — tận cùng 2 (chẵn); 2+2=4 không ÷3</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#2</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Để kiểm tra số <span class="math">135</span> có chia hết cho 3 không, bước đầu tiên đúng là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Tính 1+3+5=9, rồi kiểm tra 9÷3</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Xem chữ số tận cùng: 5</span><div class="opt-why">FM2 — áp dụng nhầm dấu hiệu ÷5</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Kiểm tra 135 là số chẵn hay lẻ</span><div class="opt-why">FM2 — áp dụng nhầm dấu hiệu ÷2</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Xem 135 có ÷9 không, rồi suy ra ÷3</span><div class="opt-why">FM1 — nhầm chiều: chỉ ÷9 mới suy ra ÷3, không phải ngược lại</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#3</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM1</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">12</span> có chia hết cho 3 không, và có chia hết cho 9 không?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">÷3 có, ÷9 không</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">÷3 có, ÷9 cũng có vì 3×3=9</span><div class="opt-why">FM1 — nhầm: tổng chữ số ÷3 suy ra số ÷9 vì 3×3=9</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">÷3 không, ÷9 không (1+2=3 không ÷3)</span><div class="opt-why">FM3 — tính đúng tổng (3) nhưng kết luận sai</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">÷3 có, ÷9 có vì 12 là số chẵn</span><div class="opt-why">FM1+FM2 — nhầm cả dấu hiệu lẫn điều kiện ÷9</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#4</span><span class="diff-badge diff-3">Độ khó 3</span><span class="fm-badge">FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">2 016</span> có chia hết cho 3 không?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Có</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Không, vì 2+0+1+6 = 9 và số ÷9 thì chỉ ÷9 chứ không ÷3</span><div class="opt-why">FM1 — nhầm quan hệ ÷9 và ÷3</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Có, vì tận cùng 6 (chẵn)</span><div class="opt-why">FM2 — nhầm dấu hiệu ÷2</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Không, vì 2+0+1+6 = 8 (≠ bội của 3)</span><div class="opt-why">FM3 — cộng sai (bỏ sót hoặc tính nhầm)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#5</span><span class="diff-badge diff-4">Độ khó 4</span><span class="fm-badge">FM1</span><span class="type-badge">Open</span></div>
+      <div class="item-body">
+        <div class="stem">Tìm tất cả các chữ số x (0 ≤ x ≤ 9) để số <span class="math">2x3</span> chia hết cho 3.</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          2 + x + 3 = 5 + x phải ÷3 → x ∈ {1, 4, 7}<br>
+          (5+1=6 ÷3; 5+4=9 ÷3; 5+7=12 ÷3)<br>
+          <span style="font-size:12px;opacity:0.8">Bẫy FM1: học sinh tìm điều kiện ÷9 → chỉ được x=4 (5+4=9 ÷9). Bẫy FM2: tìm x để tận cùng 3 ÷3 → tất cả x đều được (sai).</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#6</span><span class="diff-badge diff-5">Độ khó 5</span><span class="fm-badge">FM1 + FM2 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Xét 4 khẳng định về số <span class="math">333</span>:<br>
+        (i) 333 ÷3 vì tận cùng là 3.<br>
+        (ii) 333 ÷3 vì 3+3+3=9 và 9÷3=3.<br>
+        (iii) 333 ÷9 vì 3+3+3=9 và 9÷9=1.<br>
+        (iv) 21 ÷3 vì tận cùng là 1.<br>
+        Khẳng định nào đúng <em>cả về kết quả lẫn lý do</em>?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">2 khẳng định đúng: (ii) và (iii)</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">3 khẳng định đúng: (i), (ii), (iii)</span><div class="opt-why">FM2 — chấp nhận (i): không nhận ra "tận cùng 3" là lý do sai</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">1 khẳng định đúng: chỉ (ii)</span><div class="opt-why">FM1 — bác bỏ (iii): nghĩ ÷9 không suy ra từ tổng ÷9</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">4 khẳng định đúng (tất cả)</span><div class="opt-why">FM2+FM3 — chấp nhận cả (i) và (iv): nhầm tận cùng 3 và tận cùng 1</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC12: DẤU HIỆU CHIA HẾT CHO 9
+     ═══════════════════════════════════════════════════ -->
+<section id="kc12" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G6-MATH-DAU-HIEU-CHIA-1 &nbsp;·&nbsp; B9K1</div>
+    <div class="kc-name">Dấu hiệu chia hết cho 9</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 9 — Kì 1</span>
+      <span class="pill prereq">Prereq: không có (root node)</span>
+      <span class="pill downstream">Downstream: Phân biệt chữ số và số</span>
+    </div>
+  </div>
+  <div class="graph-note">
+    <strong>Graph note:</strong> Root node song song với KC11 (÷3). Quy tắc: tổng chữ số ÷9. Điều kiện mạnh hơn KC11 — ÷9 kéo theo ÷3 nhưng không ngược lại. Items chủ đích tạo tình huống tổng ÷3 nhưng không ÷9 để bẫy FM1/FM2.
+  </div>
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm điều kiện: tổng chữ số ÷3 là đủ để kết luận số ÷9 (nhầm ngưỡng từ ÷3 thành ÷9).</li>
+      <li data-id="FM2">FM2 — Nhầm chiều quan hệ: số ÷3 thì cũng ÷9 (không hiểu ÷9 là tập con của ÷3, không phải ngược lại).</li>
+      <li data-id="FM3">FM3 — Tính sai tổng chữ số, đặc biệt với số nhiều chữ số.</li>
+    </ul>
+  </div>
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#1</span><span class="diff-badge diff-1">Độ khó 1</span><span class="fm-badge">FM1</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số nào sau đây chia hết cho 9?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">27</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">21</span></span><div class="opt-why">FM1 — 2+1=3, ÷3 nhưng không ÷9, học sinh nhầm điều kiện</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">12</span></span><div class="opt-why">FM1 — 1+2=3, ÷3 nhưng không ÷9</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">33</span></span><div class="opt-why">FM1 — 3+3=6, ÷3 nhưng không ÷9</div></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;font-style:italic">Note thiết kế: tất cả distractors đều ÷3 nhưng không ÷9 — bẫy trực tiếp FM1.</p>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#2</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">12</span> chia hết cho 3. Vậy 12 có chia hết cho 9 không?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Không. 1+2=3, ÷3 nhưng 3 không ÷9 → 12 không ÷9</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Có, vì ÷3 thì cũng ÷9</span><div class="opt-why">FM2 — nhầm chiều: ÷3 không kéo theo ÷9</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Có, vì 12 = 3×4 và 4 là bội của 9... (không)</span><div class="opt-why">FM2+FM3 — lý luận sai, 4 không phải bội của 9</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Không biết, cần chia thực sự 12÷9</span><div class="opt-why">FM3 — không tin dùng được dấu hiệu tổng chữ số</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#3</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM1</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">36</span> có chia hết cho 9 không?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Có</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Không, 36 chỉ ÷3 (vì 3+6=9 ÷3=3), không ÷9</span><div class="opt-why">FM1 — tính đúng tổng 9, biết 9÷3 đúng, nhưng không kiểm tra 9÷9</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Có, vì tận cùng 6 là số chẵn</span><div class="opt-why">FM2 — nhầm dấu hiệu ÷2</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Không, vì 3+6=10 không ÷9</span><div class="opt-why">FM3 — tính sai tổng (3+6=9, không phải 10)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#4</span><span class="diff-badge diff-3">Độ khó 3</span><span class="fm-badge">FM1 + FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">45</span> có chia hết cho 3 không, cho 9 không?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Chia hết cho cả 3 và 9</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Chỉ ÷3, không ÷9 vì 45 không đủ lớn</span><div class="opt-why">FM1 — nhầm điều kiện, thêm yêu cầu "đủ lớn" không có trong dấu hiệu</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Chỉ ÷9, không ÷3 vì 9 > 3</span><div class="opt-why">FM2 — nhầm chiều quan hệ hoàn toàn</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Không ÷ cái nào vì 4+5=8</span><div class="opt-why">FM3 — tính sai tổng (4+5=9, không phải 8)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#5</span><span class="diff-badge diff-4">Độ khó 4</span><span class="fm-badge">FM1</span><span class="type-badge">Open</span></div>
+      <div class="item-body">
+        <div class="stem">Tìm tất cả chữ số x (0 ≤ x ≤ 9) để số <span class="math">5x4</span> chia hết cho 9.</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          5 + x + 4 = 9 + x phải ÷9 → x = 0 (tổng=9 ÷9) hoặc x = 9 (tổng=18 ÷9)<br>
+          <span style="font-size:12px;opacity:0.8">Bẫy FM1: học sinh áp điều kiện ÷3 → x∈{0,3,6,9} (vì 9+x ÷3 khi x là bội của 3). Bẫy FM3: bỏ sót x=0 vì nghĩ tổng=9 chỉ cho ÷3.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#6</span><span class="diff-badge diff-5">Độ khó 5</span><span class="fm-badge">FM1 + FM2 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Trong các số <span class="math">18, 24, 27, 36, 45</span>, những số nào chia hết cho 9?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">{18, 27, 36, 45}</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">{18, 24, 27, 36, 45} — tất cả</span><div class="opt-why">FM1 — đưa 24 vào: 2+4=6 ÷3 nhưng không ÷9</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">{27} — chỉ số "rõ ràng" là bội của 9</span><div class="opt-why">FM3 — bỏ sót 18, 36, 45 vì không "nhận ra ngay"</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">{18, 27} — chỉ hai số đầu</span><div class="opt-why">FM3 — tính tổng sai hoặc bỏ sót 36 và 45</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC13: BIỂU DIỄN SỐ LA MÃ < 30
+     ═══════════════════════════════════════════════════ -->
+<section id="kc13" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G9-MATH-BIEU-DIEN-SO &nbsp;·&nbsp; B2K1</div>
+    <div class="kc-name">Biểu diễn số tự nhiên nhỏ hơn 30 thành số La Mã</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 2 — Kì 1</span>
+      <span class="pill prereq">Prereq: không có (root node)</span>
+      <span class="pill downstream">Downstream: không có (terminal node)</span>
+    </div>
+  </div>
+  <div class="graph-note">
+    <strong>Graph note:</strong> Root terminal — KC độc lập hoàn toàn. Phạm vi: số 1–29, chỉ cần ký hiệu I(1), V(5), X(10). Tập trung vào hướng chuyển đổi Arabic → La Mã (khác KC5 tập trung đọc). Quy tắc trừ bắt buộc: IV=4, IX=9, XIV=14, XIX=19, XXIV=24, XXIX=29.
+  </div>
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Không dùng quy tắc trừ: viết IIII thay vì IV, VIIII thay vì IX — lặp ký hiệu 4 lần thay vì dùng cặp trừ.</li>
+      <li data-id="FM2">FM2 — Dùng sai vị trí/tổ hợp quy tắc trừ: viết IXI (vừa trừ vừa cộng lộn xộn), IIX (hai ký hiệu trước X), hoặc VX (V trước X = 5 không hợp lệ).</li>
+      <li data-id="FM3">FM3 — Nhầm thứ tự cộng/trừ: IX=9 nhưng học sinh viết XI=11 rồi nghĩ "đảo vị trí ra số khác".</li>
+    </ul>
+  </div>
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#1</span><span class="diff-badge diff-1">Độ khó 1</span><span class="fm-badge">FM1</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">4</span> viết bằng số La Mã là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">IV</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">IIII</span></span><div class="opt-why">FM1 — lặp I 4 lần, không dùng quy tắc trừ</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">IIV</span></span><div class="opt-why">FM2 — hai ký hiệu trước V (chỉ một I được phép)</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">VI</span></span><div class="opt-why">FM3 — đảo vị trí → VI=6, không phải 4</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#2</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM1</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">9</span> viết bằng số La Mã là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">IX</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">VIIII</span></span><div class="opt-why">FM1 — V + 4×I, lặp I 4 lần</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">IIX</span></span><div class="opt-why">FM2 — hai I trước X (không hợp lệ)</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">XI</span></span><div class="opt-why">FM3 — đảo vị trí → XI=11, không phải 9</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#3</span><span class="diff-badge diff-3">Độ khó 3</span><span class="fm-badge">FM2 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">19</span> viết bằng số La Mã là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">XIX</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">IXX</span></span><div class="opt-why">FM2 — đặt I trước XX (không hợp lệ: I chỉ trừ trước V hoặc X đơn)</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">XVIIII</span></span><div class="opt-why">FM1 — không dùng quy tắc trừ cho 9 phần cuối</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">XIIX</span></span><div class="opt-why">FM2 — tổ hợp sai: 11-2=9 → XIIX (?), không theo quy tắc</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#4</span><span class="diff-badge diff-3">Độ khó 3</span><span class="fm-badge">FM1 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">24</span> viết bằng số La Mã là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">XXIV</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">XXIIII</span></span><div class="opt-why">FM1 — không dùng IV, lặp IIII</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">XXVI</span></span><div class="opt-why">FM3 — đảo IV thành VI → XXVI=26, không phải 24</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">IXXV</span></span><div class="opt-why">FM2 — sai thứ tự hoàn toàn</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#5</span><span class="diff-badge diff-4">Độ khó 4</span><span class="fm-badge">FM1 + FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số <span class="math">29</span> viết bằng số La Mã là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">XXIX</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">XXVIIII</span></span><div class="opt-why">FM1 — không dùng IX, lặp IIII</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">IXXX</span></span><div class="opt-why">FM2 — đặt IX trước XXX (không hợp lệ, sai thứ tự hàng)</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">XXXI</span></span><div class="opt-why">FM3 — tính ra 31 thay vì 29 (nhầm chiều: 30+1 thay vì 30-1)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#6</span><span class="diff-badge diff-5">Độ khó 5</span><span class="fm-badge">FM1 + FM2 + FM3</span><span class="type-badge">Open</span></div>
+      <div class="item-body">
+        <div class="stem">Viết các số sau bằng số La Mã: &nbsp;<span class="math">4 &nbsp;&nbsp; 14 &nbsp;&nbsp; 19 &nbsp;&nbsp; 24 &nbsp;&nbsp; 28</span></div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          4 = IV &nbsp;·&nbsp; 14 = XIV &nbsp;·&nbsp; 19 = XIX &nbsp;·&nbsp; 24 = XXIV &nbsp;·&nbsp; 28 = XXVIII<br>
+          <span style="font-size:12px;opacity:0.8">Lỗi thường gặp: IIII (FM1), XIIII (FM1), IXX (FM2), XXIIII (FM1), XXVIIIII (FM1). Số 14 và 24 thường bị nhầm nhau về cách kết hợp X và IV.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC14: KÝ HIỆU ≤ VÀ ≥
+     ═══════════════════════════════════════════════════ -->
+<section id="kc14" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G6-MATH-KI-HIEU-NHO &nbsp;·&nbsp; B3K1</div>
+    <div class="kc-name">Kí hiệu nhỏ hơn hoặc bằng và lớn hơn hoặc bằng (≤ và ≥)</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 3 — Kì 1</span>
+      <span class="pill prereq">Prereq: không có (root node)</span>
+      <span class="pill downstream">Downstream: không có (terminal node)</span>
+    </div>
+  </div>
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm chiều ký hiệu: dùng ≤ khi đáng lẽ phải dùng ≥ hoặc ngược lại (nhầm "nhỏ hơn hoặc bằng" với "lớn hơn hoặc bằng").</li>
+      <li data-id="FM2">FM2 — Bỏ qua trường hợp bằng: nghĩ ≤ chỉ đúng khi vế trái thực sự nhỏ hơn, từ chối "5 ≤ 5" vì "5 = 5 nên phải dùng =".</li>
+      <li data-id="FM3">FM3 — Không xác định được tập giá trị thỏa mãn bất đẳng thức kép: khi gặp a ≤ x ≤ b, bỏ sót các giá trị đầu mút a và b.</li>
+    </ul>
+  </div>
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#1</span><span class="diff-badge diff-1">Độ khó 1</span><span class="fm-badge">FM1</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Khẳng định nào sau đây đúng khi so sánh 8 và 3?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">8 ≥ 3</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">8 ≤ 3</span></span><div class="opt-why">FM1 — nhầm chiều ký hiệu (đọc "8 nhỏ hơn hoặc bằng 3")</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">3 ≥ 8</span></span><div class="opt-why">FM1 — nhầm cả chiều lẫn vế</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Không thể dùng ≤ hay ≥ vì 8 ≠ 3</span><div class="opt-why">FM2 — nghĩ ≥ chỉ dùng khi bằng nhau</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#2</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Bạn Minh nói: <em>"5 ≤ 5 là sai vì 5 = 5, không phải 5 &lt; 5."</em> Đúng hay sai?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Minh sai. 5 ≤ 5 đúng vì ký hiệu ≤ bao gồm cả trường hợp bằng nhau.</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Minh đúng. Khi hai số bằng nhau phải dùng = không dùng ≤.</span><div class="opt-why">FM2 — không hiểu ≤ bao gồm "="</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Minh đúng, nhưng có thể dùng ≥ thay thế.</span><div class="opt-why">FM2 — hiểu sai một nửa: biết có thể đảo chiều nhưng vẫn từ chối ≤</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Minh sai, nhưng 5 ≤ 5 chỉ đúng khi viết là 5 ≥ 5 (không thể viết ≤).</span><div class="opt-why">FM1+FM2 — nhầm chiều và không hiểu cả hai đều đúng</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#3</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM2 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Điền ký hiệu vào chỗ trống: <span class="math">12 ___ 12</span> (chọn ≤ hoặc ≥)</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">Cả ≤ và ≥ đều đúng</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">Không điền được ≤ hay ≥, vì hai số bằng nhau phải dùng =</span><div class="opt-why">FM2 — không chấp nhận ≤/≥ khi hai vế bằng</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">Chỉ được dùng ≥, không được dùng ≤</span><div class="opt-why">FM1+FM2 — chỉ chấp nhận một chiều, nhầm ngữ nghĩa</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Chỉ được dùng ≤, không được dùng ≥</span><div class="opt-why">FM1+FM2 — ngược lại của C</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#4</span><span class="diff-badge diff-3">Độ khó 3</span><span class="fm-badge">FM1 + FM2</span><span class="type-badge">Open</span></div>
+      <div class="item-body">
+        <div class="stem">Điền ≤ hoặc ≥ thích hợp vào mỗi chỗ trống:<br>
+        (a) 15 ___ 20 &nbsp;&nbsp; (b) 30 ___ 30 &nbsp;&nbsp; (c) 100 ___ 99 &nbsp;&nbsp; (d) 7 ___ 7</div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          (a) 15 ≤ 20 &nbsp;&nbsp; (b) 30 ≤ 30 hoặc 30 ≥ 30 &nbsp;&nbsp; (c) 100 ≥ 99 &nbsp;&nbsp; (d) 7 ≤ 7 hoặc 7 ≥ 7<br>
+          <span style="font-size:12px;opacity:0.8">Bẫy FM2: học sinh bỏ trống (b) và (d) vì "hai vế bằng nhau". Bẫy FM1: viết 15 ≥ 20 hoặc 100 ≤ 99.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#5</span><span class="diff-badge diff-4">Độ khó 4</span><span class="fm-badge">FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Có bao nhiêu số tự nhiên x thỏa mãn <span class="math">5 ≤ x ≤ 8</span>?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">4 số: {5, 6, 7, 8}</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">2 số: {6, 7}</span><div class="opt-why">FM3 — bỏ cả hai đầu mút 5 và 8 (nhầm ≤ thành &lt;)</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">3 số: {5, 6, 7} hoặc {6, 7, 8}</span><div class="opt-why">FM3 — bỏ một đầu mút (nhầm ≤ thành &lt; ở một phía)</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Vô số (tất cả x ≥ 5)</span><div class="opt-why">FM1 — đọc sai ký hiệu, bỏ điều kiện x ≤ 8</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#6</span><span class="diff-badge diff-5">Độ khó 5</span><span class="fm-badge">FM1 + FM2 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số tự nhiên x thỏa mãn đồng thời <span class="math">x ≥ 3</span> và <span class="math">x ≤ 10</span>. Tập hợp tất cả các giá trị x là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text">{3, 4, 5, 6, 7, 8, 9, 10}</span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">{4, 5, 6, 7, 8, 9}</span><div class="opt-why">FM3 — bỏ cả 3 và 10 (nhầm ≥ thành &gt; và ≤ thành &lt;)</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">{1, 2, 11, 12, 13, ...}</span><div class="opt-why">FM1 — đọc ngược cả hai ký hiệu</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Không có x nào (hai điều kiện mâu thuẫn)</span><div class="opt-why">FM1 — nhầm nghĩ x ≥ 3 và x ≤ 10 không thể cùng thỏa</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC15: SỐ LIỀN TRƯỚC LIỀN SAU
+     ═══════════════════════════════════════════════════ -->
+<section id="kc15" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G9-MATH-SO-LIEN-TRUOC &nbsp;·&nbsp; B3K1</div>
+    <div class="kc-name">Số liền trước và số liền sau</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 3 — Kì 1</span>
+      <span class="pill prereq">Prereq: Đọc và viết chữ số (KC5)</span>
+      <span class="pill downstream">Downstream: Sắp xếp dãy số</span>
+    </div>
+  </div>
+  <div class="graph-note">
+    <strong>Graph note:</strong> Items không yêu cầu sắp xếp dãy (downstream). Items tập trung thuần túy vào n-1 và n+1, đặc biệt ở các ranh giới chữ số (99→100, 999→1000) vì đây là nơi failure mode xuất hiện nhiều nhất.
+  </div>
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm chiều: trả lời n-1 cho "số liền sau" và n+1 cho "số liền trước" (đọc ngược định nghĩa).</li>
+      <li data-id="FM2">FM2 — Sai ở ranh giới số chữ số: liền sau của 99 là 100 (không phải 909 hay 199), liền trước của 1 000 là 999 (không phải 990).</li>
+      <li data-id="FM3">FM3 — Nhảy nhiều đơn vị: liền trước của 20 là 10 (nhảy 10), hoặc liền sau của 99 là 109 (nhầm +10).</li>
+    </ul>
+  </div>
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#1</span><span class="diff-badge diff-1">Độ khó 1</span><span class="fm-badge">FM1</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số liền sau của <span class="math">45</span> là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">46</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">44</span></span><div class="opt-why">FM1 — nhầm "liền sau" với "liền trước" → trả lời n-1</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">55</span></span><div class="opt-why">FM3 — nhảy 10 thay vì 1</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">50</span></span><div class="opt-why">FM3 — nhảy đến số tròn chục tiếp theo</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#2</span><span class="diff-badge diff-1">Độ khó 1</span><span class="fm-badge">FM1</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số liền trước của <span class="math">70</span> là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">69</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">71</span></span><div class="opt-why">FM1 — nhầm "liền trước" với "liền sau" → trả lời n+1</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">60</span></span><div class="opt-why">FM3 — nhảy về số tròn chục trước đó</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">79</span></span><div class="opt-why">FM3 — nhầm sang số tự nhiên lớn hơn 70 nhưng kém 80</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#3</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số liền sau của <span class="math">99</span> là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">100</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">98</span></span><div class="opt-why">FM1 — nhầm chiều</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">909</span></span><div class="opt-why">FM2 — thêm 9 vào trước thay vì tăng thêm 1 (lẫn lộn chữ số)</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">109</span></span><div class="opt-why">FM3 — nhảy 10 → 109, không phải +1</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#4</span><span class="diff-badge diff-3">Độ khó 3</span><span class="fm-badge">FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số liền trước của <span class="math">1 000</span> là:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">999</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">1 001</span></span><div class="opt-why">FM1 — nhầm chiều</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">990</span></span><div class="opt-why">FM2+FM3 — nhảy 10, hoặc nhầm số tròn trăm trước đó</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">900</span></span><div class="opt-why">FM2 — nhảy nguyên hàng nghìn → 900</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#5</span><span class="diff-badge diff-4">Độ khó 4</span><span class="fm-badge">FM1 + FM2</span><span class="type-badge">Open</span></div>
+      <div class="item-body">
+        <div class="stem">Điền vào bảng — với mỗi số, viết số liền trước và liền sau:<br><br>
+        <span class="math">29 &nbsp;&nbsp;&nbsp; 100 &nbsp;&nbsp;&nbsp; 999 &nbsp;&nbsp;&nbsp; 10 000</span></div>
+        <div class="open-answer">
+          <div class="label">Đáp án</div>
+          29: trước=28, sau=30 &nbsp;·&nbsp; 100: trước=99, sau=101<br>
+          999: trước=998, sau=1 000 &nbsp;·&nbsp; 10 000: trước=9 999, sau=10 001
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#6</span><span class="diff-badge diff-5">Độ khó 5</span><span class="fm-badge">FM1 + FM2 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Số liền sau của a là <span class="math">100</span>. Số liền trước của a là bao nhiêu?</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">98</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">102</span></span><div class="opt-why">FM1 — nhầm chiều: tính liền sau của 101 thay vì liền trước của 99</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">99</span></span><div class="opt-why">FM2 — xác định đúng a=99 nhưng trả lời luôn a thay vì liền trước của a</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">90</span></span><div class="opt-why">FM3 — nhảy 10: a=99, trước đó là 90 (nhầm số tròn chục)</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KC16: SO SÁNH HAI SỐ TỰ NHIÊN
+     ═══════════════════════════════════════════════════ -->
+<section id="kc16" class="kc-section">
+  <div class="kc-header">
+    <div class="kc-code">G9-MATH-SO-SANH-HAI &nbsp;·&nbsp; B3K1</div>
+    <div class="kc-name">So sánh hai số tự nhiên (a. theo số chữ số, b. theo từng hàng)</div>
+    <div class="kc-meta">
+      <span class="pill chapter">Bài 3 — Kì 1</span>
+      <span class="pill prereq">Prereq: Đọc và viết chữ số (KC5)</span>
+      <span class="pill downstream">Downstream: Điều kiện phép trừ trong ℕ · Sắp xếp dãy số</span>
+    </div>
+  </div>
+  <div class="graph-note">
+    <strong>Graph note:</strong> Items không yêu cầu sắp xếp dãy (downstream) hay quyết định phép trừ (downstream). Hai sub-methods cần test: (a) số chữ số khác nhau → số nhiều chữ số hơn thì lớn hơn; (b) cùng số chữ số → so sánh từ hàng cao nhất xuống thấp dần. Items thiết kế để bẫy riêng từng method.
+  </div>
+  <div class="failure-modes">
+    <h3>Failure modes đã xác định</h3>
+    <ul class="fm-list">
+      <li data-id="FM1">FM1 — Nhầm phương pháp với số chữ số khác nhau: so sánh chữ số đầu tiên thay vì đếm tổng số chữ số (e.g., 45 vs 123: nhìn 4 &gt; 1 → kết luận sai 45 &gt; 123).</li>
+      <li data-id="FM2">FM2 — So sánh từ hàng thấp thay vì hàng cao (cùng số chữ số): bắt đầu từ hàng đơn vị thay vì hàng cao nhất.</li>
+      <li data-id="FM3">FM3 — Bị "bẫy" bởi chữ số lớn trong số ít chữ số hơn: kết luận 999 &gt; 1001 vì "999 có nhiều số 9".</li>
+    </ul>
+  </div>
+  <div class="items-label">6 items — difficulty spread 1 → 5</div>
+  <div class="items-grid">
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#1</span><span class="diff-badge diff-1">Độ khó 1</span><span class="fm-badge">FM1 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">So sánh <span class="math">45</span> và <span class="math">123</span>:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">45 &lt; 123</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">45 &gt; 123 &nbsp;(vì chữ số đầu 4 &gt; 1)</span><div class="opt-why">FM1 — so sánh chữ số đầu tiên thay vì tổng số chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">45 &gt; 123 &nbsp;(vì 45 "trông nhỏ" nhưng 4+5=9 &gt; 1+2+3=6)</span><div class="opt-why">FM3 — tổng chữ số lớn hơn → số lớn hơn (logic sai)</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">Không so sánh được vì khác số chữ số</span><div class="opt-why">FM1 — nghĩ chỉ so sánh được khi cùng số chữ số</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#2</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">So sánh <span class="math">753</span> và <span class="math">729</span>:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">753 &gt; 729</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">753 &lt; 729 &nbsp;(vì hàng đơn vị 3 &lt; 9)</span><div class="opt-why">FM2 — so sánh từ hàng đơn vị thay vì hàng chục (sau khi hàng trăm bằng nhau)</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">753 = 729 &nbsp;(vì hàng trăm bằng nhau: 7=7)</span><div class="opt-why">FM2 — dừng so sánh ngay khi hàng đầu bằng nhau, không tiếp tục xuống hàng chục</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">753 &lt; 729 &nbsp;(vì 7+2+9=18 &gt; 7+5+3=15)</span><div class="opt-why">FM3 — tổng chữ số lớn hơn → số lớn hơn</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#3</span><span class="diff-badge diff-2">Độ khó 2</span><span class="fm-badge">FM1</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">So sánh <span class="math">98</span> và <span class="math">102</span>:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">98 &lt; 102</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">98 &gt; 102 &nbsp;(vì 9 &gt; 1 ở chữ số đầu)</span><div class="opt-why">FM1 — so sánh chữ số đầu khi số chữ số khác nhau</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">98 &gt; 102 &nbsp;(vì hàng đơn vị 8 &gt; 2)</span><div class="opt-why">FM1+FM2 — áp dụng sai cả hai phương pháp</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">98 = 102 &nbsp;(vì 9+8=17 ≈ 1+0+2=3... không có lý)</span><div class="opt-why">FM3 biến thể — logic sai hoàn toàn</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#4</span><span class="diff-badge diff-3">Độ khó 3</span><span class="fm-badge">FM1 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">So sánh <span class="math">1 009</span> và <span class="math">998</span>:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">1 009 &gt; 998</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">1 009 &lt; 998 &nbsp;(vì 998 có ba chữ số 9 lớn, tổng lớn hơn)</span><div class="opt-why">FM3 — bị bẫy bởi chữ số 9 lặp trong số ít chữ số hơn</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">1 009 &lt; 998 &nbsp;(vì chữ số đầu 9 &gt; 1)</span><div class="opt-why">FM1 — so sánh chữ số đầu của số nhiều chữ số hơn</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">1 009 = 998 &nbsp;(vì đều gần 1 000)</span><div class="opt-why">FM3 biến thể — ước lượng thay vì so sánh chính xác</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#5</span><span class="diff-badge diff-4">Độ khó 4</span><span class="fm-badge">FM2</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">So sánh <span class="math">45 678</span> và <span class="math">45 832</span>:</div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">45 678 &lt; 45 832</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text">45 678 &gt; 45 832 &nbsp;(vì hàng đơn vị 8 &gt; 2)</span><div class="opt-why">FM2 — so sánh từ hàng đơn vị: 8 &gt; 2 → kết luận sai</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text">45 678 = 45 832 &nbsp;(vì 4 chữ số đầu "45__" giống nhau)</span><div class="opt-why">FM2 — dừng so sánh quá sớm (sau hai hàng đầu bằng nhau)</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text">45 678 &gt; 45 832 &nbsp;(hàng chục 7 &gt; 3)</span><div class="opt-why">FM2 — so sánh hàng chục trước hàng trăm</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-card-header"><span class="item-num">#6</span><span class="diff-badge diff-5">Độ khó 5</span><span class="fm-badge">FM1 + FM2 + FM3</span><span class="type-badge">MCQ</span></div>
+      <div class="item-body">
+        <div class="stem">Trong 5 số sau, số nào lớn nhất?<br><span class="math">1 009 &nbsp;&nbsp;&nbsp; 999 &nbsp;&nbsp;&nbsp; 1 090 &nbsp;&nbsp;&nbsp; 1 900 &nbsp;&nbsp;&nbsp; 901</span></div>
+        <div class="options">
+          <div class="option correct"><span class="opt-label">A</span><span class="opt-text"><span class="math">1 900</span></span></div>
+          <div class="option wrong"><span class="opt-label">B</span><span class="opt-text"><span class="math">999</span></span><div class="opt-why">FM3 — ba chữ số 9 "trông lớn nhất" dù chỉ có 3 chữ số</div></div>
+          <div class="option wrong"><span class="opt-label">C</span><span class="opt-text"><span class="math">1 009</span></span><div class="opt-why">FM1 — chọn số 4 chữ số đầu tiên trong danh sách mà không so sánh các số 4 chữ số với nhau</div></div>
+          <div class="option wrong"><span class="opt-label">D</span><span class="opt-text"><span class="math">1 090</span></span><div class="opt-why">FM2 — so sánh từ hàng thấp: 1090 có số 9 ở hàng chục "trông to" hơn 1900</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.kc-section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('visible');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
