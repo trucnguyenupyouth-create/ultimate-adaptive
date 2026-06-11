@@ -266,10 +266,12 @@ function GraphBuilderInner() {
         const d = n.data as unknown as KCNodeData;
         return (
           (d.name?.toLowerCase().includes(query) ?? false) ||
-          (d.code?.toLowerCase().includes(query) ?? false)
+          (d.code?.toLowerCase().includes(query) ?? false) ||
+          (d.chapter_info?.toLowerCase().includes(query) ?? false)
         );
       });
   }, [nodes, navSearch]);
+
 
   // ── Toast helper ─────────────────────────────────────────────────────
   const showToast = (msg: string, type: "ok" | "err" = "ok") => {
