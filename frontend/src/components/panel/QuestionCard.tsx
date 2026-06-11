@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Pencil, ChevronUp } from "lucide-react";
-import { Item, itemApi } from "@/lib/api";
+import { Item, MCQContent, OpenContent, itemApi } from "@/lib/api";
 import MCQAnswerEditor from "./MCQAnswerEditor";
 import type { DifficultyLabel } from "./QuestionsTab";
 
@@ -21,46 +21,64 @@ const DIFFICULTY_CONFIG: Record<DifficultyLabel, { label: string; color: string;
   hard:   { label: "Khó",        color: "#a371f7", bg: "rgba(163,113,247,0.08)", border: "rgba(163,113,247,0.5)",irt_b: "b = +1.5" },
 };
 
+const isOpen = (item: Item) => item.format_type === "open";
+
 export default function QuestionCard({
   item, kcId, isEditing, onEdit, onCancelEdit, onEdited,
 }: Props) {
+  const open = isOpen(item);
+  const mcqContent = item.content as MCQContent;
+  const openContent = item.content as OpenContent;
   const cfg = DIFFICULTY_CONFIG[item.difficulty_label as DifficultyLabel] ?? DIFFICULTY_CONFIG.medium;
 
-  // Edit form state
+  // ── Edit form state ──────────────────────────────────────────────────────
   const [editDifficulty, setEditDifficulty] = useState<DifficultyLabel>(item.difficulty_label as DifficultyLabel);
   const [editQuestion, setEditQuestion] = useState(item.content.question);
+  // MCQ-specific
   const [editAnswers, setEditAnswers] = useState(
-    (item.content.answers ?? []).map((a, i) => ({
+    (mcqContent.answers ?? []).map((a, i) => ({
       id: `edit_${i}`,
       text: a.text,
       isCorrect: a.is_correct,
     }))
   );
+  // Open-specific
+  const [editExpected, setEditExpected] = useState(openContent.expected_answer ?? "");
+
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
   const handleEditSave = async () => {
     setEditError(null);
     if (!editQuestion.trim()) { setEditError("Câu hỏi không được để trống"); return; }
-    if (!editAnswers.some(a => a.isCorrect)) { setEditError("Chưa chọn đáp án đúng"); return; }
-    if (editAnswers.filter(a => a.text.trim()).length < 2) { setEditError("Cần ít nhất 2 đáp án"); return; }
+
+    if (!open) {
+      if (!editAnswers.some(a => a.isCorrect)) { setEditError("Chưa chọn đáp án đúng"); return; }
+      if (editAnswers.filter(a => a.text.trim()).length < 2) { setEditError("Cần ít nhất 2 đáp án"); return; }
+    } else {
+      if (!editExpected.trim()) { setEditError("Đáp án không được để trống"); return; }
+    }
 
     setEditSaving(true);
     try {
+      const content = open
+        ? { question: editQuestion, expected_answer: editExpected }
+        : {
+            question: editQuestion,
+            answers: editAnswers
+              .filter(a => a.text.trim())
+              .map((a, i) => ({
+                label: String.fromCharCode(65 + i),
+                text: a.text,
+                is_correct: a.isCorrect,
+              })),
+          };
+
       await itemApi.edit(item.id, {
         kc_id: kcId,
-        difficulty_label: editDifficulty,
-        format_type: "mcq",
-        content: {
-          question: editQuestion,
-          answers: editAnswers
-            .filter(a => a.text.trim())
-            .map((a, i) => ({
-              label: String.fromCharCode(65 + i),
-              text: a.text,
-              is_correct: a.isCorrect,
-            })),
-        },
+        difficulty_label: open ? "medium" : editDifficulty,
+        format_type: item.format_type as "mcq4" | "open",
+        content,
       });
       await onEdited();
     } catch (err: unknown) {
@@ -88,7 +106,7 @@ export default function QuestionCard({
             fontSize: 12,
             color: "var(--text-primary)",
             lineHeight: 1.5,
-            marginBottom: 8,
+            marginBottom: 6,
             display: "-webkit-box",
             WebkitLineClamp: isEditing ? undefined : 2,
             WebkitBoxOrient: "vertical",
@@ -98,20 +116,43 @@ export default function QuestionCard({
           {item.content.question}
         </div>
 
+        {/* Open: show expected answer in read mode */}
+        {!isEditing && open && openContent.expected_answer && (
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--text-secondary)",
+              background: "rgba(63,185,80,0.06)",
+              border: "1px solid rgba(63,185,80,0.2)",
+              borderRadius: 5,
+              padding: "4px 8px",
+              marginBottom: 6,
+            }}
+          >
+            <span style={{ color: "#3fb950", fontWeight: 600, marginRight: 4 }}>Đáp án:</span>
+            {openContent.expected_answer}
+          </div>
+        )}
+
         {/* Footer row */}
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {/* Difficulty badge */}
+          {/* Difficulty badge — only for MCQ */}
+          {!open && (
+            <span style={{
+              fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20,
+              color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}`,
+            }}>
+              {cfg.label}
+            </span>
+          )}
+          {/* Format badge */}
           <span style={{
             fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20,
-            color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}`,
+            color: open ? "#3fb950" : "#388bfd",
+            background: open ? "rgba(63,185,80,0.1)" : "rgba(56,139,253,0.1)",
+            border: open ? "1px solid rgba(63,185,80,0.2)" : "1px solid rgba(56,139,253,0.2)",
           }}>
-            {cfg.label}
-          </span>
-          <span style={{
-            fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20,
-            color: "#388bfd", background: "rgba(56,139,253,0.1)", border: "1px solid rgba(56,139,253,0.2)",
-          }}>
-            MCQ
+            {open ? "Open" : "MCQ"}
           </span>
           <div style={{ flex: 1 }} />
           {/* Edit button */}
@@ -129,31 +170,34 @@ export default function QuestionCard({
       {/* ── Edit form (expanded) ── */}
       {isEditing && (
         <div style={{ borderTop: "1px solid var(--border)", padding: "12px 12px" }}>
-          {/* Difficulty selector */}
-          <div style={{ marginBottom: 10 }}>
-            <label style={{ marginBottom: 6, display: "block" }}>Độ khó</label>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 5 }}>
-              {(Object.keys(DIFFICULTY_CONFIG) as DifficultyLabel[]).map(d => {
-                const c = DIFFICULTY_CONFIG[d];
-                const sel = editDifficulty === d;
-                return (
-                  <button
-                    key={d}
-                    onClick={() => setEditDifficulty(d)}
-                    style={{
-                      padding: "6px 4px", borderRadius: 6, cursor: "pointer",
-                      border: `1.5px solid ${sel ? c.color : "var(--border)"}`,
-                      background: sel ? c.bg : "var(--bg-base)",
-                      textAlign: "center", transition: "all 0.15s ease",
-                    }}
-                  >
-                    <div style={{ fontSize: 11, fontWeight: 600, color: sel ? c.color : "var(--text-secondary)" }}>{c.label}</div>
-                    <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{c.irt_b}</div>
-                  </button>
-                );
-              })}
+
+          {/* Difficulty selector — MCQ only */}
+          {!open && (
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ marginBottom: 6, display: "block" }}>Độ khó</label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 5 }}>
+                {(Object.keys(DIFFICULTY_CONFIG) as DifficultyLabel[]).map(d => {
+                  const c = DIFFICULTY_CONFIG[d];
+                  const sel = editDifficulty === d;
+                  return (
+                    <button
+                      key={d}
+                      onClick={() => setEditDifficulty(d)}
+                      style={{
+                        padding: "6px 4px", borderRadius: 6, cursor: "pointer",
+                        border: `1.5px solid ${sel ? c.color : "var(--border)"}`,
+                        background: sel ? c.bg : "var(--bg-base)",
+                        textAlign: "center", transition: "all 0.15s ease",
+                      }}
+                    >
+                      <div style={{ fontSize: 11, fontWeight: 600, color: sel ? c.color : "var(--text-secondary)" }}>{c.label}</div>
+                      <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{c.irt_b}</div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Question text */}
           <div style={{ marginBottom: 10 }}>
@@ -166,8 +210,21 @@ export default function QuestionCard({
             />
           </div>
 
-          {/* Answers */}
-          <MCQAnswerEditor answers={editAnswers} onChange={setEditAnswers} />
+          {/* MCQ answers OR Open expected answer */}
+          {open ? (
+            <div style={{ marginBottom: 10 }}>
+              <label>Đáp án mong đợi *</label>
+              <textarea
+                className="input"
+                style={{ resize: "vertical", minHeight: 60 }}
+                value={editExpected}
+                onChange={e => setEditExpected(e.target.value)}
+                placeholder="Nhập đáp án đúng..."
+              />
+            </div>
+          ) : (
+            <MCQAnswerEditor answers={editAnswers} onChange={setEditAnswers} />
+          )}
 
           {editError && (
             <div style={{ fontSize: 11, color: "var(--accent-red)", marginTop: 8 }}>⚠ {editError}</div>

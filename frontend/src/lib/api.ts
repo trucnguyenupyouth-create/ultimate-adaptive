@@ -177,6 +177,7 @@ export interface MCQAnswer {
   label: string;
   text: string;
   is_correct: boolean;
+  distractor_note?: string;
 }
 
 export interface MCQContent {
@@ -184,13 +185,18 @@ export interface MCQContent {
   answers: MCQAnswer[];
 }
 
+export interface OpenContent {
+  question: string;
+  expected_answer: string;
+}
+
 export interface Item {
   id: string;
   kc_id: string;
   version: number;
-  content: MCQContent;
+  content: MCQContent | OpenContent;
   difficulty_label: DifficultyLabel;
-  format_type: string;
+  format_type: "mcq4" | "open" | string;
   irt_b: number;
   irt_c?: number;
   is_active: boolean;
@@ -200,8 +206,8 @@ export interface Item {
 export interface CreateItemPayload {
   kc_id: string;
   difficulty_label: DifficultyLabel;
-  format_type: "mcq";
-  content: MCQContent;
+  format_type: "mcq4" | "open";
+  content: MCQContent | OpenContent;
 }
 
 // ── Graph API ──────────────────────────────────────────────────────────────
