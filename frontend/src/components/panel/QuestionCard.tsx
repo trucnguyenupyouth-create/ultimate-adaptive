@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, Pencil, ChevronDown, ChevronUp } from "lucide-react";
+import { Pencil, ChevronUp } from "lucide-react";
 import { Item, itemApi } from "@/lib/api";
 import MCQAnswerEditor from "./MCQAnswerEditor";
 import type { DifficultyLabel } from "./QuestionsTab";
@@ -12,7 +12,6 @@ interface Props {
   isEditing: boolean;
   onEdit: () => void;
   onCancelEdit: () => void;
-  onToggle: () => void;
   onEdited: () => Promise<void>;
 }
 
@@ -23,7 +22,7 @@ const DIFFICULTY_CONFIG: Record<DifficultyLabel, { label: string; color: string;
 };
 
 export default function QuestionCard({
-  item, kcId, isEditing, onEdit, onCancelEdit, onToggle, onEdited,
+  item, kcId, isEditing, onEdit, onCancelEdit, onEdited,
 }: Props) {
   const cfg = DIFFICULTY_CONFIG[item.difficulty_label as DifficultyLabel] ?? DIFFICULTY_CONFIG.medium;
 
@@ -76,8 +75,7 @@ export default function QuestionCard({
       style={{
         borderRadius: 8,
         border: `1px solid var(--border)`,
-        background: item.is_active ? "var(--bg-elevated)" : "rgba(22,27,34,0.5)",
-        opacity: item.is_active ? 1 : 0.5,
+        background: "var(--bg-elevated)",
         overflow: "hidden",
         transition: "all 0.15s ease",
       }}
@@ -124,15 +122,6 @@ export default function QuestionCard({
             title={isEditing ? "Huỷ sửa" : "Sửa câu hỏi"}
           >
             {isEditing ? <ChevronUp size={13} /> : <Pencil size={13} />}
-          </button>
-          {/* Toggle active */}
-          <button
-            className="btn btn-ghost"
-            onClick={onToggle}
-            style={{ padding: "3px 6px", color: item.is_active ? "var(--text-secondary)" : "var(--accent-green)" }}
-            title={item.is_active ? "Ẩn câu hỏi" : "Bật lại câu hỏi"}
-          >
-            {item.is_active ? <Eye size={13} /> : <EyeOff size={13} />}
           </button>
         </div>
       </div>

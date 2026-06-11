@@ -100,14 +100,6 @@ export default function QuestionsTab({ kcId, items, itemCounts, onRefresh }: Pro
     }
   };
 
-  const handleToggle = async (item: Item) => {
-    try {
-      await itemApi.toggle(item.id, !item.is_active);
-      await onRefresh();
-    } catch {
-      // ignore
-    }
-  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -259,7 +251,6 @@ export default function QuestionsTab({ kcId, items, itemCounts, onRefresh }: Pro
           isEditing={editingId === item.id}
           onEdit={() => setEditingId(item.id)}
           onCancelEdit={() => setEditingId(null)}
-          onToggle={() => handleToggle(item)}
           onEdited={async () => { setEditingId(null); await onRefresh(); }}
           kcId={kcId}
         />
