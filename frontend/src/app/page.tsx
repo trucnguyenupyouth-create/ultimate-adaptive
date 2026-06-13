@@ -34,7 +34,9 @@ import {
   Search,
   X,
   Link2,
+  Eye,
 } from "lucide-react";
+import Link from "next/link";
 
 import { graphApi, GraphHealth, GraphEdge, GraphBlock, GraphNote, EdgeType, KCNode } from "@/lib/api";
 import { KCNodeData } from "@/components/KCNode";
@@ -1130,6 +1132,22 @@ function GraphBuilderInner() {
           Kết nối KC
           <span style={{ fontSize: 9, opacity: 0.6, background: "rgba(163,113,247,0.15)", padding: "1px 4px", borderRadius: 3, marginLeft: 2 }}>C</span>
         </button>
+        <Link
+          href="/sandbox"
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "6px 12px", borderRadius: 6, fontSize: 13, fontWeight: 500,
+            border: "1px solid rgba(57,211,83,0.4)",
+            background: "rgba(57,211,83,0.08)",
+            color: "#3fb950",
+            textDecoration: "none",
+            transition: "all 0.15s",
+          }}
+          title="X-Ray Sandbox — Simulate assessment"
+        >
+          <Eye size={13} />
+          X-Ray Sandbox
+        </Link>
         <button
           className="btn btn-primary"
           onClick={() => { setShowCreatePanel(!showCreatePanel); setSelectedNodeId(null); }}
