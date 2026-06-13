@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import graph, assessment, items
+from app.api.routes import graph, assessment, items, learning, sandbox
 from app.core.config import settings
 
 
@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Ultimate Adaptive Learning System",
     description="Adaptive learning engine: KST + IRT + BKT + Forgetting Curve",
-    version="0.1.0-layer0",
+    version="0.2.0-layer1",
     lifespan=lifespan,
 )
 
@@ -39,8 +39,15 @@ app.add_middleware(
 app.include_router(graph.router)
 app.include_router(assessment.router)
 app.include_router(items.router)
+app.include_router(learning.router)
+app.include_router(sandbox.router)
 
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "layer": 0, "cors_origins": settings.cors_origins_list}
+    return {
+        "status": "ok",
+        "layer": "1+2",
+        "version": "0.2.0-layer1",
+        "cors_origins": settings.cors_origins_list,
+    }
