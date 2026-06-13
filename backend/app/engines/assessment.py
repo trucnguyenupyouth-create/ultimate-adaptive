@@ -1,12 +1,17 @@
 """
-Assessment Engine — Layer 0 (CAT Controller, streak-based)
+Assessment Engine — Layer 0/1 (CAT Controller, IRT-enhanced)
 
 Orchestrates the Computerised Adaptive Test using KST navigation.
+
 Layer 0: streak counting for pass/fail (simple, auditable)
-Layer 1: will inject IRT item selection
-Layer 2: will inject BKT mastery tracking
+Layer 1: IRT ZPD item selection + MLE theta estimation + SE-based stop
+Layer 2: (Learning Loop) BKT mastery tracking — handled by LearningService
 
 Session state is a plain dict — stored in Redis for fast access.
+
+Toggle:
+  use_irt=True  → Layer 1 behavior (IRT item selection + theta tracking)
+  use_irt=False → Layer 0 behavior (random items + streak counting)
 """
 
 from __future__ import annotations
@@ -17,6 +22,7 @@ from typing import Optional
 from uuid import UUID
 
 from app.engines.knowledge_graph import KnowledgeGraph
+from app.engines import irt as IRT
 
 
 # ── Session state ─────────────────────────────────────────────────────────────
@@ -71,26 +77,33 @@ class CATController:
     """
     Computerised Adaptive Test controller.
 
-    Layer 0 decisions:
+    Layer 0 decisions (use_irt=False):
       - KC selection: KST middle-node (find_starting_kc / navigate)
-      - Item selection: random within KC (Layer 1 replaces with IRT ZPD)
+      - Item selection: random within KC
       - Pass/fail: streak counting (3 correct = pass, 3 wrong = fail)
-        (Layer 2 replaces with BKT threshold)
 
-    Stop criteria (already future-proof for Layer 1):
-      - SE < SE_STOP and n >= MIN_ITEMS_FOR_STOP → reliable θ estimate
-      - n >= MAX_ITEMS → hard cap (prevent infinite sessions)
-      - Graph exhausted (no more eligible KCs)
+    Layer 1 decisions (use_irt=True):
+      - KC selection: same KST (unchanged)
+      - Item selection: IRT ZPD (item difficulty ≈ student theta)
+      - Pass/fail: streak counting + SE-based early stop
+        When SE < SE_STOP and n >= MIN_ITEMS: compare theta vs avg_b(KC)
+      - Theta: updated via MLE after each response (≥2 data points)
+
+    Layer 2 (Learning Loop, BKT mastery):
+      - Handled separately by LearningService, NOT in this controller.
+      - Assessment = "what does the student know?" (diagnostic)
+      - Learning Loop = "teach the student, build mastery" (remediation)
     """
 
-    PASS_STREAK = 3    # 3 correct in a row → KC passed
-    FAIL_STREAK = 3    # 3 wrong in a row → KC failed (go to prerequisite)
-    SE_STOP = 0.30     # θ reliable enough (Layer 1 activates this)
+    PASS_STREAK = 3    # 3 correct in a row → KC passed (L0 fallback)
+    FAIL_STREAK = 3    # 3 wrong in a row → KC failed
+    SE_STOP = 0.30     # θ reliable enough to make pass/fail decision
     MIN_ITEMS_FOR_STOP = 10
     MAX_ITEMS = 40
 
-    def __init__(self, kg: KnowledgeGraph):
+    def __init__(self, kg: KnowledgeGraph, use_irt: bool = True):
         self.kg = kg
+        self.use_irt = use_irt
 
     # ── Public API ────────────────────────────────────────────────────────
 
@@ -99,7 +112,7 @@ class CATController:
         student_id: str,
         known_kcs: set[str],
         theta: float = 0.0,
-        available_items: dict[str, list[dict]] | None = None,  # kc_id → [item, ...]
+        available_items: dict[str, list[dict]] | None = None,
     ) -> dict:
         """
         Start a new assessment session.
@@ -122,7 +135,7 @@ class CATController:
             known_kcs=set(known_kcs),
         )
 
-        item = self._pick_item(start_kc, seen_items=set(), available_items=available_items)
+        item = self._pick_item(start_kc, seen_items=set(), available_items=available_items, theta=theta)
         return {
             "status": "started",
             "session": session.to_dict(),
@@ -148,13 +161,27 @@ class CATController:
         s.streak_correct = (s.streak_correct + 1) if correct else 0
         s.streak_wrong = (s.streak_wrong + 1) if not correct else 0
 
-        # Store response tuple (correct, a, b, c) — Layer 1 will use a,b,c for MLE
+        # Store response tuple for IRT MLE
         irt_a = item.get("irt_a", 1.0)
         irt_b = item.get("irt_b", 0.0)
         irt_c = item.get("irt_c", 0.25)
         s.responses.append((correct, irt_a, irt_b, irt_c))
 
+        # ── Layer 1: Update theta via MLE ─────────────────────────────────
+        if self.use_irt and len(s.responses) >= 2:
+            s.theta, s.theta_se = IRT.update_theta(s.responses, init=s.theta)
+
         # ── Pass / Fail decision ──────────────────────────────────────────
+
+        # L1: SE-based early stop — theta reliable enough to decide
+        if self.use_irt and s.theta_se < self.SE_STOP and s.n >= self.MIN_ITEMS_FOR_STOP:
+            avg_b = self._avg_difficulty(s.kc, available_items)
+            if s.theta > avg_b:
+                return self._pass_kc(s, available_items)
+            else:
+                return self._fail_kc(s, available_items)
+
+        # L0/L1: Streak-based pass/fail (L1 uses this as fallback if SE not reached)
         if s.streak_correct >= self.PASS_STREAK:
             return self._pass_kc(s, available_items)
 
@@ -166,9 +193,16 @@ class CATController:
             return self._finalize(s)
 
         # ── Continue: pick next item in same KC ───────────────────────────
-        seen = {r_item["id"] for r_item in s.responses if isinstance(r_item, dict)}
-        item = self._pick_item(s.kc, seen_items=seen, available_items=available_items)
-        return {"status": "continue", "session": s.to_dict(), "item": item}
+        seen = {r[0] if isinstance(r, tuple) and len(r) > 0 and isinstance(r[0], str)
+                else None for r in s.responses}
+        # More reliable seen set from item id tracking
+        item_id = item.get("id")
+        seen_ids: set[str] = set()
+        if item_id:
+            seen_ids.add(item_id)
+
+        next_item = self._pick_item(s.kc, seen_items=seen_ids, available_items=available_items, theta=s.theta)
+        return {"status": "continue", "session": s.to_dict(), "item": next_item}
 
     # ── Internal ──────────────────────────────────────────────────────────
 
@@ -180,7 +214,7 @@ class CATController:
         next_kc = self.kg.navigate(s.kc, passed=True, known_kcs=s.known_kcs)
         if next_kc:
             s.kc = next_kc
-            item = self._pick_item(next_kc, seen_items=set(), available_items=available_items)
+            item = self._pick_item(next_kc, seen_items=set(), available_items=available_items, theta=s.theta)
             return {"status": "continue", "session": s.to_dict(), "item": item}
 
         return self._finalize(s)
@@ -192,7 +226,7 @@ class CATController:
         next_kc = self.kg.navigate(s.kc, passed=False, known_kcs=s.known_kcs)
         if next_kc:
             s.kc = next_kc
-            item = self._pick_item(next_kc, seen_items=set(), available_items=available_items)
+            item = self._pick_item(next_kc, seen_items=set(), available_items=available_items, theta=s.theta)
             return {"status": "continue", "session": s.to_dict(), "item": item}
 
         # No prerequisite to go to — fundamental gap at root level
@@ -222,12 +256,32 @@ class CATController:
         kc_id: str,
         seen_items: set[str],
         available_items: dict[str, list[dict]] | None,
+        theta: float = 0.0,
     ) -> Optional[dict]:
         """
-        Layer 0: random item selection from KC's item pool.
-        Layer 1 will replace this with IRT ZPD selection.
+        Layer 0: random item selection.
+        Layer 1: IRT ZPD selection (item difficulty closest to student theta).
         """
         if not available_items or kc_id not in available_items:
             return None
-        pool = [i for i in available_items[kc_id] if i["id"] not in seen_items]
-        return random.choice(pool) if pool else None
+        pool = available_items[kc_id]
+
+        if self.use_irt:
+            return IRT.select_zpd(theta, pool, target_p=0.65, seen_ids=seen_items)
+        else:
+            # L0 fallback: random
+            unseen = [i for i in pool if i.get("id") not in seen_items]
+            return random.choice(unseen) if unseen else (random.choice(pool) if pool else None)
+
+    def _avg_difficulty(
+        self,
+        kc_id: str,
+        available_items: dict[str, list[dict]] | None,
+    ) -> float:
+        """Average irt_b of all items in a KC. Used for SE-based pass/fail decision."""
+        if not available_items or kc_id not in available_items:
+            return 0.0
+        items = available_items[kc_id]
+        if not items:
+            return 0.0
+        return sum(i.get("irt_b", 0.0) for i in items) / len(items)
