@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
-import { graphApi, itemApi, KCDetail, Item } from "@/lib/api";
+import { graphApi, itemApi, KCDetail, Item, KCImage } from "@/lib/api";
 import DetailsTab from "./panel/DetailsTab";
 import QuestionsTab from "./panel/QuestionsTab";
 import NotesTab from "./panel/NotesTab";
+import ImagesTab from "./panel/ImagesTab";
 import { KCNodeData } from "./KCNode";
 
 interface Props {
@@ -15,11 +16,12 @@ interface Props {
   onKCDeleted: (id: string) => void;
 }
 
-type TabId = "details" | "questions" | "notes";
+type TabId = "details" | "questions" | "notes" | "images";
 
 export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDeleted }: Props) {
   const [detail, setDetail] = useState<KCDetail | null>(null);
   const [items, setItems] = useState<Item[]>([]);
+  const [images, setImages] = useState<KCImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>("details");
 
@@ -34,6 +36,7 @@ export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDelete
       ]);
       setDetail(d);
       setItems(Array.isArray(its) ? its : []);
+      setImages(Array.isArray(d.images) ? d.images : []);
     } catch {
       // ignore — panel stays loading
     } finally {
@@ -46,6 +49,7 @@ export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDelete
       setActiveTab("details");
       setDetail(null);
       setItems([]);
+      setImages([]);
       loadDetail(nodeId);
     }
   }, [nodeId, loadDetail]);
@@ -62,8 +66,12 @@ export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDelete
 
   const refreshDetail = useCallback(async () => {
     if (!nodeId) return;
-    const d = await graphApi.getKCDetail(nodeId);
-    setDetail(d);
+    try {
+      const d = await graphApi.getKCDetail(nodeId);
+      if (d) setDetail(d);
+    } catch {
+      // KC may have been deleted — ignore stale refresh
+    }
   }, [nodeId]);
 
   if (!nodeId) return null;
@@ -79,6 +87,7 @@ export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDelete
     { id: "details", label: "Chi tiết" },
     { id: "questions", label: `Câu hỏi (${itemCounts.total})` },
     { id: "notes", label: "Ghi chú" },
+    { id: "images", label: `Hình ảnh${images.length > 0 ? ` (${images.length})` : ""}` },
   ];
 
   return (
@@ -206,6 +215,13 @@ export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDelete
                   kcId={detail.id}
                   initialNotes={detail.notes ?? ""}
                   onSaved={(notes) => setDetail(prev => prev ? { ...prev, notes } : prev)}
+                />
+              )}
+              {activeTab === "images" && (
+                <ImagesTab
+                  kcId={detail.id}
+                  images={images}
+                  onChanged={setImages}
                 />
               )}
             </>

@@ -9,6 +9,8 @@ Handles:
 
 from __future__ import annotations
 
+import asyncio
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -21,6 +23,8 @@ from app.models.models import KnowledgeComponent, KCPrerequisite, GraphEditHisto
 
 # Module-level singleton graph — loaded once on startup, invalidated on writes
 _graph_cache: KnowledgeGraph | None = None
+REDIS_GRAPH_KEY = "GRAPH_JSON"
+REDIS_GRAPH_TTL = 120  # seconds
 
 
 async def get_graph(db: AsyncSession) -> KnowledgeGraph:
@@ -32,9 +36,25 @@ async def get_graph(db: AsyncSession) -> KnowledgeGraph:
 
 
 def invalidate_graph_cache() -> None:
-    """Call after any KC or prerequisite mutation."""
+    """Clear in-memory cache and schedule Redis invalidation (fire-and-forget)."""
     global _graph_cache
     _graph_cache = None
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.create_task(_invalidate_redis_cache())
+    except RuntimeError:
+        pass
+
+
+async def _invalidate_redis_cache() -> None:
+    from app.core.redis_client import get_redis
+    r = await get_redis()
+    if r:
+        try:
+            await r.delete(REDIS_GRAPH_KEY)
+        except Exception:
+            pass
 
 
 async def _build_graph(db: AsyncSession) -> KnowledgeGraph:
@@ -373,7 +393,20 @@ async def remove_prerequisite(
 
 
 async def get_graph_json(db: AsyncSession) -> dict:
-    """Serialised graph for React Flow frontend."""
+    """Serialised graph for React Flow frontend — Redis L2 cache."""
+    from app.core.redis_client import get_redis
+
+    # ── L2: Redis cache ───────────────────────────────────────────────────
+    r = await get_redis()
+    if r:
+        try:
+            cached = await r.get(REDIS_GRAPH_KEY)
+            if cached:
+                return json.loads(cached)
+        except Exception:
+            pass  # Redis error → fall through to DB
+
+    # ── Build from DB ─────────────────────────────────────────────────────
     kg = await get_graph(db)
     data = kg.to_dict()
 
@@ -405,6 +438,14 @@ async def get_graph_json(db: AsyncSession) -> dict:
         }
         for n in notes
     ]
+
+    # ── Persist to Redis ──────────────────────────────────────────────────
+    if r:
+        try:
+            await r.setex(REDIS_GRAPH_KEY, REDIS_GRAPH_TTL, json.dumps(data))
+        except Exception:
+            pass
+
     return data
 
 
@@ -478,6 +519,7 @@ async def get_kc_detail(db: AsyncSession, kc_id: str) -> dict:
             for k in sq.scalars().all()
         ]
 
+    meta = dict(kc.metadata_ or {})
     return {
         "id": str(kc.id),
         "code": kc.code,
@@ -488,6 +530,8 @@ async def get_kc_detail(db: AsyncSession, kc_id: str) -> dict:
         "chapter_info": kc.chapter_info,
         "notes": kc.notes,
         "block_id": str(kc.block_id) if kc.block_id else None,
+        "metadata": meta,
+        "images": meta.get("images", []),
         "prerequisites": prereq_kcs,
         "successors": successor_kcs,
     }
@@ -1035,3 +1079,52 @@ async def delete_note(db: AsyncSession, note_id: str) -> dict:
         await db.delete(note)
         await db.commit()
     return {"ok": True}
+
+
+# ── KC Image CRUD ──────────────────────────────────────────────────────────────
+
+async def add_kc_image(
+    db: AsyncSession,
+    kc_id: str,
+    url: str,
+    original_name: str,
+    size_bytes: int,
+) -> dict:
+    """Append an image entry into KC metadata_.images[]. Returns the new entry."""
+    kc = await db.get(KnowledgeComponent, uuid.UUID(kc_id))
+    if not kc:
+        raise ValueError(f"KC {kc_id} not found")
+
+    meta = dict(kc.metadata_ or {})
+    images: list = list(meta.get("images", []))
+
+    # Extract image_id from the URL (last segment without extension)
+    image_id = url.rstrip("/").split("/")[-1].replace(".webp", "")
+    entry = {
+        "id": image_id,
+        "url": url,
+        "original_name": original_name,
+        "size_bytes": size_bytes,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    images.append(entry)
+    meta["images"] = images
+
+    # SQLAlchemy JSONB mutation detection requires reassignment
+    kc.metadata_ = {**meta}
+    await db.commit()
+    await db.refresh(kc)
+    return entry
+
+
+async def remove_kc_image(db: AsyncSession, kc_id: str, image_id: str) -> None:
+    """Remove an image entry from KC metadata_.images[]."""
+    kc = await db.get(KnowledgeComponent, uuid.UUID(kc_id))
+    if not kc:
+        raise ValueError(f"KC {kc_id} not found")
+
+    meta = dict(kc.metadata_ or {})
+    images = [img for img in meta.get("images", []) if img.get("id") != image_id]
+    meta["images"] = images
+    kc.metadata_ = {**meta}
+    await db.commit()

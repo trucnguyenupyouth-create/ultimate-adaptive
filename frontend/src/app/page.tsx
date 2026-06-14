@@ -605,15 +605,15 @@ function GraphBuilderInner() {
   const loadGraph = useCallback(async () => {
     try {
       setHealthLoading(true);
-      const [graphData, healthData] = await Promise.all([
-        graphApi.getGraph(),
-        graphApi.getHealth(),
-      ]);
-      setHealth(healthData);
+
+      // ── Step 1: Load graph immediately (fast — Redis cached) ──────────────
+      const graphData = await graphApi.getGraph();
+
+      // Render graph with no health data first (fast paint)
       const kcAndBlockNodes = toFlowNodes(
         graphData.nodes,
         graphData.blocks || [],
-        healthData,
+        null,  // health not yet available
         handleBlockRename,
         handleBlockDelete,
         handleBlockResize
@@ -622,7 +622,7 @@ function GraphBuilderInner() {
       setNodes([...kcAndBlockNodes, ...noteNodes]);
       setEdges(toFlowEdges(graphData.edges, cycleEdges, selectedEdgeId));
 
-      // Auto-migrate coordinates from localStorage to DB if missing in DB metadata
+      // Auto-migrate coordinates from localStorage to DB if missing
       const storedPositions = getStoredPositions();
       const nodesToSync = graphData.nodes.filter((n) => {
         const hasDbPos = n.metadata && typeof n.metadata.x === "number" && typeof n.metadata.y === "number";
@@ -640,9 +640,32 @@ function GraphBuilderInner() {
           console.log(`Đã tự động đồng bộ ${nodesToSync.length} vị trí KC từ localStorage lên DB.`);
         });
       }
+
+      // ── Step 2: Load health lazily (heavier query) ────────────────────────
+      setTimeout(async () => {
+        try {
+          const healthData = await graphApi.getHealth();
+          setHealth(healthData);
+          // Re-render nodes with health overlays (root/leaf/low-item indicators)
+          setNodes((current) => toFlowNodes(
+            graphData.nodes,
+            graphData.blocks || [],
+            healthData,
+            handleBlockRename,
+            handleBlockDelete,
+            handleBlockResize
+          ).map((newNode) => {
+            const existing = current.find(n => n.id === newNode.id);
+            return existing ? { ...newNode, position: existing.position } : newNode;
+          }));
+        } catch {
+          // Health is non-critical — fail silently
+        } finally {
+          setHealthLoading(false);
+        }
+      }, 300);
     } catch {
       showToast("Không kết nối được với backend", "err");
-    } finally {
       setHealthLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

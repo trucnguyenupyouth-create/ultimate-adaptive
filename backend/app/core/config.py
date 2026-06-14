@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     # Comma-separated list of allowed origins (override in prod via env var)
     CORS_ORIGINS: str = "http://localhost:3000,https://ultimate-adaptive.vercel.app"
+    # Supabase Storage
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
 
     @property
     def cors_origins_list(self) -> List[str]:

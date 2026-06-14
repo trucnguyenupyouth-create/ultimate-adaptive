@@ -5,10 +5,13 @@ Endpoints for the Visual Graph Builder CMS.
 All mutating endpoints run DAG validation before persisting.
 """
 
+import hashlib
+import json
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -105,8 +108,22 @@ class UpdateNoteRequest(BaseModel):
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @router.get("/", summary="Get full graph (nodes + edges) for React Flow")
-async def get_graph(db: AsyncSession = Depends(get_db)):
-    return await graph_service.get_graph_json(db)
+async def get_graph(request: Request, db: AsyncSession = Depends(get_db)):
+    data = await graph_service.get_graph_json(db)
+    content = json.dumps(data, separators=(",", ":"), sort_keys=True)
+    etag = f'"{hashlib.md5(content.encode()).hexdigest()[:16]}"'
+
+    # Return 304 if client already has the latest version
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag})
+
+    return JSONResponse(
+        data,
+        headers={
+            "ETag": etag,
+            "Cache-Control": "public, max-age=15, stale-while-revalidate=30",
+        },
+    )
 
 
 @router.get("/health", summary="Graph health check — item counts, dead-ends, cycle check")
@@ -418,5 +435,97 @@ async def delete_note(note_id: str, db: AsyncSession = Depends(get_db)):
     try:
         result = await graph_service.delete_note(db, note_id)
         return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ── KC Image Endpoints ────────────────────────────────────────────────────────
+
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_CONTENT_TYPES = {
+    "image/jpeg", "image/png", "image/gif", "image/bmp",
+    "image/webp", "image/tiff", "image/heic", "image/heif",
+}
+BLOCKED_TYPES = {"image/svg+xml"}  # Pillow cannot rasterise SVG
+
+
+@router.post("/kc/{kc_id}/images", summary="Upload an image for a KC")
+async def upload_kc_image(
+    kc_id: str,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.services.image_service import compress_to_webp, upload_to_supabase
+    import uuid as uuid_mod
+
+    # ── Validate content type
+    ct = (file.content_type or "").lower()
+    if ct in BLOCKED_TYPES:
+        raise HTTPException(status_code=422, detail="SVG không được hỗ trợ. Dùng JPG, PNG, hoặc WebP.")
+    if ct and ct not in ALLOWED_CONTENT_TYPES and not ct.startswith("image/"):
+        raise HTTPException(status_code=422, detail=f"Định dạng không hỗ trợ: {ct}")
+
+    raw = await file.read()
+
+    # ── Validate size (server-side guard even if frontend checks)
+    if len(raw) > MAX_IMAGE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Ảnh quá lớn ({len(raw) // 1024}KB). Giới hạn là 10MB.",
+        )
+    if len(raw) < 100:
+        raise HTTPException(status_code=422, detail="File ảnh bị hỏng hoặc quá nhỏ.")
+
+    # ── Convert to WebP
+    try:
+        webp_bytes = compress_to_webp(raw)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Không thể xử lý ảnh: {e}")
+
+    # ── Upload to Supabase Storage
+    image_id = str(uuid_mod.uuid4())
+    try:
+        url = await upload_to_supabase(kc_id, image_id, webp_bytes)
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    # ── Persist URL in KC metadata
+    try:
+        entry = await graph_service.add_kc_image(
+            db,
+            kc_id=kc_id,
+            url=url,
+            original_name=file.filename or "image",
+            size_bytes=len(webp_bytes),
+        )
+        return {"ok": True, **entry}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/kc/{kc_id}/images/{image_id}", summary="Delete a KC image")
+async def delete_kc_image(
+    kc_id: str,
+    image_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    from app.services.image_service import delete_from_supabase
+
+    # Delete from Storage (soft-fail if already gone)
+    try:
+        await delete_from_supabase(kc_id, image_id)
+    except Exception:
+        pass  # log but don't block DB cleanup
+
+    # Remove from KC metadata
+    try:
+        await graph_service.remove_kc_image(db, kc_id=kc_id, image_id=image_id)
+        return {"ok": True}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

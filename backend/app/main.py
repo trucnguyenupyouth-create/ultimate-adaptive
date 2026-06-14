@@ -15,7 +15,13 @@ from app.core.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup: pre-connect shared Redis client
+    from app.core.redis_client import get_redis
+    await get_redis()
     yield
+    # Shutdown: close shared Redis + assessment Redis
+    from app.core.redis_client import close_redis
+    await close_redis()
     from app.api.routes.assessment import _redis
     if _redis:
         await _redis.aclose()

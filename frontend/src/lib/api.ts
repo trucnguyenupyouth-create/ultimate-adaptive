@@ -26,16 +26,21 @@ export interface KCNode {
   chapter_info?: string;
   notes?: string;
   block_id?: string | null;
-  metadata?: {
-    x?: number;
-    y?: number;
-    [key: string]: any;
-  } | null;
+  metadata?: Record<string, any> | null;
+}
+
+export interface KCImage {
+  id: string;
+  url: string;
+  original_name: string;
+  size_bytes: number;
+  created_at: string;
 }
 
 export interface KCDetail extends KCNode {
   prerequisites: { id: string; code: string; name: string }[];
   successors: { id: string; code: string; name: string }[];
+  images: KCImage[];
 }
 
 export interface GraphEdge {
@@ -324,5 +329,63 @@ export const itemApi = {
     request<{ ok: boolean; is_active: boolean }>(`/items/${itemId}/toggle`, {
       method: "PATCH",
       body: JSON.stringify({ is_active: isActive }),
+    }),
+};
+
+// ── Image API ──────────────────────────────────────────────────────────────
+
+export const imageApi = {
+  /**
+   * Upload a file (any image format) for a KC.
+   * Uses XMLHttpRequest for upload progress tracking.
+   * Returns a promise resolving to KCImage on success.
+   */
+  upload: (
+    kcId: string,
+    file: File | Blob,
+    filename: string,
+    onProgress?: (pct: number) => void,
+  ): Promise<KCImage & { ok: boolean }> => {
+    return new Promise((resolve, reject) => {
+      const form = new FormData();
+      form.append("file", file, filename);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${BASE}/graph/kc/${kcId}/images`);
+
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable && onProgress) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            reject(new Error("Invalid response from server"));
+          }
+        } else {
+          try {
+            const err = JSON.parse(xhr.responseText);
+            reject(new Error(err.detail || `Upload failed (${xhr.status})`));
+          } catch {
+            reject(new Error(`Upload failed (${xhr.status})`));
+          }
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Network error during upload"));
+      xhr.ontimeout = () => reject(new Error("Upload timed out"));
+      xhr.timeout = 60_000; // 60s
+
+      xhr.send(form);
+    });
+  },
+
+  delete: (kcId: string, imageId: string) =>
+    request<{ ok: boolean }>(`/graph/kc/${kcId}/images/${imageId}`, {
+      method: "DELETE",
     }),
 };
