@@ -558,13 +558,13 @@ async def update_kc(
 async def delete_kc(db: AsyncSession, kc_id: str) -> dict:
     """
     Delete a KC:
-    - Deactivate all its items (soft-delete)
+    - Count and hard-delete all its items (raw SQL to avoid ORM FK nullification)
     - Explicitly delete all prerequisite edges (both directions)
-    - Delete the KC itself
     - Log to GraphEditHistory
+    - Delete the KC itself
     """
     from app.models.models import Item
-    from sqlalchemy import update as sql_update, delete as sql_delete
+    from sqlalchemy import delete as sql_delete, func as sql_func
 
     kc_uuid = uuid.UUID(kc_id)
 
@@ -573,23 +573,23 @@ async def delete_kc(db: AsyncSession, kc_id: str) -> dict:
     if not kc:
         raise ValueError(f"KC {kc_id} not found")
 
-    # 1. Count active items and deactivate them
-    items_result = await db.execute(
-        select(Item).where(Item.kc_id == kc_uuid, Item.is_active == True)
+    # 1. Count items first
+    count_result = await db.execute(
+        select(sql_func.count()).select_from(Item).where(Item.kc_id == kc_uuid)
     )
-    items = items_result.scalars().all()
-    deleted_items = len(items)
-    for item in items:
-        item.is_active = False
+    deleted_items = count_result.scalar() or 0
+
+    # 2. Hard-delete items via raw SQL (avoids ORM trying to SET kc_id=NULL)
+    await db.execute(sql_delete(Item).where(Item.kc_id == kc_uuid))
     await db.flush()
 
-    # 2. Count edges then explicitly delete them (don't rely on cascade + session state)
-    edges_result = await db.execute(
-        select(KCPrerequisite).where(
+    # 3. Count then delete prerequisite edges
+    edges_count_result = await db.execute(
+        select(sql_func.count()).select_from(KCPrerequisite).where(
             (KCPrerequisite.kc_id == kc_uuid) | (KCPrerequisite.prereq_id == kc_uuid)
         )
     )
-    deleted_edges = len(edges_result.scalars().all())
+    deleted_edges = edges_count_result.scalar() or 0
 
     await db.execute(
         sql_delete(KCPrerequisite).where(
@@ -598,7 +598,7 @@ async def delete_kc(db: AsyncSession, kc_id: str) -> dict:
     )
     await db.flush()
 
-    # 3. Log history before deleting KC (so entity_id still exists in context)
+    # 4. Log history BEFORE deleting KC
     db.add(GraphEditHistory(
         action="delete_kc",
         entity_id=kc_uuid,
@@ -607,12 +607,13 @@ async def delete_kc(db: AsyncSession, kc_id: str) -> dict:
     ))
     await db.flush()
 
-    # 4. Delete the KC itself
+    # 5. Delete the KC itself (no ORM children remain now)
     await db.delete(kc)
 
     await db.commit()
     invalidate_graph_cache()
     return {"ok": True, "deleted_items": deleted_items, "deleted_edges": deleted_edges}
+
 
 
 # ── Item (Question) CRUD ──────────────────────────────────────────────────────
