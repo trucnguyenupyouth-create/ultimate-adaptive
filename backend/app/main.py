@@ -2,10 +2,12 @@
 FastAPI application entry point.
 """
 
+import traceback
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.routes import graph, assessment, items, learning, sandbox
 from app.core.config import settings
@@ -13,9 +15,7 @@ from app.core.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: nothing needed yet (graph loads lazily on first request)
     yield
-    # Shutdown: close Redis connection if open
     from app.api.routes.assessment import _redis
     if _redis:
         await _redis.aclose()
@@ -34,6 +34,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 app.include_router(graph.router)
@@ -41,6 +42,23 @@ app.include_router(assessment.router)
 app.include_router(items.router)
 app.include_router(learning.router)
 app.include_router(sandbox.router)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Catch-all handler so unhandled exceptions return proper JSON + CORS headers.
+    Without this, a 500 crash bypasses CORS middleware → browser sees CORS error.
+    """
+    tb = traceback.format_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "type": type(exc).__name__},
+        headers={
+            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+            "Access-Control-Allow-Credentials": "true",
+        },
+    )
 
 
 @app.get("/health")
