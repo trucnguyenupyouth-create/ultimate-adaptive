@@ -557,24 +557,33 @@ async def update_kc(
 
 async def delete_kc(db: AsyncSession, kc_id: str) -> dict:
     """
-    Soft-delete a KC:
-    - Deactivate all its items
-    - Remove all prerequisite edges
-    - Remove the KC from DB
-    Returns counts of affected items and edges.
+    Delete a KC:
+    - Deactivate all its items (soft-delete)
+    - Explicitly delete all prerequisite edges (both directions)
+    - Delete the KC itself
+    - Log to GraphEditHistory
     """
     from app.models.models import Item
+    from sqlalchemy import update as sql_update, delete as sql_delete
+
     kc_uuid = uuid.UUID(kc_id)
 
-    # Count and deactivate items
+    # Verify KC exists
+    kc = await db.get(KnowledgeComponent, kc_uuid)
+    if not kc:
+        raise ValueError(f"KC {kc_id} not found")
+
+    # 1. Count active items and deactivate them
     items_result = await db.execute(
         select(Item).where(Item.kc_id == kc_uuid, Item.is_active == True)
     )
     items = items_result.scalars().all()
+    deleted_items = len(items)
     for item in items:
         item.is_active = False
+    await db.flush()
 
-    # Count edges being removed
+    # 2. Count edges then explicitly delete them (don't rely on cascade + session state)
     edges_result = await db.execute(
         select(KCPrerequisite).where(
             (KCPrerequisite.kc_id == kc_uuid) | (KCPrerequisite.prereq_id == kc_uuid)
@@ -582,20 +591,28 @@ async def delete_kc(db: AsyncSession, kc_id: str) -> dict:
     )
     deleted_edges = len(edges_result.scalars().all())
 
-    # Delete the KC (cascade will remove prerequisite edges)
-    kc = await db.get(KnowledgeComponent, kc_uuid)
-    if kc:
-        await db.delete(kc)
+    await db.execute(
+        sql_delete(KCPrerequisite).where(
+            (KCPrerequisite.kc_id == kc_uuid) | (KCPrerequisite.prereq_id == kc_uuid)
+        )
+    )
+    await db.flush()
 
+    # 3. Log history before deleting KC (so entity_id still exists in context)
     db.add(GraphEditHistory(
         action="delete_kc",
         entity_id=kc_uuid,
         entity_type="kc",
-        payload={"kc_id": kc_id, "deleted_items": len(items), "deleted_edges": deleted_edges},
+        payload={"kc_id": kc_id, "deleted_items": deleted_items, "deleted_edges": deleted_edges},
     ))
+    await db.flush()
+
+    # 4. Delete the KC itself
+    await db.delete(kc)
+
     await db.commit()
     invalidate_graph_cache()
-    return {"ok": True, "deleted_items": len(items), "deleted_edges": deleted_edges}
+    return {"ok": True, "deleted_items": deleted_items, "deleted_edges": deleted_edges}
 
 
 # ── Item (Question) CRUD ──────────────────────────────────────────────────────
