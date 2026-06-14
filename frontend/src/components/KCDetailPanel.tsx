@@ -24,6 +24,8 @@ export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDelete
   const [activeTab, setActiveTab] = useState<TabId>("details");
 
   const loadDetail = useCallback(async (id: string) => {
+    // Guard: must be a valid UUID before making API calls
+    if (!id || id.length < 32) return;
     setLoading(true);
     try {
       const [d, its] = await Promise.all([
@@ -31,7 +33,7 @@ export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDelete
         itemApi.list(id),
       ]);
       setDetail(d);
-      setItems(its);
+      setItems(Array.isArray(its) ? its : []);
     } catch {
       // ignore — panel stays loading
     } finally {
@@ -50,8 +52,12 @@ export default function KCDetailPanel({ nodeId, onClose, onKCUpdated, onKCDelete
 
   const refreshItems = useCallback(async () => {
     if (!nodeId) return;
-    const its = await itemApi.list(nodeId);
-    setItems(its);
+    try {
+      const its = await itemApi.list(nodeId);
+      setItems(Array.isArray(its) ? its : []);
+    } catch {
+      // keep current items on error
+    }
   }, [nodeId]);
 
   const refreshDetail = useCallback(async () => {
