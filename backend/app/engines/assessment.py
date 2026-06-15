@@ -36,6 +36,7 @@ class AssessmentSession:
     streak_correct: int = 0
     streak_wrong: int = 0
     n: int = 0                          # total items answered
+    kc_n: int = 0                       # items answered in CURRENT KC (reset on KC switch)
     responses: list[tuple] = field(default_factory=list)  # (correct, a, b, c)
     kc_results: dict[str, str] = field(default_factory=dict)  # kc_id: 'pass'|'fail'|'gap'
     known_kcs: set[str] = field(default_factory=set)
@@ -50,6 +51,7 @@ class AssessmentSession:
             "streak_correct": self.streak_correct,
             "streak_wrong": self.streak_wrong,
             "n": self.n,
+            "kc_n": self.kc_n,
             "responses": self.responses,
             "kc_results": self.kc_results,
             "known_kcs": list(self.known_kcs),
@@ -64,6 +66,7 @@ class AssessmentSession:
         s.streak_correct = d.get("streak_correct", 0)
         s.streak_wrong = d.get("streak_wrong", 0)
         s.n = d.get("n", 0)
+        s.kc_n = d.get("kc_n", 0)
         s.responses = d.get("responses", [])
         s.kc_results = d.get("kc_results", {})
         s.known_kcs = set(d.get("known_kcs", []))
@@ -133,9 +136,11 @@ class CATController:
             kc=start_kc,
             theta=theta,
             known_kcs=set(known_kcs),
+            kc_n=0,
         )
 
-        item = self._pick_item(start_kc, seen_items=set(), available_items=available_items, theta=theta)
+        item = self._pick_item(start_kc, seen_items=set(), available_items=available_items,
+                               theta=theta, kc_n=0)
         return {
             "status": "started",
             "session": session.to_dict(),
@@ -158,6 +163,7 @@ class CATController:
         """
         s = AssessmentSession.from_dict(session_dict)
         s.n += 1
+        s.kc_n += 1
         s.streak_correct = (s.streak_correct + 1) if correct else 0
         s.streak_wrong = (s.streak_wrong + 1) if not correct else 0
 
@@ -214,7 +220,9 @@ class CATController:
         next_kc = self.kg.navigate(s.kc, passed=True, known_kcs=s.known_kcs)
         if next_kc:
             s.kc = next_kc
-            item = self._pick_item(next_kc, seen_items=set(), available_items=available_items, theta=s.theta)
+            s.kc_n = 0  # reset for new KC
+            item = self._pick_item(next_kc, seen_items=set(), available_items=available_items,
+                                   theta=s.theta, kc_n=0)
             return {"status": "continue", "session": s.to_dict(), "item": item}
 
         return self._finalize(s)
@@ -226,7 +234,9 @@ class CATController:
         next_kc = self.kg.navigate(s.kc, passed=False, known_kcs=s.known_kcs)
         if next_kc:
             s.kc = next_kc
-            item = self._pick_item(next_kc, seen_items=set(), available_items=available_items, theta=s.theta)
+            s.kc_n = 0  # reset for new KC
+            item = self._pick_item(next_kc, seen_items=set(), available_items=available_items,
+                                   theta=s.theta, kc_n=0)
             return {"status": "continue", "session": s.to_dict(), "item": item}
 
         # No prerequisite to go to — fundamental gap at root level
@@ -257,19 +267,47 @@ class CATController:
         seen_items: set[str],
         available_items: dict[str, list[dict]] | None,
         theta: float = 0.0,
+        kc_n: int = 0,
     ) -> Optional[dict]:
         """
-        Layer 0: random item selection.
-        Layer 1: IRT ZPD selection (item difficulty closest to student theta).
+        Constraint-Based Item Selection:
+
+        Cold Start (kc_n == 0):
+          1. Filter pool to diagnostic anchors (is_diagnostic_anchor=True, irt_b in [-0.4, 0.4])
+          2. Sort by irt_a DESC (highest discrimination = cleanest 0/1 signal)
+          3. Randomly pick from top-3 anchors (prevent item exposure / memorisation)
+          4. Fallback → ZPD/random if no anchors available
+
+        Subsequent items (kc_n > 0):
+          → IRT ZPD (θ-targeted) or random (L0 fallback), unchanged
+
+        References: ALEKS/MAP entry-point tagging, KST Construct-Irrelevant Variance,
+        BKT P(Slip) minimisation.
         """
         if not available_items or kc_id not in available_items:
             return None
-        pool = available_items[kc_id]
+        pool = [i for i in available_items[kc_id] if i.get("id") not in seen_items]
+        if not pool:
+            pool = available_items[kc_id]  # all-seen fallback
 
+        # ── Cold Start: Pedagogical filter ───────────────────────────────────
+        if kc_n == 0:
+            anchors = [
+                i for i in pool
+                if i.get("is_diagnostic_anchor", False)
+                and -0.4 <= i.get("irt_b", 0.0) <= 0.4
+            ]
+            if anchors:
+                # Sort by discrimination DESC, pick randomly from top-3
+                anchors_sorted = sorted(anchors, key=lambda i: i.get("irt_a", 1.0), reverse=True)
+                top_pool = anchors_sorted[:3]
+                return random.choice(top_pool)
+            # Fallback: no anchors → proceed to ZPD/random below
+
+        # ── Normal selection: ZPD (L1) or random (L0) ────────────────────────
         if self.use_irt:
             return IRT.select_zpd(theta, pool, target_p=0.65, seen_ids=seen_items)
         else:
-            # L0 fallback: random
             unseen = [i for i in pool if i.get("id") not in seen_items]
             return random.choice(unseen) if unseen else (random.choice(pool) if pool else None)
 

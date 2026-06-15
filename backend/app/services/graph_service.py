@@ -700,8 +700,10 @@ async def get_items(db: AsyncSession, kc_id: str, active_only: bool = True) -> l
             "difficulty_label": i.difficulty_label,
             "format_type": i.format_type,
             "irt_b": i.irt_b,
+            "irt_a": i.irt_a,
             "irt_c": i.irt_c,
             "is_active": i.is_active,
+            "is_diagnostic_anchor": i.is_diagnostic_anchor,
             "created_at": i.created_at.isoformat(),
         }
         for i in items
@@ -855,6 +857,48 @@ async def toggle_item(
     ))
     await db.commit()
     return {"ok": True, "is_active": is_active}
+
+
+async def toggle_anchor(
+    db: AsyncSession,
+    item_id: str,
+    is_anchor: bool,
+    performed_by: str | None = None,
+) -> dict:
+    """
+    Mark/unmark an item as a Diagnostic Anchor (Entry Point for Cold Start CAT).
+
+    Validation:
+    - Item must exist and be active
+    - Warns if irt_b outside [-0.5, 0.5] (not ideal difficulty for cold start)
+    """
+    from app.models.models import Item, ItemEditLog
+
+    item = await db.get(Item, uuid.UUID(item_id))
+    if not item:
+        raise ValueError(f"Item {item_id} not found")
+    if not item.is_active:
+        raise ValueError("Chỉ được đánh dấu Entry Point cho câu hỏi đang hoạt động.")
+
+    item.is_diagnostic_anchor = is_anchor
+    db.add(ItemEditLog(
+        item_id=item.id,
+        action="anchor_set" if is_anchor else "anchor_unset",
+        reason="Content team tag",
+        performed_by=uuid.UUID(performed_by) if performed_by else None,
+    ))
+    await db.commit()
+
+    warning = None
+    if is_anchor and not (-0.5 <= item.irt_b <= 0.5):
+        warning = f"Cảnh báo: câu này có độ khó irt_b={item.irt_b:.2f} (không nằm trong [−0.5, 0.5]). Điều này có thể giảm hiệu quả chẩn đoán."
+
+    return {
+        "ok": True,
+        "item_id": item_id,
+        "is_diagnostic_anchor": is_anchor,
+        "warning": warning,
+    }
 
 
 # ── Block CRUD ───────────────────────────────────────────────────────────────

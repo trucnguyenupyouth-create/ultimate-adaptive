@@ -138,6 +138,8 @@ class Item(Base):
     format_type: Mapped[Optional[str]] = mapped_column(String(16))       # mcq4|fillin|freetext
 
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # Pedagogical tag: TRUE = pure definitional, single-step, Entry Point for Cold Start CAT
+    is_diagnostic_anchor: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_by: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True))
     created_at: Mapped[datetime] = now_col()
 
@@ -145,6 +147,8 @@ class Item(Base):
 
     __table_args__ = (
         Index("idx_items_kc_active", "kc_id", postgresql_where="is_active = TRUE"),
+        Index("idx_items_anchor", "kc_id", "irt_a",
+              postgresql_where="is_active = TRUE AND is_diagnostic_anchor = TRUE"),
     )
 
 

@@ -51,6 +51,7 @@ async def _load_items_for_graph(db: AsyncSession, kg) -> dict[str, list[dict]]:
             "irt_a": item.irt_a,
             "irt_b": item.irt_b,
             "irt_c": item.irt_c,
+            "is_diagnostic_anchor": item.is_diagnostic_anchor,
         })
     return grouped
 

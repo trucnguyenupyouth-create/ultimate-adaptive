@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Pencil, ChevronUp } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Pencil, ChevronUp, Anchor } from "lucide-react";
 import { Item, MCQContent, OpenContent, itemApi } from "@/lib/api";
 import MCQAnswerEditor from "./MCQAnswerEditor";
 import type { DifficultyLabel } from "./QuestionsTab";
@@ -47,6 +47,25 @@ export default function QuestionCard({
 
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+
+  // ── Anchor state ──────────────────────────────────────────────────
+  const [isAnchor, setIsAnchor] = useState(item.is_diagnostic_anchor ?? false);
+  const [anchorLoading, setAnchorLoading] = useState(false);
+  const [anchorWarning, setAnchorWarning] = useState<string | null>(null);
+
+  const handleToggleAnchor = useCallback(async () => {
+    setAnchorLoading(true);
+    setAnchorWarning(null);
+    try {
+      const res = await itemApi.toggleAnchor(item.id, !isAnchor);
+      setIsAnchor(res.is_diagnostic_anchor);
+      if (res.warning) setAnchorWarning(res.warning);
+    } catch (e) {
+      console.error("Toggle anchor failed", e);
+    } finally {
+      setAnchorLoading(false);
+    }
+  }, [item.id, isAnchor]);
 
   const handleEditSave = async () => {
     setEditError(null);
@@ -135,7 +154,23 @@ export default function QuestionCard({
         )}
 
         {/* Footer row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          {/* Entry Point badge */}
+          {isAnchor && (
+            <span
+              title="Diagnostic Anchor: câu này được chọn làm Entry Point cho Cold Start CAT"
+              style={{
+                fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 20,
+                color: "#e3a100",
+                background: "rgba(227,161,0,0.12)",
+                border: "1px solid rgba(227,161,0,0.5)",
+                display: "inline-flex", alignItems: "center", gap: 3,
+              }}
+            >
+              <Anchor size={9} />
+              Entry Point
+            </span>
+          )}
           {/* Difficulty badge — only for MCQ */}
           {!open && (
             <span style={{
@@ -155,6 +190,23 @@ export default function QuestionCard({
             {open ? "Open" : "MCQ"}
           </span>
           <div style={{ flex: 1 }} />
+          {/* Anchor toggle button */}
+          <button
+            onClick={handleToggleAnchor}
+            disabled={anchorLoading}
+            title={isAnchor ? "Bỏ tag Entry Point" : "Tag làm Entry Point (Diagnostic Anchor)"}
+            style={{
+              padding: "3px 6px",
+              background: isAnchor ? "rgba(227,161,0,0.15)" : "transparent",
+              border: isAnchor ? "1px solid rgba(227,161,0,0.5)" : "1px solid transparent",
+              borderRadius: 5, cursor: anchorLoading ? "default" : "pointer",
+              color: isAnchor ? "#e3a100" : "var(--text-muted)",
+              opacity: anchorLoading ? 0.5 : 1,
+              transition: "all 0.15s",
+            }}
+          >
+            <Anchor size={13} />
+          </button>
           {/* Edit button */}
           <button
             className="btn btn-ghost"
@@ -165,6 +217,18 @@ export default function QuestionCard({
             {isEditing ? <ChevronUp size={13} /> : <Pencil size={13} />}
           </button>
         </div>
+        {/* Anchor warning */}
+        {anchorWarning && (
+          <div style={{
+            marginTop: 4, fontSize: 10,
+            color: "#e3a100",
+            background: "rgba(227,161,0,0.08)",
+            border: "1px solid rgba(227,161,0,0.3)",
+            borderRadius: 5, padding: "3px 8px",
+          }}>
+            ⚠️ {anchorWarning}
+          </div>
+        )}
       </div>
 
       {/* ── Edit form (expanded) ── */}

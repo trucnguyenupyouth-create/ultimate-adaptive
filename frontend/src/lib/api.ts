@@ -203,8 +203,10 @@ export interface Item {
   difficulty_label: DifficultyLabel;
   format_type: "mcq4" | "open" | string;
   irt_b: number;
+  irt_a?: number;
   irt_c?: number;
   is_active: boolean;
+  is_diagnostic_anchor: boolean;
   created_at: string;
 }
 
@@ -330,6 +332,12 @@ export const itemApi = {
       method: "PATCH",
       body: JSON.stringify({ is_active: isActive }),
     }),
+
+  toggleAnchor: (itemId: string, isAnchor: boolean) =>
+    request<{ ok: boolean; is_diagnostic_anchor: boolean; warning?: string }>(
+      `/items/${itemId}/anchor`,
+      { method: "PATCH", body: JSON.stringify({ is_diagnostic_anchor: isAnchor }) },
+    ),
 };
 
 // ── Image API ──────────────────────────────────────────────────────────────

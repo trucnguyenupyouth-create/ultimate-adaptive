@@ -122,3 +122,33 @@ async def toggle_item(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+class AnchorToggleRequest(BaseModel):
+    is_diagnostic_anchor: bool
+
+
+@router.patch(
+    "/{item_id}/anchor",
+    summary="Toggle diagnostic anchor tag (Entry Point for Cold Start CAT)",
+)
+async def toggle_anchor(
+    item_id: str,
+    body: AnchorToggleRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Mark/unmark a question as a Diagnostic Anchor (Entry Point).
+
+    Rules enforced:
+    - Item must be active
+    - Item must be medium difficulty (irt_b in [-0.5, 0.5]) — warn if outside
+    """
+    try:
+        return await graph_service.toggle_anchor(
+            db, item_id=item_id, is_anchor=body.is_diagnostic_anchor
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
