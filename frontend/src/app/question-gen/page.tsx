@@ -743,7 +743,7 @@ export default function QuestionGenPage() {
       setDrafts((prev) =>
         prev.map((d) =>
           d.id === draftId
-            ? { ...d, status: "pending" as const, imported_item_id: undefined }
+            ? { ...d, status: "pending" as const, imported_item_id: null }
             : d
         )
       );
