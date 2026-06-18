@@ -58,6 +58,20 @@ const CSS = `
     --hard: #ef4444;
   }
 
+  /* Search */
+  .sidebar-search { padding: 8px 12px; flex-shrink: 0; }
+  .search-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 13px; padding: 7px 10px 7px 30px;
+    outline: none; font-family: inherit; transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-wrap { position: relative; }
+  .search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-dim); pointer-events: none; }
+  .search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+  .search-clear:hover { color: var(--text); }
+  .no-results { padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px; }
+
   html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
 
   /* Layout */
@@ -631,6 +645,8 @@ export default function QuestionGenPage() {
   const [sgkLoading, setSgkLoading] = useState(false);
   const [rightTab, setRightTab] = useState<"sgk" | "none">("sgk");
   const [otherGradesExpanded, setOtherGradesExpanded] = useState(false);
+  const [hideFlagged, setHideFlagged] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Fetch status ──────────────────────────────────────────────────────────
@@ -865,7 +881,27 @@ export default function QuestionGenPage() {
   const selectedKcStat = allKcsCombined.find((k) => k.kc_id === selectedKcId);
   const selectedKcName = selectedKcStat?.kc_name ?? "";
 
-  const pendingDrafts = drafts.filter((d) => d.status === "pending");
+  const pendingDrafts = drafts.filter((d) => d.status === "pending" && (!hideFlagged || !d.flagged));
+
+  // Drafts shown in main panel (apply hideFlagged filter)
+  const visibleDrafts = React.useMemo(
+    () => (hideFlagged ? drafts.filter((d) => !d.flagged) : drafts),
+    [drafts, hideFlagged]
+  );
+
+  // Sidebar KC search filter
+  const searchLower = searchQuery.toLowerCase().trim();
+  const filteredGrade6Kcs = React.useMemo(
+    () => searchLower ? grade6Kcs.filter((k) => k.kc_name.toLowerCase().includes(searchLower) || k.kc_code.toLowerCase().includes(searchLower)) : grade6Kcs,
+    [grade6Kcs, searchLower]
+  );
+  const filteredOtherKcs = React.useMemo(
+    () => searchLower ? otherKcs.filter((k) => k.kc_name.toLowerCase().includes(searchLower) || k.kc_code.toLowerCase().includes(searchLower)) : otherKcs,
+    [otherKcs, searchLower]
+  );
+  // Auto-expand Other Grades when search matches
+  const effectiveOtherExpanded = otherGradesExpanded || (searchLower.length > 0 && filteredOtherKcs.length > 0);
+  const totalFiltered = filteredGrade6Kcs.length + filteredOtherKcs.length;
 
   const getKcStatusClass = (k: KCStats) => {
     if (k.pending === 0 && k.total > 0) return "badge-green";
@@ -941,6 +977,21 @@ export default function QuestionGenPage() {
 
           {/* Action buttons */}
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+            {/* Hide Flagged toggle */}
+            <button
+              className="btn-ghost"
+              onClick={() => setHideFlagged((v) => !v)}
+              title={hideFlagged ? "Đang ẩn câu hỏi flagged (v1 xấu). Nhấn để hiện lại." : "Đang hiện tất cả câu hỏi. Nhấn để ẩn flagged."}
+              style={{
+                display: "flex", alignItems: "center", gap: 6, fontSize: 13,
+                padding: "6px 14px", border: `1px solid ${hideFlagged ? "var(--accent)" : "var(--border)"}`,
+                borderRadius: 8, color: hideFlagged ? "var(--accent-light)" : "var(--text-muted)",
+                background: hideFlagged ? "rgba(124,106,247,0.1)" : "transparent",
+              }}
+            >
+              {hideFlagged ? "👁️ Ẩn flagged" : "👁️ Hiện flagged"}
+            </button>
+
             {/* Export flagged */}
             <button
               className="btn-ghost"
@@ -986,22 +1037,45 @@ export default function QuestionGenPage() {
           <aside className="sidebar">
             <div className="sidebar-header">
               <h2>Knowledge Components</h2>
-              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{grade6Kcs.length + otherKcs.length} nodes có drafts</span>
+              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {searchLower ? `${totalFiltered} / ${grade6Kcs.length + otherKcs.length}` : grade6Kcs.length + otherKcs.length} nodes
+              </span>
+            </div>
+            {/* Search */}
+            <div className="sidebar-search">
+              <div className="search-wrap">
+                <span className="search-icon">🔍</span>
+                <input
+                  id="kc-search"
+                  className="search-input"
+                  placeholder="Tìm node..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                {searchQuery && (
+                  <button className="search-clear" onClick={() => setSearchQuery("")} title="Xoá">
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
             <div className="sidebar-scroll">
-              {grade6Kcs.length === 0 && otherKcs.length === 0 && (
-                <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 12 }}>
-                  Chưa có drafts nào.<br />Nhấn "Bắt đầu Generate" để tạo.
+              {totalFiltered === 0 && (
+                <div className="no-results">
+                  {searchLower ? `Không tìm thấy node nào cho "${searchQuery}"` : "Chưa có drafts nào."}
+                  {!searchLower && <><br />Nhấn "Bắt đầu Generate" để tạo.</>}
                 </div>
               )}
 
               {/* Grade 6 Section */}
-              {grade6Kcs.length > 0 && (
+              {filteredGrade6Kcs.length > 0 && (
                 <>
                   <div style={{ padding: "8px 12px 4px 12px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--yellow)", letterSpacing: 0.5 }}>
-                    Lớp 6 ({grade6Kcs.length} nodes)
+                    Lớp 6 ({filteredGrade6Kcs.length} nodes)
                   </div>
-                  {grade6Kcs.map((k) => (
+                  {filteredGrade6Kcs.map((k) => (
                     <div
                       key={k.kc_id}
                       className={`kc-item${selectedKcId === k.kc_id ? " active" : ""}`}
@@ -1033,33 +1107,25 @@ export default function QuestionGenPage() {
               )}
 
               {/* Other Grades Section */}
-              {otherKcs.length > 0 && (
+              {filteredOtherKcs.length > 0 && (
                 <div style={{ marginTop: 12 }}>
                   <div
                     onClick={() => setOtherGradesExpanded(!otherGradesExpanded)}
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "10px 12px",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      color: "var(--text-muted)",
-                      letterSpacing: 0.5,
-                      borderTop: "1px solid var(--border)",
-                      borderBottom: "1px solid var(--border)",
-                      cursor: "pointer",
-                      backgroundColor: "rgba(255, 255, 255, 0.02)",
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "10px 12px", fontSize: 11, fontWeight: 700, textTransform: "uppercase",
+                      color: "var(--text-muted)", letterSpacing: 0.5,
+                      borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
+                      cursor: "pointer", backgroundColor: "rgba(255, 255, 255, 0.02)",
                     }}
                   >
-                    <span>Lớp khác (7, 8, 9) ({otherKcs.length} nodes)</span>
-                    <span>{otherGradesExpanded ? "▼" : "▶"}</span>
+                    <span>Lớp khác (7, 8, 9) ({filteredOtherKcs.length} nodes)</span>
+                    <span>{effectiveOtherExpanded ? "▼" : "▶"}</span>
                   </div>
                   
-                  {otherGradesExpanded && (
+                  {effectiveOtherExpanded && (
                     <div style={{ paddingBottom: 20 }}>
-                      {otherKcs.map((k) => (
+                      {filteredOtherKcs.map((k) => (
                         <div
                           key={k.kc_id}
                           className={`kc-item${selectedKcId === k.kc_id ? " active" : ""}`}
@@ -1144,16 +1210,18 @@ export default function QuestionGenPage() {
                         <span>Đang tải...</span>
                       </div>
                     )}
-                    {!loadingDrafts && drafts.length === 0 && (
+                    {!loadingDrafts && visibleDrafts.length === 0 && (
                       <div className="empty">
                         <div className="empty-icon">📭</div>
                         <div style={{ fontWeight: 600 }}>Không có câu hỏi nào</div>
                         <div style={{ fontSize: 12 }}>
-                          {filterStatus !== "all" ? `Không có câu hỏi "${filterStatus}"` : "Chưa generate cho KC này"}
+                          {hideFlagged && drafts.length > 0
+                            ? `Đang ẩn ${drafts.length} câu flagged. Nhấn "👁️ Hiện flagged" để xem.`
+                            : filterStatus !== "all" ? `Không có câu hỏi "${filterStatus}"` : "Chưa generate cho KC này"}
                         </div>
                       </div>
                     )}
-                    {!loadingDrafts && drafts.map((draft) => (
+                    {!loadingDrafts && visibleDrafts.map((draft) => (
                       <QuestionCard
                         key={draft.id}
                         draft={draft}
