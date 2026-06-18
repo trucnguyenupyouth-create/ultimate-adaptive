@@ -35,6 +35,7 @@ import {
   X,
   Link2,
   Eye,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -1170,6 +1171,22 @@ function GraphBuilderInner() {
         >
           <Eye size={13} />
           X-Ray Sandbox
+        </Link>
+        <Link
+          href="/question-gen"
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "6px 12px", borderRadius: 6, fontSize: 13, fontWeight: 500,
+            border: "1px solid rgba(88,166,255,0.4)",
+            background: "rgba(88,166,255,0.08)",
+            color: "#58a6ff",
+            textDecoration: "none",
+            transition: "all 0.15s",
+          }}
+          title="Question Generation — AI MCQ seeding & review"
+        >
+          <Sparkles size={13} />
+          Question Gen
         </Link>
         <button
           className="btn btn-primary"

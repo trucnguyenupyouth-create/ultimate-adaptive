@@ -321,3 +321,55 @@ class GraphNote(Base):
     color: Mapped[str] = mapped_column(String(20), nullable=False, default="yellow")
     created_at: Mapped[datetime] = now_col()
     updated_at: Mapped[datetime] = now_col()
+
+
+class ItemDraft(Base):
+    """AI-generated MCQ draft — awaiting human review before import to items table."""
+    __tablename__ = "item_drafts"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+
+    # KC reference (denormalized for display without join)
+    kc_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("knowledge_components.id", ondelete="CASCADE"), nullable=False
+    )
+    kc_name: Mapped[str] = mapped_column(Text, nullable=False)
+    kc_code: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # Question content (same shape as items.content)
+    content: Mapped[dict] = mapped_column(JSONB, nullable=False)
+
+    # IRT/KST metadata from AI generation
+    difficulty_label: Mapped[str] = mapped_column(String(16), nullable=False)  # easy|medium|hard
+    is_diagnostic_anchor: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    kst_irt_tag: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # AI pedagogical analysis
+
+    # Generation job tracking
+    generation_job_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
+    sgk_section: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # e.g. "B1K1"
+    raw_ai_output: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # raw Gemini output
+
+    # Review workflow
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    # pending | approved | rejected | edited_approved
+    imported_item_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("items.id", ondelete="SET NULL"), nullable=True
+    )
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMPTZ, nullable=True)
+
+    # Flag / note — reviewer marks as "considering" with optional note
+    flagged: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    flag_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    created_at: Mapped[datetime] = now_col()
+
+
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'approved', 'rejected', 'edited_approved')",
+            name="item_drafts_status_check"
+        ),
+        Index("idx_item_drafts_kc", "kc_id"),
+        Index("idx_item_drafts_status", "status"),
+        Index("idx_item_drafts_job", "generation_job_id"),
+    )

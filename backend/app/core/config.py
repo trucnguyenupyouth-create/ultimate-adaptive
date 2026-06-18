@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     # Supabase Storage
     SUPABASE_URL: str = ""
     SUPABASE_SERVICE_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
 
     @property
     def cors_origins_list(self) -> List[str]:
