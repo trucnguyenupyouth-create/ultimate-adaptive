@@ -47,6 +47,7 @@ export interface KCStats {
   approved: number;
   rejected: number;
   edited_approved: number;
+  flagged: number;
   total: number;
 }
 
@@ -57,6 +58,7 @@ export interface DraftStats {
     approved: number;
     rejected: number;
     edited_approved: number;
+    flagged: number;
     total: number;
   };
 }

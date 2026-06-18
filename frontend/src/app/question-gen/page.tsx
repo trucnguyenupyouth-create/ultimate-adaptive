@@ -842,7 +842,7 @@ export default function QuestionGenPage() {
     return { grade6Kcs: g6, otherKcs: others };
   }, [status?.drafts?.kcs]);
 
-  const totals = status?.drafts?.totals ?? { pending: 0, approved: 0, rejected: 0, edited_approved: 0, total: 0 };
+  const totals = status?.drafts?.totals ?? { pending: 0, approved: 0, rejected: 0, edited_approved: 0, flagged: 0, total: 0 };
   const job = status?.job;
   const cost: CostSummary | undefined = status?.cost;
 
@@ -887,6 +887,13 @@ export default function QuestionGenPage() {
               <strong style={{ color: "var(--red)" }}>{totals.rejected}</strong>
               <span style={{ color: "var(--text-muted)" }}>từ chối</span>
             </div>
+            {(totals.flagged ?? 0) > 0 && (
+              <div className="stat-chip" title="Câu hỏi đang được flag để xem xét">
+                <span>🚩</span>
+                <strong style={{ color: "#f59e0b" }}>{totals.flagged}</strong>
+                <span style={{ color: "var(--text-muted)" }}>xem xét</span>
+              </div>
+            )}
             <div className="stat-chip" title={`Input: ${cost?.total_input_tokens ?? 0} tokens / Output: ${cost?.total_output_tokens ?? 0} tokens — ${OPENAI_MODEL}`}>
               <span style={{ color: "#a78bfa" }}>$</span>
               <strong style={{ color: "#a78bfa", fontFamily: "'JetBrains Mono', monospace", fontSize: 13 }}>
@@ -969,6 +976,14 @@ export default function QuestionGenPage() {
                         {(k.approved + k.edited_approved) > 0 && (
                           <span className="badge badge-green">✓{k.approved + k.edited_approved}</span>
                         )}
+                        {k.flagged > 0 && (
+                          <span
+                            className="badge badge-flag"
+                            title={`${k.flagged} câu đang được flag để xem xét`}
+                          >
+                            🚩{k.flagged}
+                          </span>
+                        )}
                         {k.rejected > 0 && <span className="badge badge-red">✗{k.rejected}</span>}
                         <span className={`badge ${getKcStatusClass(k)}`}>{k.total}</span>
                       </div>
@@ -1018,6 +1033,14 @@ export default function QuestionGenPage() {
                             {k.pending > 0 && <span className="badge badge-yellow">{k.pending}</span>}
                             {(k.approved + k.edited_approved) > 0 && (
                               <span className="badge badge-green">✓{k.approved + k.edited_approved}</span>
+                            )}
+                            {k.flagged > 0 && (
+                              <span
+                                className="badge badge-flag"
+                                title={`${k.flagged} câu đang được flag để xem xét`}
+                              >
+                                🚩{k.flagged}
+                              </span>
                             )}
                             {k.rejected > 0 && <span className="badge badge-red">✗{k.rejected}</span>}
                             <span className={`badge ${getKcStatusClass(k)}`}>{k.total}</span>
