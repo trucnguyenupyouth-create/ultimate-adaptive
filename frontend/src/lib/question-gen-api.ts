@@ -197,9 +197,14 @@ export async function rejectDraft(draftId: string) {
   });
 }
 
+export interface RevertDraftResponse {
+  item_deleted: boolean;
+  draft: ItemDraft;
+}
+
 /** Revert an approved/rejected draft back to pending (undo). */
-export async function revertDraft(draftId: string) {
-  return apiFetch(`/question-gen/drafts/${draftId}/revert`, {
+export async function revertDraft(draftId: string): Promise<RevertDraftResponse> {
+  return apiFetch<RevertDraftResponse>(`/question-gen/drafts/${draftId}/revert`, {
     method: "POST",
   });
 }
