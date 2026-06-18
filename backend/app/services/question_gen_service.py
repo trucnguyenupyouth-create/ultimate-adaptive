@@ -540,12 +540,17 @@ async def count_active_items(db: AsyncSession, kc_id: str) -> int:
     return result.scalar() or 0
 
 
-async def count_pending_drafts(db: AsyncSession, kc_id: str) -> int:
-    """Return the number of pending drafts for a KC."""
+async def count_valid_pending_drafts(db: AsyncSession, kc_id: str) -> int:
+    """
+    Return the number of non-flagged pending drafts for a KC.
+    Flagged drafts are v1 bad-SGK questions that need replacement,
+    so they do NOT count against the regeneration threshold.
+    """
     result = await db.execute(
         select(func.count()).select_from(ItemDraft).where(
             ItemDraft.kc_id == uuid.UUID(kc_id),
             ItemDraft.status == "pending",
+            ItemDraft.flagged == False,  # noqa: E712
         )
     )
     return result.scalar() or 0
@@ -583,13 +588,14 @@ async def generate_for_kc(
             "reason": f"Already has {active_count} active items",
         }
 
-    # ── Skip if already has pending drafts from this job ──
-    pending_count = await count_pending_drafts(db, kc_id)
-    if pending_count >= 6:
+    # ── Skip if already has enough valid (non-flagged) pending drafts ──
+    # Flagged drafts are v1 bad-SGK drafts — they don't block regeneration.
+    valid_pending = await count_valid_pending_drafts(db, kc_id)
+    if valid_pending >= 6:
         return {
             "status": "skipped",
             "count": 0,
-            "reason": f"Already has {pending_count} pending drafts",
+            "reason": f"Already has {valid_pending} valid pending drafts (excluding flagged)",
         }
 
     # ── Extract SGK section ──
