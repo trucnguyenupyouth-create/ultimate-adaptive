@@ -250,3 +250,37 @@ export async function flagDraft(
     body: JSON.stringify({ flagged, flag_note: flagNote ?? null }),
   });
 }
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch all flagged drafts as a Markdown file and trigger a browser download.
+ * Returns the filename used.
+ */
+export async function exportFlaggedDrafts(): Promise<string> {
+  const res = await fetch(`${BASE}/question-gen/drafts/flagged/export`, {
+    headers: { Accept: "text/markdown" },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error((err as { detail?: string }).detail || `API error ${res.status}`);
+  }
+  const blob = await res.blob();
+  // Extract filename from Content-Disposition header, fallback to timestamp
+  const disposition = res.headers.get("content-disposition") ?? "";
+  const match = disposition.match(/filename="([^"]+)"/);
+  const filename = match ? match[1] : `flagged_questions_${Date.now()}.md`;
+
+  // Trigger download
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  return filename;
+}
+

@@ -1022,3 +1022,113 @@ async def flag_draft(
     await db.refresh(draft)
     return _draft_to_dict(draft)
 
+
+async def export_flagged_as_markdown(db: AsyncSession) -> str:
+    """
+    Fetch all flagged drafts, group by KC, and render as a Markdown report.
+
+    Returns a UTF-8 string ready to be served as a .md file download.
+    """
+    result = await db.execute(
+        select(ItemDraft)
+        .where(ItemDraft.flagged == True)  # noqa: E712
+        .order_by(ItemDraft.kc_code.asc(), ItemDraft.created_at.asc())
+    )
+    drafts = result.scalars().all()
+
+    if not drafts:
+        return "# 🚩 Flagged Questions Export\n\n_Không có câu hỏi nào đang được flag._\n"
+
+    # Group by KC
+    from collections import defaultdict
+    by_kc: dict[str, list[ItemDraft]] = defaultdict(list)
+    kc_meta: dict[str, tuple[str, str]] = {}  # kc_code -> (kc_name, kc_code)
+    for d in drafts:
+        key = d.kc_code
+        by_kc[key].append(d)
+        kc_meta[key] = (d.kc_name, d.kc_code)
+
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    total = len(drafts)
+    kc_count = len(by_kc)
+
+    lines: list[str] = [
+        "# 🚩 Flagged Questions — Review Export",
+        "",
+        f"> **Xuất lúc:** {now}  ",
+        f"> **Tổng số câu được flag:** {total}  ",
+        f"> **Số Knowledge Components:** {kc_count}",
+        "",
+        "---",
+        "",
+    ]
+
+    for kc_code, kc_drafts in sorted(by_kc.items()):
+        kc_name, _ = kc_meta[kc_code]
+        lines += [
+            f"## 📚 {kc_name}",
+            f"`{kc_code}` · {len(kc_drafts)} câu được flag",
+            "",
+        ]
+
+        for idx, d in enumerate(kc_drafts, 1):
+            content = d.content or {}
+            question_text = content.get("question", "_(Không có nội dung)_")
+            answers: list[dict] = content.get("answers", [])
+
+            diff_map = {"easy": "Dễ", "medium": "Trung bình", "hard": "Khó"}
+            diff_label = diff_map.get(d.difficulty_label or "", d.difficulty_label or "?")
+            status_label = {
+                "pending": "⏳ Chờ duyệt",
+                "approved": "✅ Đã duyệt",
+                "edited_approved": "✏️ Đã sửa & duyệt",
+                "rejected": "❌ Từ chối",
+            }.get(d.status or "", d.status or "?")
+
+            lines += [
+                f"### Câu {idx} — {diff_label} · {status_label}",
+                "",
+                f"**❓ Câu hỏi:**",
+                f"> {question_text}",
+                "",
+            ]
+
+            if answers:
+                lines.append("**Đáp án:**")
+                lines.append("")
+                for ans in answers:
+                    label = ans.get("label", "?")
+                    text_ = ans.get("text", "")
+                    is_correct = ans.get("is_correct", False)
+                    marker = "✅" if is_correct else "○"
+                    lines.append(f"- {marker} **{label}.** {text_}")
+                lines.append("")
+
+            if d.kst_irt_tag:
+                lines += [
+                    f"**🔬 KST/IRT Tag:**",
+                    f"> {d.kst_irt_tag}",
+                    "",
+                ]
+
+            flag_note = (d.flag_note or "").strip()
+            if flag_note:
+                lines += [
+                    f"**🚩 Ghi chú xem xét:**",
+                    f"> {flag_note}",
+                    "",
+                ]
+            else:
+                lines += [
+                    "**🚩 Ghi chú xem xét:** _(chưa có ghi chú)_",
+                    "",
+                ]
+
+            lines.append("---")
+            lines.append("")
+
+        lines.append("")  # extra spacing between KCs
+
+    return "\n".join(lines)
+
+

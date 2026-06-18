@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   approveDraft,
   bulkApprove,
+  exportFlaggedDrafts,
   flagDraft,
   getDrafts,
   getSgkContent,
@@ -624,6 +625,7 @@ export default function QuestionGenPage() {
   const [drafts, setDrafts] = useState<ItemDraft[]>([]);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [generating, setGenerating] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [loadingDrafts, setLoadingDrafts] = useState(false);
   const [sgkContent, setSgkContent] = useState<string | null>(null);
   const [sgkLoading, setSgkLoading] = useState(false);
@@ -696,6 +698,19 @@ export default function QuestionGenPage() {
   }, [selectedKcId, filterStatus, fetchDrafts]);
 
   // ── Actions ───────────────────────────────────────────────────────────────
+  const handleExportFlagged = async () => {
+    setExporting(true);
+    try {
+      const filename = await exportFlaggedDrafts();
+      show(`📥 Đã tải: ${filename}`, "success");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi export";
+      show(msg, "error");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleRunGeneration = async () => {
     setGenerating(true);
     try {
@@ -924,8 +939,33 @@ export default function QuestionGenPage() {
             </div>
           )}
 
-          {/* Generate button */}
-          <div style={{ marginLeft: "auto" }}>
+          {/* Action buttons */}
+          <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+            {/* Export flagged */}
+            <button
+              className="btn-ghost"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 13,
+                padding: "6px 14px",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                opacity: (totals.flagged ?? 0) === 0 ? 0.45 : 1,
+              }}
+              disabled={exporting || (totals.flagged ?? 0) === 0}
+              onClick={handleExportFlagged}
+              title={(totals.flagged ?? 0) === 0 ? "Chưa có câu nào được flag" : `Export ${totals.flagged} câu được flag thành file .md`}
+            >
+              {exporting ? (
+                <><div className="spinner" style={{ width: 13, height: 13, borderWidth: 2 }} /> Đang xuất...</>
+              ) : (
+                <>📥 Export Flagged {(totals.flagged ?? 0) > 0 && <span style={{ background: "#f59e0b22", color: "#f59e0b", borderRadius: 4, padding: "1px 6px", fontSize: 11, fontWeight: 700 }}>{totals.flagged}</span>}</>
+              )}
+            </button>
+
+            {/* Generate */}
             <button
               className="btn-primary"
               disabled={generating || job?.running}

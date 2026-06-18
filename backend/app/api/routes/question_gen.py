@@ -17,6 +17,7 @@ import asyncio
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -382,6 +383,30 @@ async def bulk_approve(
         "failed": failed,
         "results": results,
     }
+
+
+@router.get(
+    "/drafts/flagged/export",
+    summary="Export all flagged drafts as a Markdown file",
+    response_class=Response,
+)
+async def export_flagged_drafts(db: AsyncSession = Depends(get_db)):
+    """
+    Returns all flagged question drafts (across all KCs) as a formatted
+    Markdown file, grouped by Knowledge Component with flag notes included.
+    The response triggers a browser download.
+    """
+    md_content = await qg.export_flagged_as_markdown(db)
+    from datetime import datetime, timezone
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
+    filename = f"flagged_questions_{timestamp}.md"
+    return Response(
+        content=md_content.encode("utf-8"),
+        media_type="text/markdown; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+        },
+    )
 
 
 @router.post("/drafts/{draft_id}/flag", summary="Flag a draft as 'considering' with optional note")
