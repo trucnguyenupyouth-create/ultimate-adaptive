@@ -129,6 +129,8 @@ export async function runGeneration(options?: {
   skip_threshold?: number;
   rate_limit_seconds?: number;
   dry_run?: boolean;
+  target_grade?: number;
+  target_semester?: number;
 }) {
   return apiFetch("/question-gen/run", {
     method: "POST",
@@ -136,6 +138,8 @@ export async function runGeneration(options?: {
       skip_threshold: options?.skip_threshold ?? 6,
       rate_limit_seconds: options?.rate_limit_seconds ?? 2.0,
       dry_run: options?.dry_run ?? false,
+      target_grade: options?.target_grade ?? 6,
+      target_semester: options?.target_semester ?? 1,
     }),
   });
 }
