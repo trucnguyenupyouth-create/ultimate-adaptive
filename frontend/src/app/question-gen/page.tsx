@@ -645,7 +645,7 @@ export default function QuestionGenPage() {
   const [sgkLoading, setSgkLoading] = useState(false);
   const [rightTab, setRightTab] = useState<"sgk" | "none">("sgk");
   const [otherGradesExpanded, setOtherGradesExpanded] = useState(false);
-  const [hideFlagged, setHideFlagged] = useState(true);
+  const [hideFlagged, setHideFlagged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
