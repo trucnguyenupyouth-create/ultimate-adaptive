@@ -646,7 +646,7 @@ export default function QuestionGenPage() {
   const [loadingDrafts, setLoadingDrafts] = useState(false);
   const [sgkContent, setSgkContent] = useState<string | null>(null);
   const [sgkLoading, setSgkLoading] = useState(false);
-  const [rightTab, setRightTab] = useState<"sgk" | "items" | "none">("sgk");
+  const [rightTab, setRightTab] = useState<"sgk" | "none">("sgk");
   const [items, setItems] = useState<Item[]>([]);
   const [otherGradesExpanded, setOtherGradesExpanded] = useState(false);
   const [hideFlagged, setHideFlagged] = useState(false);
@@ -1250,10 +1250,41 @@ export default function QuestionGenPage() {
                         onUpdate={handleUpdate}
                       />
                     ))}
+
+                    {/* ── Approved Items Section ── */}
+                    {selectedKcId && (
+                      <div style={{ marginTop: 24, paddingTop: 20, borderTop: "2px solid var(--border)" }}>
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 8, marginBottom: 16,
+                          fontSize: 13, fontWeight: 700, color: "var(--text-muted)",
+                          textTransform: "uppercase", letterSpacing: "0.06em",
+                        }}>
+                          <span style={{ fontSize: 16 }}>✏️</span>
+                          Câu hỏi đã duyệt
+                          {items.length > 0 && (
+                            <span style={{
+                              marginLeft: 4, background: "var(--accent)", color: "#fff",
+                              borderRadius: 10, padding: "1px 8px", fontSize: 11, fontWeight: 700,
+                            }}>{items.length}</span>
+                          )}
+                        </div>
+                        <QuestionsTab
+                          kcId={selectedKcId}
+                          items={items}
+                          itemCounts={{
+                            total: items.length,
+                            easy:   items.filter(i => i.difficulty_label === "easy").length,
+                            medium: items.filter(i => i.difficulty_label === "medium").length,
+                            hard:   items.filter(i => i.difficulty_label === "hard").length,
+                          }}
+                          onRefresh={async () => { if (selectedKcId) await fetchItems(selectedKcId); }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Right: SGK / Items panel */}
+                {/* Right: SGK panel */}
                 <div className="sgk-panel">
                   <div className="panel-tabs">
                     <button
@@ -1261,12 +1292,6 @@ export default function QuestionGenPage() {
                       onClick={() => setRightTab("sgk")}
                     >
                       📖 Nội dung SGK
-                    </button>
-                    <button
-                      className={`panel-tab${rightTab === "items" ? " active" : ""}`}
-                      onClick={() => { setRightTab("items"); if (selectedKcId) fetchItems(selectedKcId); }}
-                    >
-                      ✏️ Câu đã duyệt{items.length > 0 ? ` (${items.length})` : ""}
                     </button>
                   </div>
 
@@ -1299,27 +1324,6 @@ export default function QuestionGenPage() {
                         )}
                       </div>
                     </>
-                  )}
-                  {rightTab === "items" && selectedKcId && (
-                    <div style={{ overflowY: "auto", flex: 1, padding: "16px" }}>
-                      <QuestionsTab
-                        kcId={selectedKcId}
-                        items={items}
-                        itemCounts={{
-                          total: items.length,
-                          easy:   items.filter(i => i.difficulty_label === "easy").length,
-                          medium: items.filter(i => i.difficulty_label === "medium").length,
-                          hard:   items.filter(i => i.difficulty_label === "hard").length,
-                        }}
-                        onRefresh={async () => { if (selectedKcId) await fetchItems(selectedKcId); }}
-                      />
-                    </div>
-                  )}
-                  {rightTab === "items" && !selectedKcId && (
-                    <div className="sgk-empty">
-                      <div style={{ fontSize: 32 }}>✏️</div>
-                      <span>Chọn một KC để xem và thêm câu hỏi</span>
-                    </div>
                   )}
                 </div>
               </div>
