@@ -306,7 +306,7 @@ function useToast() {
 // Question Card
 // ─────────────────────────────────────────────────────────────────────────────
 
-function QuestionCard({
+const QuestionCard = React.memo(function QuestionCard({
   draft,
   onApprove,
   onReject,
@@ -623,9 +623,40 @@ function QuestionCard({
         </div>
     </div>
   );
+});
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Optimistic stat mutation (Fix #1) — no network call needed after actions
+// ─────────────────────────────────────────────────────────────────────────────
+
+function mutateKcStats(
+  prev: StatusResponse,
+  kcId: string,
+  delta: { pending?: number; approved?: number; rejected?: number }
+): StatusResponse {
+  return {
+    ...prev,
+    drafts: {
+      ...prev.drafts,
+      kcs: prev.drafts.kcs.map((k) =>
+        k.kc_id !== kcId ? k : {
+          ...k,
+          pending:  Math.max(0, k.pending  + (delta.pending  ?? 0)),
+          approved: Math.max(0, k.approved + (delta.approved ?? 0)),
+          rejected: Math.max(0, k.rejected + (delta.rejected ?? 0)),
+        }
+      ),
+      totals: {
+        ...prev.drafts.totals,
+        pending:  Math.max(0, prev.drafts.totals.pending  + (delta.pending  ?? 0)),
+        approved: Math.max(0, prev.drafts.totals.approved + (delta.approved ?? 0)),
+        rejected: Math.max(0, prev.drafts.totals.rejected + (delta.rejected ?? 0)),
+      },
+    },
+  };
 }
-
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Page
@@ -665,6 +696,7 @@ export default function QuestionGenPage() {
   const [hideFlagged, setHideFlagged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sgkCache = useRef<Record<string, string>>({}); // Fix #4: client-side SGK cache
 
   // ── Fetch status ──────────────────────────────────────────────────────────
   const fetchStatus = useCallback(async () => {
@@ -696,20 +728,35 @@ export default function QuestionGenPage() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [fetchStatus]);
 
-  // ── Fetch SGK content for selected KC ────────────────────────────────────
+  // Fix #2+#4: SGK fires in parallel with drafts (reads from KC stats loaded at startup)
+  // and is cached client-side so revisiting a KC costs zero network calls.
+  const selectedKcChapterInfo = React.useMemo(
+    () => status?.drafts?.kcs?.find((k) => k.kc_id === selectedKcId)?.chapter_info ?? null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedKcId, status?.drafts?.kcs]
+  );
+
   useEffect(() => {
     if (!selectedKcId) { setSgkContent(null); return; }
-    // Find chapter_info from kcStats (drafts have sgk_section field)
-    const chapterInfo = drafts[0]?.sgk_section ?? null;
+    const chapterInfo = selectedKcChapterInfo;
     if (!chapterInfo) { setSgkContent(null); return; }
+    // Serve from cache — instant, no spinner
+    if (sgkCache.current[chapterInfo]) {
+      setSgkContent(sgkCache.current[chapterInfo]);
+      return;
+    }
     setSgkLoading(true);
     getSgkContent(chapterInfo)
-      .then((r) => setSgkContent(r.found ? r.content : null))
+      .then((r) => {
+        const content = r.found ? r.content : null;
+        if (content) sgkCache.current[chapterInfo] = content;
+        setSgkContent(content);
+      })
       .catch(() => setSgkContent(null))
       .finally(() => setSgkLoading(false));
-  }, [selectedKcId, drafts]);
+  }, [selectedKcId, selectedKcChapterInfo]);
 
-  // ── Fetch approved items for selected KC ─────────────────────────────────
+  // Fix #5: fetchItems is on-demand only — NOT auto-triggered on KC switch
   const fetchItems = useCallback(async (kcId: string) => {
     try {
       const its = await itemApi.list(kcId);
@@ -719,10 +766,6 @@ export default function QuestionGenPage() {
     }
   }, []);
 
-  useEffect(() => {
-    if (selectedKcId) fetchItems(selectedKcId);
-    else setItems([]);
-  }, [selectedKcId, fetchItems]);
 
   // ── Fetch drafts for selected KC ──────────────────────────────────────────
   const fetchDrafts = useCallback(async (kcId: string, statusFilter?: FilterStatus) => {
@@ -773,65 +816,63 @@ export default function QuestionGenPage() {
     }
   };
 
-  const handleApprove = async (draftId: string) => {
+  // Fix #1: per-action optimistic updates — zero extra network calls
+  const handleApprove = useCallback(async (draftId: string) => {
     try {
       await approveDraft(draftId);
-      setDrafts((prev) =>
-        prev.map((d) => (d.id === draftId ? { ...d, status: "approved" as const } : d))
-      );
+      setDrafts((prev) => prev.map((d) => d.id === draftId ? { ...d, status: "approved" as const } : d));
+      setStatus((prev) => prev && selectedKcId ? mutateKcStats(prev, selectedKcId, { pending: -1, approved: +1 }) : prev);
       show("✓ Câu hỏi đã được import vào Item Bank", "success");
-      fetchStatus();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Lỗi";
-      show(msg, "error");
+      show(e instanceof Error ? e.message : "Lỗi", "error");
     }
-  };
+  }, [show, selectedKcId]);
 
-  const handleReject = async (draftId: string) => {
+  const handleReject = useCallback(async (draftId: string) => {
     try {
       await rejectDraft(draftId);
-      setDrafts((prev) =>
-        prev.map((d) => (d.id === draftId ? { ...d, status: "rejected" as const } : d))
-      );
+      setDrafts((prev) => prev.map((d) => d.id === draftId ? { ...d, status: "rejected" as const } : d));
+      setStatus((prev) => prev && selectedKcId ? mutateKcStats(prev, selectedKcId, { pending: -1, rejected: +1 }) : prev);
       show("✗ Đã từ chối câu hỏi", "success");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Lỗi";
-      show(msg, "error");
+      show(e instanceof Error ? e.message : "Lỗi", "error");
     }
-  };
+  }, [show, selectedKcId]);
 
-  const handleRevert = async (draftId: string) => {
+  const handleRevert = useCallback(async (draftId: string) => {
     try {
       const res = await revertDraft(draftId);
-      setDrafts((prev) =>
-        prev.map((d) =>
-          d.id === draftId
-            ? { ...d, status: "pending" as const, imported_item_id: null }
-            : d
-        )
-      );
-      const msg = res.item_deleted
-        ? "↩ Đã hủy duyệt — item đã bị xóa khỏi Item Bank"
-        : "↩ Đã đưa draft về pending";
+      // Capture prev status inside setDrafts so we don’t need drafts as dep
+      setDrafts((prev) => {
+        const old = prev.find((d) => d.id === draftId);
+        const wasApproved = old?.status === "approved" || old?.status === "edited_approved";
+        const wasRejected = old?.status === "rejected";
+        if (selectedKcId) {
+          setStatus((s) => s ? mutateKcStats(s, selectedKcId, {
+            pending: +1,
+            approved: wasApproved ? -1 : 0,
+            rejected: wasRejected ? -1 : 0,
+          }) : s);
+        }
+        return prev.map((d) => d.id === draftId ? { ...d, status: "pending" as const, imported_item_id: null } : d);
+      });
+      const msg = res.item_deleted ? "↩ Đã hủy duyệt — item đã bị xóa khỏi Item Bank" : "↩ Đã đưa draft về pending";
       show(msg, "success");
-      fetchStatus();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Lỗi";
-      show(msg, "error");
+      show(e instanceof Error ? e.message : "Lỗi", "error");
     }
-  };
+  }, [show, selectedKcId]);
 
-  const handleUpdate = async (draftId: string, patch: Partial<ItemDraft>) => {
+  const handleUpdate = useCallback(async (draftId: string, patch: Partial<ItemDraft>) => {
     try {
       const updated = await updateDraft(draftId, patch as Parameters<typeof updateDraft>[1]);
       setDrafts((prev) => prev.map((d) => (d.id === draftId ? updated : d)));
       show("💾 Đã lưu thay đổi", "success");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Lỗi";
-      show(msg, "error");
+      show(e instanceof Error ? e.message : "Lỗi", "error");
       throw e;
     }
-  };
+  }, [show]);
 
   const handleBulkApprove = async () => {
     if (!selectedKcId) return;
@@ -843,11 +884,11 @@ export default function QuestionGenPage() {
     try {
       const res = await bulkApprove(selectedKcId, pendingIds) as { success: number; failed: number };
       show(`✓ Đã approve ${res.success} câu, lỗi ${res.failed}`, "success");
-      fetchDrafts(selectedKcId, filterStatus);
-      fetchStatus();
+      // Optimistic: flip all pending→approved locally, no refetch
+      setDrafts((prev) => prev.map((d) => d.status === "pending" ? { ...d, status: "approved" as const } : d));
+      setStatus((prev) => prev ? mutateKcStats(prev, selectedKcId, { pending: -res.success, approved: +res.success }) : prev);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Lỗi";
-      show(msg, "error");
+      show(e instanceof Error ? e.message : "Lỗi", "error");
     }
   };
 
@@ -891,7 +932,7 @@ export default function QuestionGenPage() {
         setShowAddForm(false);
         resetAddForm();
       }
-      fetchStatus();
+      // no fetchStatus() — add question doesn’t affect sidebar KC draft stats
     } catch (e: unknown) {
       setAddError(e instanceof Error ? e.message : "Lỗi lưu");
     } finally {
