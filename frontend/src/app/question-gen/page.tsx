@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   approveDraft,
   bulkApprove,
+  createDraft,
   exportFlaggedDrafts,
   flagDraft,
   getDrafts,
@@ -206,8 +207,27 @@ const CSS = `
   .panel-tab:hover:not(.active) { color: var(--text); background: var(--surface3); }
 
   /* Split content area */
-  .content-split { display: grid; grid-template-columns: 1fr 380px; overflow: hidden; flex: 1; }
+  .content-split { display: grid; grid-template-columns: 1fr 380px; overflow: hidden; flex: 1; transition: grid-template-columns 0.2s ease; }
   .content-left { display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Responsive layout — desktop only */
+  @media (max-width: 1450px) { .main-area { grid-template-columns: 260px 1fr; } }
+  @media (max-width: 1250px) {
+    .main-area { grid-template-columns: 230px 1fr; }
+    .kc-item-name { font-size: 12px; }
+    .stat-chip { padding: 5px 8px; font-size: 11px; }
+    .stat-chip strong { font-size: 14px; }
+  }
+  @media (max-width: 1050px) {
+    .main-area { grid-template-columns: 200px 1fr; }
+    .kc-item { padding: 8px 12px; }
+    .kc-item-name { font-size: 11px; }
+    .kc-item-code { display: none; }
+    .content-split { grid-template-columns: 1fr 280px; }
+  }
+  /* SGK collapsed strip */
+  .sgk-panel-strip { display: flex; flex-direction: column; align-items: center; padding: 12px 6px; gap: 8px; cursor: pointer; }
+  .sgk-strip-label { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.06em; user-select: none; margin-top: 8px; }
 
   /* Flag */
   .q-card.flagged { border-color: #b45309; background: #1c1007; }
@@ -683,6 +703,7 @@ export default function QuestionGenPage() {
   const [addForm, setAddForm] = useState({
     difficulty: "easy" as "easy" | "medium" | "hard",
     questionText: "",
+    isEntryPoint: false,
     answers: [
       { text: "", isCorrect: false },
       { text: "", isCorrect: false },
@@ -695,6 +716,7 @@ export default function QuestionGenPage() {
   const [otherGradesExpanded, setOtherGradesExpanded] = useState(false);
   const [hideFlagged, setHideFlagged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sgkCollapsed, setSgkCollapsed] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sgkCache = useRef<Record<string, string>>({}); // Fix #4: client-side SGK cache
 
@@ -896,6 +918,7 @@ export default function QuestionGenPage() {
   const resetAddForm = () => setAddForm({
     difficulty: "easy",
     questionText: "",
+    isEntryPoint: false,
     answers: [
       { text: "", isCorrect: false },
       { text: "", isCorrect: false },
@@ -914,10 +937,10 @@ export default function QuestionGenPage() {
     if (filled.length < 2) { setAddError("Cần ít nhất 2 đáp án có nội dung"); return; }
     setAddSaving(true);
     try {
-      await itemApi.create({
+      const newDraft = await createDraft({
         kc_id: selectedKcId,
         difficulty_label: addForm.difficulty,
-        format_type: "mcq4",
+        is_diagnostic_anchor: addForm.isEntryPoint,
         content: {
           question: addForm.questionText,
           answers: addForm.answers
@@ -925,14 +948,16 @@ export default function QuestionGenPage() {
             .map((a, i) => ({ label: String.fromCharCode(65 + i), text: a.text, is_correct: a.isCorrect })),
         },
       });
-      show("✓ Đã lưu câu hỏi", "success");
+      // Prepend — appears at top of draft list as “Chờ duyệt”
+      setDrafts(prev => [newDraft, ...prev]);
+      setStatus(prev => prev ? mutateKcStats(prev, selectedKcId, { pending: +1 }) : prev);
+      show("✓ Đã lưu — xuất hiện đầu danh sách Chờ duyệt", "success");
       if (keepOpen) {
-        setAddForm(prev => ({ ...prev, questionText: "", answers: prev.answers.map(a => ({ ...a, text: "", isCorrect: false })) }));
+        setAddForm(prev => ({ ...prev, questionText: "", isEntryPoint: false, answers: prev.answers.map(a => ({ ...a, text: "", isCorrect: false })) }));
       } else {
         setShowAddForm(false);
         resetAddForm();
       }
-      // no fetchStatus() — add question doesn’t affect sidebar KC draft stats
     } catch (e: unknown) {
       setAddError(e instanceof Error ? e.message : "Lỗi lưu");
     } finally {
@@ -1352,8 +1377,8 @@ export default function QuestionGenPage() {
                           + Thêm câu hỏi thủ công
                         </div>
 
-                        {/* Difficulty */}
-                        <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                        {/* Difficulty + Entry Point toggle */}
+                        <div style={{ display: "flex", gap: 6, marginBottom: 10, alignItems: "center", flexWrap: "wrap" }}>
                           {(["easy", "medium", "hard"] as const).map(d => {
                             const cfg = { easy: { label: "Dễ", color: "var(--easy)" }, medium: { label: "Trung bình", color: "var(--medium)" }, hard: { label: "Khó", color: "var(--hard)" } }[d];
                             const sel = addForm.difficulty === d;
@@ -1366,6 +1391,18 @@ export default function QuestionGenPage() {
                               >{cfg.label}</button>
                             );
                           })}
+                          {/* Entry Point toggle */}
+                          <label style={{ display: "flex", alignItems: "center", gap: 5, marginLeft: 4, cursor: "pointer", fontSize: 12,
+                            color: addForm.isEntryPoint ? "var(--accent-light)" : "var(--text-muted)",
+                            background: addForm.isEntryPoint ? "#150f3a" : "transparent",
+                            border: `1.5px solid ${addForm.isEntryPoint ? "var(--accent)" : "var(--border)"}`,
+                            borderRadius: 6, padding: "3px 9px", transition: "all 0.15s", userSelect: "none" }}>
+                            <input type="checkbox" checked={addForm.isEntryPoint}
+                              onChange={e => setAddForm(p => ({ ...p, isEntryPoint: e.target.checked }))}
+                              style={{ accentColor: "var(--accent)", width: 13, height: 13, cursor: "pointer" }}
+                            />
+                            🔑 Entry Point
+                          </label>
                         </div>
 
                         {/* Question text */}
@@ -1458,44 +1495,61 @@ export default function QuestionGenPage() {
                 </div>
 
                 {/* Right: SGK panel */}
-                <div className="sgk-panel">
-                  <div className="panel-tabs">
-                    <button
-                      className={`panel-tab${rightTab === "sgk" ? " active" : ""}`}
-                      onClick={() => setRightTab("sgk")}
-                    >
-                      📖 Nội dung SGK
-                    </button>
-                  </div>
-
-                  {rightTab === "sgk" && (
+                <div className="sgk-panel" style={{ width: sgkCollapsed ? 42 : undefined, minWidth: sgkCollapsed ? 42 : undefined }}>
+                  {sgkCollapsed ? (
+                    /* Collapsed strip — click to expand */
+                    <div className="sgk-panel-strip" onClick={() => setSgkCollapsed(false)} title="Mở nội dung SGK">
+                      <button style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: 6, padding: "6px 7px", fontSize: 14, color: "var(--accent-light)", cursor: "pointer" }}>
+                        📖
+                      </button>
+                      <span className="sgk-strip-label">Nội dung SGK</span>
+                    </div>
+                  ) : (
                     <>
-                      <div className="sgk-panel-header">
-                        <h3>Sách giáo khoa · {drafts[0]?.sgk_section ?? "—"}</h3>
-                        {drafts[0]?.sgk_section && (
-                          <span className="sgk-badge">{drafts[0].sgk_section}</span>
-                        )}
+                      <div className="panel-tabs">
+                        <button
+                          className={`panel-tab${rightTab === "sgk" ? " active" : ""}`}
+                          onClick={() => setRightTab("sgk")}
+                        >
+                          📖 Nội dung SGK
+                        </button>
+                        <button
+                          title="Thu gọn SGK"
+                          onClick={() => setSgkCollapsed(true)}
+                          style={{ marginLeft: "auto", background: "transparent", border: "none", color: "var(--text-muted)", fontSize: 13, padding: "0 12px", cursor: "pointer" }}
+                        >▶</button>
                       </div>
-                      <div className="sgk-scroll">
-                        {sgkLoading && (
-                          <div className="sgk-empty">
-                            <div className="spinner" />
-                            <span>Đang tải nội dung...</span>
+
+                      {rightTab === "sgk" && (
+                        <>
+                          <div className="sgk-panel-header">
+                            <h3>Sách giáo khoa · {selectedKcChapterInfo ?? "—"}</h3>
+                            {selectedKcChapterInfo && (
+                              <span className="sgk-badge">{selectedKcChapterInfo}</span>
+                            )}
                           </div>
-                        )}
-                        {!sgkLoading && !sgkContent && (
-                          <div className="sgk-empty">
-                            <div style={{ fontSize: 32 }}>📚</div>
-                            <span>Không tìm thấy nội dung SGK</span>
-                            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                              {drafts[0]?.sgk_section ?? "chapter_info chưa xác định"}
-                            </span>
+                          <div className="sgk-scroll">
+                            {sgkLoading && (
+                              <div className="sgk-empty">
+                                <div className="spinner" />
+                                <span>Đang tải nội dung...</span>
+                              </div>
+                            )}
+                            {!sgkLoading && !sgkContent && (
+                              <div className="sgk-empty">
+                                <div style={{ fontSize: 32 }}>📚</div>
+                                <span>Không tìm thấy nội dung SGK</span>
+                                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                  {selectedKcChapterInfo ?? "chapter_info chưa xác định"}
+                                </span>
+                              </div>
+                            )}
+                            {!sgkLoading && sgkContent && (
+                              <SgkRenderer content={sgkContent} />
+                            )}
                           </div>
-                        )}
-                        {!sgkLoading && sgkContent && (
-                          <SgkRenderer content={sgkContent} />
-                        )}
-                      </div>
+                        </>
+                      )}
                     </>
                   )}
                 </div>

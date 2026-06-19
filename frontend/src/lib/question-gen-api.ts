@@ -174,6 +174,20 @@ export async function getDraft(draftId: string): Promise<ItemDraft> {
   return apiFetch(`/question-gen/drafts/${draftId}`);
 }
 
+/** Create a manual (human-authored) draft, saved as status='pending'. */
+export async function createDraft(payload: {
+  kc_id: string;
+  content: { question: string; answers: Array<{ label: string; text: string; is_correct: boolean }> };
+  difficulty_label: "easy" | "medium" | "hard";
+  is_diagnostic_anchor?: boolean;
+  kst_irt_tag?: string | null;
+}): Promise<ItemDraft> {
+  return apiFetch("/question-gen/drafts", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 /** Update draft content (human edit). */
 export async function updateDraft(
   draftId: string,

@@ -69,6 +69,14 @@ class FlagDraftRequest(BaseModel):
     flag_note: Optional[str] = None
 
 
+class CreateDraftRequest(BaseModel):
+    kc_id: str
+    content: Dict[str, Any]        # {"question": str, "answers": [...]}
+    difficulty_label: str          # "easy" | "medium" | "hard"
+    is_diagnostic_anchor: bool = False
+    kst_irt_tag: Optional[str] = None
+
+
 # ── Background Job Runner ─────────────────────────────────────────────────────
 
 async def _run_job_background(
@@ -279,6 +287,28 @@ async def get_draft(draft_id: str, db: AsyncSession = Depends(get_db)):
     if not draft:
         raise HTTPException(status_code=404, detail=f"Draft {draft_id} not found")
     return draft
+
+@router.post("/drafts", status_code=status.HTTP_201_CREATED, summary="Create a manual draft (human-authored)")
+async def create_draft(
+    body: CreateDraftRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Insert a manually written MCQ directly into the item_drafts queue with
+    status='pending'. Appears in the review list alongside AI-generated drafts.
+    """
+    draft = await qg.create_draft(
+        db,
+        kc_id=body.kc_id,
+        content=body.content,
+        difficulty_label=body.difficulty_label,
+        is_diagnostic_anchor=body.is_diagnostic_anchor,
+        kst_irt_tag=body.kst_irt_tag,
+    )
+    if not draft:
+        raise HTTPException(status_code=404, detail=f"KC {body.kc_id} not found")
+    return draft
+
 
 
 @router.patch("/drafts/{draft_id}", summary="Update draft content (human edit)")

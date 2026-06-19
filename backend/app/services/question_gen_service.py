@@ -791,6 +791,40 @@ async def get_draft(db: AsyncSession, draft_id: str) -> Optional[dict]:
     return _draft_to_dict(draft)
 
 
+async def create_draft(
+    db: AsyncSession,
+    kc_id: str,
+    content: dict,
+    difficulty_label: str,
+    is_diagnostic_anchor: bool = False,
+    kst_irt_tag: Optional[str] = None,
+) -> Optional[dict]:
+    """Create a manual (human-authored) draft for a KC.
+
+    Unlike AI-generated drafts, this has generation_job_id=None and is
+    immediately visible in the review queue with status='pending'.
+    """
+    kc = await db.get(KnowledgeComponent, uuid.UUID(kc_id))
+    if not kc:
+        return None
+    draft = ItemDraft(
+        kc_id=uuid.UUID(kc_id),
+        kc_name=kc.name,
+        kc_code=kc.code,
+        content=content,
+        difficulty_label=difficulty_label,
+        is_diagnostic_anchor=is_diagnostic_anchor,
+        kst_irt_tag=kst_irt_tag,
+        generation_job_id=None,
+        sgk_section=kc.chapter_info or "",
+        status="pending",
+    )
+    db.add(draft)
+    await db.commit()
+    await db.refresh(draft)
+    return _draft_to_dict(draft)
+
+
 async def update_draft(
     db: AsyncSession,
     draft_id: str,
