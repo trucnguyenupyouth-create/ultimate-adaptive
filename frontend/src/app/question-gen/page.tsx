@@ -25,7 +25,6 @@ import type {
 } from "@/lib/question-gen-api";
 import { itemApi } from "@/lib/api";
 import type { Item } from "@/lib/api";
-import QuestionsTab from "@/components/panel/QuestionsTab";
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -648,6 +647,20 @@ export default function QuestionGenPage() {
   const [sgkLoading, setSgkLoading] = useState(false);
   const [rightTab, setRightTab] = useState<"sgk" | "none">("sgk");
   const [items, setItems] = useState<Item[]>([]);
+  // ── Add question form state ──────────────────────────────────────────────
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({
+    difficulty: "easy" as "easy" | "medium" | "hard",
+    questionText: "",
+    answers: [
+      { text: "", isCorrect: false },
+      { text: "", isCorrect: false },
+      { text: "", isCorrect: false },
+      { text: "", isCorrect: false },
+    ],
+  });
+  const [addSaving, setAddSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
   const [otherGradesExpanded, setOtherGradesExpanded] = useState(false);
   const [hideFlagged, setHideFlagged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -835,6 +848,54 @@ export default function QuestionGenPage() {
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Lỗi";
       show(msg, "error");
+    }
+  };
+
+  // ── Add question (manual) ─────────────────────────────────────────
+  const resetAddForm = () => setAddForm({
+    difficulty: "easy",
+    questionText: "",
+    answers: [
+      { text: "", isCorrect: false },
+      { text: "", isCorrect: false },
+      { text: "", isCorrect: false },
+      { text: "", isCorrect: false },
+    ],
+  });
+
+  const handleAddSave = async (keepOpen: boolean) => {
+    if (!selectedKcId) return;
+    setAddError(null);
+    if (!addForm.questionText.trim()) { setAddError("Câu hỏi không được để trống"); return; }
+    const hasCorrect = addForm.answers.some(a => a.isCorrect);
+    if (!hasCorrect) { setAddError("Chưa chọn đáp án đúng"); return; }
+    const filled = addForm.answers.filter(a => a.text.trim());
+    if (filled.length < 2) { setAddError("Cần ít nhất 2 đáp án có nội dung"); return; }
+    setAddSaving(true);
+    try {
+      await itemApi.create({
+        kc_id: selectedKcId,
+        difficulty_label: addForm.difficulty,
+        format_type: "mcq4",
+        content: {
+          question: addForm.questionText,
+          answers: addForm.answers
+            .filter(a => a.text.trim())
+            .map((a, i) => ({ label: String.fromCharCode(65 + i), text: a.text, is_correct: a.isCorrect })),
+        },
+      });
+      show("✓ Đã lưu câu hỏi", "success");
+      if (keepOpen) {
+        setAddForm(prev => ({ ...prev, questionText: "", answers: prev.answers.map(a => ({ ...a, text: "", isCorrect: false })) }));
+      } else {
+        setShowAddForm(false);
+        resetAddForm();
+      }
+      fetchStatus();
+    } catch (e: unknown) {
+      setAddError(e instanceof Error ? e.message : "Lỗi lưu");
+    } finally {
+      setAddSaving(false);
     }
   };
 
@@ -1220,9 +1281,111 @@ export default function QuestionGenPage() {
                         ✓ Approve tất cả ({pendingDrafts.length})
                       </button>
                     )}
+                    {/* Add question button */}
+                    {selectedKcId && (
+                      <button
+                        className="btn-sm"
+                        onClick={() => { setShowAddForm(v => !v); setAddError(null); }}
+                        style={{
+                          background: showAddForm ? "var(--accent)" : "transparent",
+                          border: `1px solid var(--accent)`,
+                          color: showAddForm ? "#fff" : "var(--accent-light)",
+                          borderRadius: 6, padding: "4px 12px", fontSize: 12,
+                          fontWeight: 600, cursor: "pointer", display: "flex",
+                          alignItems: "center", gap: 5, transition: "all 0.15s",
+                        }}
+                      >
+                        {showAddForm ? "× Đóng" : "+ Thêm câu hỏi"}
+                      </button>
+                    )}
                   </div>
 
                   <div className="content-scroll">
+                    {/* ── Inline Add Question Form ── */}
+                    {showAddForm && selectedKcId && (
+                      <div style={{
+                        background: "var(--surface2)", border: "1px solid var(--accent)",
+                        borderRadius: 10, padding: 16, marginBottom: 16,
+                      }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent-light)", marginBottom: 12 }}>
+                          + Thêm câu hỏi thủ công
+                        </div>
+
+                        {/* Difficulty */}
+                        <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                          {(["easy", "medium", "hard"] as const).map(d => {
+                            const cfg = { easy: { label: "Dễ", color: "var(--easy)" }, medium: { label: "Trung bình", color: "var(--medium)" }, hard: { label: "Khó", color: "var(--hard)" } }[d];
+                            const sel = addForm.difficulty === d;
+                            return (
+                              <button key={d} onClick={() => setAddForm(p => ({ ...p, difficulty: d }))}
+                                style={{ padding: "4px 12px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: sel ? 700 : 400,
+                                  border: `1.5px solid ${sel ? cfg.color : "var(--border)"}`,
+                                  background: sel ? `${cfg.color}22` : "transparent",
+                                  color: sel ? cfg.color : "var(--text-muted)", transition: "all 0.15s" }}
+                              >{cfg.label}</button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Question text */}
+                        <textarea
+                          style={{ width: "100%", minHeight: 80, background: "var(--surface3)", border: "1px solid var(--border)",
+                            borderRadius: 6, color: "var(--text)", fontSize: 13, padding: "8px 10px", resize: "vertical",
+                            fontFamily: "inherit", outline: "none", marginBottom: 10 }}
+                          placeholder="Nhập câu hỏi... Dùng $...$ cho công thức toán"
+                          value={addForm.questionText}
+                          onChange={e => setAddForm(p => ({ ...p, questionText: e.target.value }))}
+                        />
+
+                        {/* Answers */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                          {addForm.answers.map((ans, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <input type="checkbox" checked={ans.isCorrect}
+                                onChange={e => setAddForm(p => ({
+                                  ...p,
+                                  answers: p.answers.map((a, j) => j === i ? { ...a, isCorrect: e.target.checked } : a)
+                                }))}
+                                style={{ accentColor: "var(--green)", width: 15, height: 15, flexShrink: 0, cursor: "pointer" }}
+                                title="Đáp án đúng"
+                              />
+                              <span style={{ fontSize: 12, color: "var(--text-muted)", width: 16, flexShrink: 0 }}>{String.fromCharCode(65 + i)}.</span>
+                              <input
+                                style={{ flex: 1, background: "var(--surface3)", border: `1px solid ${ans.isCorrect ? "var(--green)" : "var(--border)"}`,
+                                  borderRadius: 6, color: "var(--text)", fontSize: 13, padding: "6px 10px", outline: "none", fontFamily: "inherit" }}
+                                placeholder={`Đáp án ${String.fromCharCode(65 + i)}`}
+                                value={ans.text}
+                                onChange={e => setAddForm(p => ({
+                                  ...p,
+                                  answers: p.answers.map((a, j) => j === i ? { ...a, text: e.target.value } : a)
+                                }))}
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        {addError && <div style={{ fontSize: 12, color: "var(--red)", marginBottom: 8 }}>⚠ {addError}</div>}
+
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={() => handleAddSave(true)} disabled={addSaving}
+                            style={{ flex: 1, padding: "7px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                              background: "var(--surface3)", border: "1px solid var(--border)", color: "var(--text)" }}>
+                            {addSaving ? "Lưu..." : "Lưu & Thêm tiếp"}
+                          </button>
+                          <button onClick={() => handleAddSave(false)} disabled={addSaving}
+                            style={{ flex: 1, padding: "7px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                              background: "var(--accent)", border: "none", color: "#fff" }}>
+                            {addSaving ? "Lưu..." : "Lưu & Đóng"}
+                          </button>
+                          <button onClick={() => { setShowAddForm(false); resetAddForm(); setAddError(null); }}
+                            style={{ padding: "7px 12px", borderRadius: 6, fontSize: 12, cursor: "pointer",
+                              background: "transparent", border: "1px solid var(--border)", color: "var(--text-muted)" }}>
+                            Huỷ
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {loadingDrafts && (
                       <div className="empty">
                         <div className="spinner" style={{ width: 32, height: 32 }} />
@@ -1250,37 +1413,6 @@ export default function QuestionGenPage() {
                         onUpdate={handleUpdate}
                       />
                     ))}
-
-                    {/* ── Approved Items Section ── */}
-                    {selectedKcId && (
-                      <div style={{ marginTop: 24, paddingTop: 20, borderTop: "2px solid var(--border)" }}>
-                        <div style={{
-                          display: "flex", alignItems: "center", gap: 8, marginBottom: 16,
-                          fontSize: 13, fontWeight: 700, color: "var(--text-muted)",
-                          textTransform: "uppercase", letterSpacing: "0.06em",
-                        }}>
-                          <span style={{ fontSize: 16 }}>✏️</span>
-                          Câu hỏi đã duyệt
-                          {items.length > 0 && (
-                            <span style={{
-                              marginLeft: 4, background: "var(--accent)", color: "#fff",
-                              borderRadius: 10, padding: "1px 8px", fontSize: 11, fontWeight: 700,
-                            }}>{items.length}</span>
-                          )}
-                        </div>
-                        <QuestionsTab
-                          kcId={selectedKcId}
-                          items={items}
-                          itemCounts={{
-                            total: items.length,
-                            easy:   items.filter(i => i.difficulty_label === "easy").length,
-                            medium: items.filter(i => i.difficulty_label === "medium").length,
-                            hard:   items.filter(i => i.difficulty_label === "hard").length,
-                          }}
-                          onRefresh={async () => { if (selectedKcId) await fetchItems(selectedKcId); }}
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
 
