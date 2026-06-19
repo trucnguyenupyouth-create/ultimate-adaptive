@@ -23,6 +23,9 @@ import type {
   SgkResponse,
   StatusResponse,
 } from "@/lib/question-gen-api";
+import { itemApi } from "@/lib/api";
+import type { Item } from "@/lib/api";
+import QuestionsTab from "@/components/panel/QuestionsTab";
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -643,7 +646,8 @@ export default function QuestionGenPage() {
   const [loadingDrafts, setLoadingDrafts] = useState(false);
   const [sgkContent, setSgkContent] = useState<string | null>(null);
   const [sgkLoading, setSgkLoading] = useState(false);
-  const [rightTab, setRightTab] = useState<"sgk" | "none">("sgk");
+  const [rightTab, setRightTab] = useState<"sgk" | "items" | "none">("sgk");
+  const [items, setItems] = useState<Item[]>([]);
   const [otherGradesExpanded, setOtherGradesExpanded] = useState(false);
   const [hideFlagged, setHideFlagged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -691,6 +695,21 @@ export default function QuestionGenPage() {
       .catch(() => setSgkContent(null))
       .finally(() => setSgkLoading(false));
   }, [selectedKcId, drafts]);
+
+  // ── Fetch approved items for selected KC ─────────────────────────────────
+  const fetchItems = useCallback(async (kcId: string) => {
+    try {
+      const its = await itemApi.list(kcId);
+      setItems(Array.isArray(its) ? its : []);
+    } catch {
+      setItems([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedKcId) fetchItems(selectedKcId);
+    else setItems([]);
+  }, [selectedKcId, fetchItems]);
 
   // ── Fetch drafts for selected KC ──────────────────────────────────────────
   const fetchDrafts = useCallback(async (kcId: string, statusFilter?: FilterStatus) => {
@@ -1234,7 +1253,7 @@ export default function QuestionGenPage() {
                   </div>
                 </div>
 
-                {/* Right: SGK panel */}
+                {/* Right: SGK / Items panel */}
                 <div className="sgk-panel">
                   <div className="panel-tabs">
                     <button
@@ -1242,6 +1261,12 @@ export default function QuestionGenPage() {
                       onClick={() => setRightTab("sgk")}
                     >
                       📖 Nội dung SGK
+                    </button>
+                    <button
+                      className={`panel-tab${rightTab === "items" ? " active" : ""}`}
+                      onClick={() => { setRightTab("items"); if (selectedKcId) fetchItems(selectedKcId); }}
+                    >
+                      ✏️ Câu đã duyệt{items.length > 0 ? ` (${items.length})` : ""}
                     </button>
                   </div>
 
@@ -1274,6 +1299,27 @@ export default function QuestionGenPage() {
                         )}
                       </div>
                     </>
+                  )}
+                  {rightTab === "items" && selectedKcId && (
+                    <div style={{ overflowY: "auto", flex: 1, padding: "16px" }}>
+                      <QuestionsTab
+                        kcId={selectedKcId}
+                        items={items}
+                        itemCounts={{
+                          total: items.length,
+                          easy:   items.filter(i => i.difficulty_label === "easy").length,
+                          medium: items.filter(i => i.difficulty_label === "medium").length,
+                          hard:   items.filter(i => i.difficulty_label === "hard").length,
+                        }}
+                        onRefresh={async () => { if (selectedKcId) await fetchItems(selectedKcId); }}
+                      />
+                    </div>
+                  )}
+                  {rightTab === "items" && !selectedKcId && (
+                    <div className="sgk-empty">
+                      <div style={{ fontSize: 32 }}>✏️</div>
+                      <span>Chọn một KC để xem và thêm câu hỏi</span>
+                    </div>
                   )}
                 </div>
               </div>
