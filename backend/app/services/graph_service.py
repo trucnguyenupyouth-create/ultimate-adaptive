@@ -153,18 +153,39 @@ async def add_prerequisite(
     Add a prerequisite edge with DAG validation.
     Returns {"ok": True} or {"ok": False, "error": "..."}
     """
-    # Load current graph and test cycle safety
+    kc_uuid     = uuid.UUID(kc_id)
+    prereq_uuid = uuid.UUID(prereq_id)
+
+    # ── Guard: reject self-loops immediately ──────────────────────────────
+    if kc_uuid == prereq_uuid:
+        return {"ok": False, "error": "A KC cannot be its own prerequisite."}
+
+    # ── Guard: duplicate edge (NetworkX add_edge is idempotent → won't raise) ─
+    existing_stmt = select(KCPrerequisite).where(
+        KCPrerequisite.kc_id    == kc_uuid,
+        KCPrerequisite.prereq_id == prereq_uuid,
+    )
+    existing = (await db.execute(existing_stmt)).scalar_one_or_none()
+    if existing:
+        return {
+            "ok": False,
+            "error": (
+                f"Edge {prereq_id} → {kc_id} already exists. "
+                "Use PATCH /graph/edge to update its annotation."
+            ),
+        }
+
+    # ── Cycle detection on in-memory graph (cheap, no DB write yet) ───────
     kg = await get_graph(db)
     try:
-        # Validate on in-memory graph (cheap, no DB write yet)
         kg.add_prerequisite(kc_id=kc_id, prereq_id=prereq_id, label=label, weight=weight)
     except ValueError as e:
         return {"ok": False, "error": str(e)}
 
-    # Persist
+    # ── Persist ───────────────────────────────────────────────────────────
     edge = KCPrerequisite(
-        kc_id=uuid.UUID(kc_id),
-        prereq_id=uuid.UUID(prereq_id),
+        kc_id=kc_uuid,
+        prereq_id=prereq_uuid,
         label=label,
         weight=weight,
         edge_type=edge_type,
@@ -180,7 +201,7 @@ async def add_prerequisite(
     ))
 
     await db.commit()
-    # Note: do NOT invalidate cache — we already mutated the in-memory graph
+    # Note: do NOT invalidate cache — we already mutated the in-memory graph above
     return {"ok": True}
 
 
