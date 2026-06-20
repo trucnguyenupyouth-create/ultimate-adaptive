@@ -144,6 +144,10 @@ class Item(Base):
     created_at: Mapped[datetime] = now_col()
 
     kc: Mapped["KnowledgeComponent"] = relationship("KnowledgeComponent", back_populates="items")
+    images: Mapped[list["ItemImage"]] = relationship(
+        "ItemImage", primaryjoin="Item.id == foreign(ItemImage.item_id)",
+        cascade="all, delete-orphan", lazy="select"
+    )
 
     __table_args__ = (
         Index("idx_items_kc_active", "kc_id", postgresql_where="is_active = TRUE"),
@@ -363,6 +367,10 @@ class ItemDraft(Base):
 
     created_at: Mapped[datetime] = now_col()
 
+    images: Mapped[list["ItemImage"]] = relationship(
+        "ItemImage", primaryjoin="ItemDraft.id == foreign(ItemImage.draft_id)",
+        cascade="all, delete-orphan", lazy="select"
+    )
 
     __table_args__ = (
         CheckConstraint(
@@ -372,4 +380,30 @@ class ItemDraft(Base):
         Index("idx_item_drafts_kc", "kc_id"),
         Index("idx_item_drafts_status", "status"),
         Index("idx_item_drafts_job", "generation_job_id"),
+    )
+
+
+class ItemImage(Base):
+    """Image attachment for a question — belongs to either an Item or an ItemDraft."""
+    __tablename__ = "item_images"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    item_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("items.id", ondelete="CASCADE"), nullable=True
+    )
+    draft_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("item_drafts.id", ondelete="CASCADE"), nullable=True
+    )
+    storage_path: Mapped[str] = mapped_column(Text, nullable=False)
+    public_url: Mapped[str] = mapped_column(Text, nullable=False)
+    filename: Mapped[str] = mapped_column(Text, nullable=False)
+    mime_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    display_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    caption: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = now_col()
+
+    __table_args__ = (
+        Index("idx_item_images_item",  "item_id",  postgresql_where="item_id  IS NOT NULL"),
+        Index("idx_item_images_draft", "draft_id", postgresql_where="draft_id IS NOT NULL"),
     )

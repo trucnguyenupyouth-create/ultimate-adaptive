@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import graph, assessment, items, learning, sandbox, question_gen
+from app.api.routes import graph, assessment, items, learning, sandbox, question_gen, images
 from app.core.config import settings
 
 
@@ -49,6 +49,7 @@ app.include_router(items.router)
 app.include_router(learning.router)
 app.include_router(sandbox.router)
 app.include_router(question_gen.router)
+app.include_router(images.router)
 
 
 @app.exception_handler(Exception)

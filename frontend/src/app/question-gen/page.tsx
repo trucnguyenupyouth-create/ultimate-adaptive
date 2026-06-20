@@ -26,7 +26,7 @@ import type {
 } from "@/lib/question-gen-api";
 import { itemApi } from "@/lib/api";
 import type { Item } from "@/lib/api";
-
+import ImageManager from "@/components/ImageManager";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Styles (inline CSS-in-JS to keep single file — no Tailwind dependency)
@@ -554,6 +554,9 @@ const QuestionCard = React.memo(function QuestionCard({
             )}
           </div>
         )}
+
+        {/* Image manager — lazy loaded per draft */}
+        <ImageManager target={{ draftId: draft.id }} />
       </div>
 
         {/* Footer */}

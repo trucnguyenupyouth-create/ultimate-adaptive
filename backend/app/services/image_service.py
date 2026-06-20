@@ -1,124 +1,261 @@
 """
-Image Service — WebP conversion + Supabase Storage CRUD
+image_service.py — Supabase Storage integration for question images.
 
-Responsibilities:
-- compress_to_webp(): convert any PIL-supported format to WebP (max 800px wide)
-- upload_to_supabase(): PUT file to Supabase Storage, return public CDN URL
-- delete_from_supabase(): DELETE file from Supabase Storage
-
-Unsupported formats (SVG, raw camera formats not handled by Pillow) raise
-ValueError with a user-friendly message — callers should return 422.
+Design:
+  - Images live in the Supabase 'question-images' bucket.
+  - Each image row has EITHER item_id OR draft_id set (never both).
+  - On draft approval, migrate_images_draft_to_item() reassigns rows.
+  - All Supabase storage calls are sync (supabase-py v2); wrapped in
+    asyncio.to_thread() to avoid blocking the async event loop.
 """
 
-from __future__ import annotations
+import asyncio
+import uuid
+from typing import Optional
 
-import io
-import logging
-
-import httpx
-from PIL import Image, UnidentifiedImageError
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from supabase import create_client, Client
 
 from app.core.config import settings
+from app.models.models import ItemImage
 
-log = logging.getLogger(__name__)
+BUCKET = "question-images"
+MAX_IMAGES_PER_QUESTION = 5
+MAX_FILE_BYTES = 5 * 1024 * 1024  # 5 MB
+ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
-BUCKET = "kc-images"
-MAX_WIDTH = 800
-WEBP_QUALITY = 82  # 0-100; 82 is a good balance of size vs. quality
-
-
-# ── Compression ──────────────────────────────────────────────────────────────
-
-def compress_to_webp(raw_bytes: bytes) -> bytes:
-    """
-    Convert raw image bytes to WebP.
-    - Resizes to max MAX_WIDTH wide (preserving aspect ratio)
-    - Converts RGBA/P/L to RGB (composited on white background)
-    - Raises ValueError for unsupported formats (SVG, etc.)
-    """
-    try:
-        img = Image.open(io.BytesIO(raw_bytes))
-    except UnidentifiedImageError:
-        raise ValueError(
-            "Định dạng ảnh không được hỗ trợ. Vui lòng dùng JPG, PNG, GIF, BMP, hoặc WebP."
-        )
-
-    # Normalise to RGB — handle transparency by compositing on white
-    if img.mode in ("RGBA", "LA", "PA"):
-        bg = Image.new("RGB", img.size, (255, 255, 255))
-        mask = img.split()[-1]  # alpha channel
-        bg.paste(img.convert("RGB"), mask=mask)
-        img = bg
-    elif img.mode == "P":
-        img = img.convert("RGBA")
-        bg = Image.new("RGB", img.size, (255, 255, 255))
-        bg.paste(img.convert("RGB"), mask=img.split()[-1])
-        img = bg
-    elif img.mode != "RGB":
-        img = img.convert("RGB")
-
-    # Downscale if wider than MAX_WIDTH
-    if img.width > MAX_WIDTH:
-        ratio = MAX_WIDTH / img.width
-        img = img.resize(
-            (MAX_WIDTH, int(img.height * ratio)),
-            Image.LANCZOS,
-        )
-
-    buf = io.BytesIO()
-    img.save(buf, format="WEBP", quality=WEBP_QUALITY, method=6)
-    return buf.getvalue()
+_supabase: Optional[Client] = None
 
 
-# ── Supabase Storage ──────────────────────────────────────────────────────────
+def _get_client() -> Client:
+    """Singleton Supabase client (connection is cheap to reuse)."""
+    global _supabase
+    if _supabase is None:
+        if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
+            raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set")
+        _supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+    return _supabase
 
-def _storage_url(path: str) -> str:
-    return f"{settings.SUPABASE_URL}/storage/v1/object/{BUCKET}/{path}"
 
-def _auth_headers() -> dict:
+# ── Serialisation ─────────────────────────────────────────────────────────────
+
+def _image_to_dict(img: ItemImage) -> dict:
     return {
-        "Authorization": f"Bearer {settings.SUPABASE_SERVICE_KEY}",
+        "id":            str(img.id),
+        "item_id":       str(img.item_id)  if img.item_id  else None,
+        "draft_id":      str(img.draft_id) if img.draft_id else None,
+        "public_url":    img.public_url,
+        "filename":      img.filename,
+        "mime_type":     img.mime_type,
+        "size_bytes":    img.size_bytes,
+        "display_order": img.display_order,
+        "caption":       img.caption,
+        "created_at":    img.created_at.isoformat(),
     }
 
-def _public_url(path: str) -> str:
-    return f"{settings.SUPABASE_URL}/storage/v1/object/public/{BUCKET}/{path}"
+
+# ── Queries ───────────────────────────────────────────────────────────────────
+
+async def get_images(
+    db: AsyncSession,
+    *,
+    item_id: Optional[str] = None,
+    draft_id: Optional[str] = None,
+) -> list[dict]:
+    """Return all images for an item or draft, ordered by display_order."""
+    stmt = select(ItemImage).order_by(ItemImage.display_order, ItemImage.created_at)
+    if item_id:
+        stmt = stmt.where(ItemImage.item_id == uuid.UUID(item_id))
+    elif draft_id:
+        stmt = stmt.where(ItemImage.draft_id == uuid.UUID(draft_id))
+    else:
+        return []
+    result = await db.execute(stmt)
+    return [_image_to_dict(img) for img in result.scalars().all()]
 
 
-async def upload_to_supabase(kc_id: str, image_id: str, webp_bytes: bytes) -> str:
-    """Upload WebP bytes to Supabase Storage. Returns the public CDN URL."""
-    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
-        raise ValueError("Supabase Storage chưa được cấu hình (thiếu SUPABASE_URL hoặc SUPABASE_SERVICE_KEY).")
+async def get_image(db: AsyncSession, image_id: str) -> Optional[dict]:
+    img = await db.get(ItemImage, uuid.UUID(image_id))
+    return _image_to_dict(img) if img else None
 
-    path = f"{kc_id}/{image_id}.webp"
-    url = _storage_url(path)
 
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            url,
-            content=webp_bytes,
-            headers={
-                **_auth_headers(),
-                "Content-Type": "image/webp",
-                "x-upsert": "true",  # overwrite if same ID re-uploaded
-            },
+# ── Upload ────────────────────────────────────────────────────────────────────
+
+async def upload_images(
+    db: AsyncSession,
+    files: list[tuple[str, bytes, str]],  # [(filename, content, mime_type), ...]
+    *,
+    item_id: Optional[str] = None,
+    draft_id: Optional[str] = None,
+) -> list[dict]:
+    """
+    Upload one or more images to Supabase Storage and create ItemImage rows.
+    Exactly one of item_id / draft_id must be provided.
+    """
+    if bool(item_id) == bool(draft_id):
+        raise ValueError("Exactly one of item_id or draft_id must be provided")
+
+    existing = await get_images(db, item_id=item_id, draft_id=draft_id)
+    if len(existing) + len(files) > MAX_IMAGES_PER_QUESTION:
+        raise ValueError(
+            f"Limit is {MAX_IMAGES_PER_QUESTION} images per question. "
+            f"Already has {len(existing)}, tried to add {len(files)}."
         )
-        if resp.status_code not in (200, 201):
-            log.error("Supabase upload failed %s: %s", resp.status_code, resp.text)
-            raise ValueError(f"Upload lên Storage thất bại ({resp.status_code}). Vui lòng thử lại.")
 
-    return _public_url(path)
+    client = _get_client()
+    folder = draft_id or item_id
+    results: list[dict] = []
+    max_order = max((img["display_order"] for img in existing), default=-1)
+
+    for filename, content, mime_type in files:
+        if mime_type not in ALLOWED_MIME:
+            raise ValueError(f"Unsupported file type: {mime_type}. Allowed: jpeg, png, webp, gif")
+        if len(content) > MAX_FILE_BYTES:
+            raise ValueError(f"File '{filename}' exceeds 5 MB limit")
+
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+        object_path = f"{folder}/{uuid.uuid4()}.{ext}"
+
+        await asyncio.to_thread(
+            client.storage.from_(BUCKET).upload,
+            path=object_path,
+            file=content,
+            file_options={"content-type": mime_type, "upsert": "false"},
+        )
+
+        public_url: str = client.storage.from_(BUCKET).get_public_url(object_path)
+
+        max_order += 1
+        img = ItemImage(
+            item_id=uuid.UUID(item_id)   if item_id  else None,
+            draft_id=uuid.UUID(draft_id) if draft_id else None,
+            storage_path=object_path,
+            public_url=public_url,
+            filename=filename,
+            mime_type=mime_type,
+            size_bytes=len(content),
+            display_order=max_order,
+        )
+        db.add(img)
+        await db.flush()
+        results.append(_image_to_dict(img))
+
+    await db.commit()
+    return results
 
 
-async def delete_from_supabase(kc_id: str, image_id: str) -> None:
-    """Remove a single image from Supabase Storage."""
-    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
-        return  # graceful no-op if storage not configured
+# ── Delete ────────────────────────────────────────────────────────────────────
 
-    path = f"{kc_id}/{image_id}.webp"
-    url = _storage_url(path)
+async def delete_image(db: AsyncSession, image_id: str) -> bool:
+    img = await db.get(ItemImage, uuid.UUID(image_id))
+    if not img:
+        return False
 
-    async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.delete(url, headers=_auth_headers())
-        # 200 = deleted, 404 = already gone — both are fine
-        if resp.status_code not in (200, 404):
-            log.warning("Supabase delete returned %s: %s", resp.status_code, resp.text)
+    client = _get_client()
+    await asyncio.to_thread(
+        client.storage.from_(BUCKET).remove,
+        [img.storage_path],
+    )
+
+    await db.delete(img)
+    await db.commit()
+    return True
+
+
+# ── Replace ───────────────────────────────────────────────────────────────────
+
+async def replace_image(
+    db: AsyncSession,
+    image_id: str,
+    filename: str,
+    content: bytes,
+    mime_type: str,
+) -> Optional[dict]:
+    """Replace the file for an existing image row. Same ID, display_order preserved."""
+    img = await db.get(ItemImage, uuid.UUID(image_id))
+    if not img:
+        return None
+    if mime_type not in ALLOWED_MIME:
+        raise ValueError(f"Unsupported file type: {mime_type}")
+    if len(content) > MAX_FILE_BYTES:
+        raise ValueError("File exceeds 5 MB limit")
+
+    client = _get_client()
+    await asyncio.to_thread(client.storage.from_(BUCKET).remove, [img.storage_path])
+
+    folder = str(img.draft_id or img.item_id)
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    new_path = f"{folder}/{uuid.uuid4()}.{ext}"
+
+    await asyncio.to_thread(
+        client.storage.from_(BUCKET).upload,
+        path=new_path,
+        file=content,
+        file_options={"content-type": mime_type, "upsert": "false"},
+    )
+
+    public_url: str = client.storage.from_(BUCKET).get_public_url(new_path)
+
+    img.storage_path = new_path
+    img.public_url   = public_url
+    img.filename     = filename
+    img.mime_type    = mime_type
+    img.size_bytes   = len(content)
+    await db.commit()
+    return _image_to_dict(img)
+
+
+# ── Update metadata ───────────────────────────────────────────────────────────
+
+async def update_image_meta(
+    db: AsyncSession,
+    image_id: str,
+    *,
+    caption: Optional[str] = None,
+    display_order: Optional[int] = None,
+) -> Optional[dict]:
+    img = await db.get(ItemImage, uuid.UUID(image_id))
+    if not img:
+        return None
+    if caption is not None:
+        img.caption = caption or None
+    if display_order is not None:
+        img.display_order = display_order
+    await db.commit()
+    return _image_to_dict(img)
+
+
+# ── Reorder ───────────────────────────────────────────────────────────────────
+
+async def reorder_images(db: AsyncSession, image_ids: list[str]) -> list[dict]:
+    """Set display_order based on the order of IDs in the list."""
+    results = []
+    for order, image_id in enumerate(image_ids):
+        img = await db.get(ItemImage, uuid.UUID(image_id))
+        if img:
+            img.display_order = order
+            results.append(_image_to_dict(img))
+    await db.commit()
+    return results
+
+
+# ── Draft → Item migration ────────────────────────────────────────────────────
+
+async def migrate_images_draft_to_item(
+    db: AsyncSession,
+    draft_id: str,
+    item_id: str,
+) -> int:
+    """
+    Reassign all images from a draft to the newly approved item.
+    Called inside approve_draft() — caller commits the transaction.
+    Returns the number of images migrated.
+    """
+    stmt = select(ItemImage).where(ItemImage.draft_id == uuid.UUID(draft_id))
+    result = await db.execute(stmt)
+    images = result.scalars().all()
+    for img in images:
+        img.item_id  = uuid.UUID(item_id)
+        img.draft_id = None
+    return len(images)

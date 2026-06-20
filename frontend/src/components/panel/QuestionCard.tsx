@@ -5,6 +5,7 @@ import { Pencil, ChevronUp, Anchor } from "lucide-react";
 import { Item, MCQContent, OpenContent, itemApi } from "@/lib/api";
 import MCQAnswerEditor from "./MCQAnswerEditor";
 import type { DifficultyLabel } from "./QuestionsTab";
+import ImageManager from "@/components/ImageManager";
 
 interface Props {
   item: Item;
@@ -119,6 +120,9 @@ export default function QuestionCard({
     >
       {/* ── Collapsed header ── */}
       <div style={{ padding: "10px 12px" }}>
+        {/* Images — always shown above question text */}
+        <ImageManager target={{ itemId: item.id }} />
+
         {/* Question text */}
         <div
           style={{

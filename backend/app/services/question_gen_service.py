@@ -898,6 +898,11 @@ async def approve_draft(db: AsyncSession, draft_id: str) -> dict:
     draft.status = "approved"
     draft.imported_item_id = uuid.UUID(item_data["id"])
     draft.reviewed_at = datetime.now(timezone.utc)
+
+    # Migrate any attached images draft→item (within same transaction)
+    from app.services.image_service import migrate_images_draft_to_item
+    await migrate_images_draft_to_item(db, draft_id=draft_id, item_id=item_data["id"])
+
     await db.commit()
 
     # Set diagnostic anchor if needed
