@@ -1315,7 +1315,7 @@ export default function QuestionGenPage() {
                 <div style={{ fontSize: 12 }}>để xem và duyệt câu hỏi được generate</div>
               </div>
             ) : (
-              <div className="content-split">
+              <div className="content-split" style={{ gridTemplateColumns: sgkCollapsed ? "1fr 42px" : undefined }}>
                 {/* Left: questions */}
                 <div className="content-left">
                   <div className="content-header">
