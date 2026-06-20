@@ -74,6 +74,12 @@ async def upload_images(
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+    except RuntimeError as e:
+        # Supabase not configured on this environment
+        raise HTTPException(
+            status_code=503,
+            detail=f"Image storage not configured: {e}. Set SUPABASE_URL and SUPABASE_SERVICE_KEY in environment variables.",
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload failed: {e}")
 
