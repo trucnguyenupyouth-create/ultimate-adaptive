@@ -716,6 +716,7 @@ export default function QuestionGenPage() {
   });
   const [addSaving, setAddSaving] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+  const [pendingImageFiles, setPendingImageFiles] = useState<File[]>([]);
   const [otherGradesExpanded, setOtherGradesExpanded] = useState(false);
   const [hideFlagged, setHideFlagged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -918,17 +919,20 @@ export default function QuestionGenPage() {
   };
 
   // ── Add question (manual) ─────────────────────────────────────────
-  const resetAddForm = () => setAddForm({
-    difficulty: "easy",
-    questionText: "",
-    isEntryPoint: false,
-    answers: [
-      { text: "", isCorrect: false },
-      { text: "", isCorrect: false },
-      { text: "", isCorrect: false },
-      { text: "", isCorrect: false },
-    ],
-  });
+  const resetAddForm = () => {
+    setAddForm({
+      difficulty: "easy",
+      questionText: "",
+      isEntryPoint: false,
+      answers: [
+        { text: "", isCorrect: false },
+        { text: "", isCorrect: false },
+        { text: "", isCorrect: false },
+        { text: "", isCorrect: false },
+      ],
+    });
+    setPendingImageFiles([]);
+  };
 
   const handleAddSave = async (keepOpen: boolean) => {
     if (!selectedKcId) return;
@@ -951,12 +955,22 @@ export default function QuestionGenPage() {
             .map((a, i) => ({ label: String.fromCharCode(65 + i), text: a.text, is_correct: a.isCorrect })),
         },
       });
-      // Prepend — appears at top of draft list as “Chờ duyệt”
+      // Upload any images selected before save
+      if (pendingImageFiles.length > 0) {
+        try {
+          const { uploadImages } = await import("@/lib/image-api");
+          await uploadImages(pendingImageFiles, { draftId: newDraft.id });
+        } catch {
+          show("⚠ Câu hỏi đã lưu nhưng ảnh tải lên thất bại. Thêm ảnh lại trong card.", "error");
+        }
+      }
+      // Prepend — appears at top of draft list as pending
       setDrafts(prev => [newDraft, ...prev]);
       setStatus(prev => prev ? mutateKcStats(prev, selectedKcId, { pending: +1 }) : prev);
       show("✓ Đã lưu — xuất hiện đầu danh sách Chờ duyệt", "success");
       if (keepOpen) {
         setAddForm(prev => ({ ...prev, questionText: "", isEntryPoint: false, answers: prev.answers.map(a => ({ ...a, text: "", isCorrect: false })) }));
+        setPendingImageFiles([]);
       } else {
         setShowAddForm(false);
         resetAddForm();
@@ -1445,6 +1459,80 @@ export default function QuestionGenPage() {
                           ))}
                         </div>
 
+
+                        {/* Image picker */}
+                        <div style={{ marginTop: 10 }}>
+                          <div style={{
+                            fontSize: 11, fontWeight: 600, color: "var(--text-muted)",
+                            marginBottom: 6, display: "flex", alignItems: "center", gap: 6,
+                          }}>
+                            🖼 Hinảnh đính kèm
+                            <span style={{
+                              fontSize: 10, background: "var(--surface3)",
+                              border: "1px solid var(--border)", borderRadius: 4,
+                              padding: "1px 5px",
+                            }}>
+                              {pendingImageFiles.length}/5
+                            </span>
+                          </div>
+                          {pendingImageFiles.length > 0 && (
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+                              {pendingImageFiles.map((f, idx) => (
+                                <div key={idx} style={{
+                                  position: "relative", width: 64, height: 64,
+                                  borderRadius: 6, overflow: "hidden",
+                                  border: "1.5px solid var(--border)",
+                                }}>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={URL.createObjectURL(f)} alt={f.name}
+                                    style={{ width: "100%", height: "100%", objectFit: "contain", background: "rgba(0,0,0,0.2)" }} />
+                                  <button
+                                    onClick={() => setPendingImageFiles(prev => prev.filter((_, j) => j !== idx))}
+                                    title="Xóa"
+                                    style={{
+                                      position: "absolute", top: 2, right: 2,
+                                      background: "rgba(200,50,50,0.85)", border: "none",
+                                      borderRadius: 3, color: "#fff", fontSize: 10,
+                                      width: 16, height: 16, lineHeight: "16px",
+                                      cursor: "pointer", textAlign: "center",
+                                    }}
+                                  >×</button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {pendingImageFiles.length < 5 && (
+                            <div
+                              onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--accent)"; }}
+                              onDragLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; }}
+                              onDrop={e => {
+                                e.preventDefault();
+                                e.currentTarget.style.borderColor = "var(--border)";
+                                const allowed = ["image/jpeg","image/png","image/webp","image/gif"];
+                                const files = Array.from(e.dataTransfer.files).filter(f => allowed.includes(f.type) && f.size <= 5*1024*1024);
+                                setPendingImageFiles(prev => [...prev, ...files].slice(0, 5));
+                              }}
+                              onClick={() => {
+                                const input = document.createElement("input");
+                                input.type = "file"; input.multiple = true;
+                                input.accept = "image/jpeg,image/png,image/webp,image/gif";
+                                input.onchange = e => {
+                                  const files = Array.from((e.target as HTMLInputElement).files ?? []).filter(f => f.size <= 5*1024*1024);
+                                  setPendingImageFiles(prev => [...prev, ...files].slice(0, 5));
+                                };
+                                input.click();
+                              }}
+                              style={{
+                                border: "1.5px dashed var(--border)", borderRadius: 8,
+                                padding: "8px 12px", textAlign: "center", cursor: "pointer",
+                                fontSize: 11, color: "var(--text-muted)",
+                                background: "var(--surface3)", transition: "border-color 0.15s",
+                              }}
+                            >
+                              📎 Kéo thả hoặc nhấn để chọn ảnh · JPG / PNG / WebP · tối đa 5MB
+                            </div>
+                          )}
+                        </div>
                         {addError && <div style={{ fontSize: 12, color: "var(--red)", marginBottom: 8 }}>⚠ {addError}</div>}
 
                         <div style={{ display: "flex", gap: 6 }}>
