@@ -982,24 +982,33 @@ async def revert_draft(db: AsyncSession, draft_id: str) -> dict:
 
 
 async def get_draft_stats(db: AsyncSession) -> dict:
-    """Return summary stats grouped by KC and status, including flagged counts."""
+    """Return summary stats grouped by KC and status, including flagged counts.
+
+    Returns ALL KCs that have at least one edge in the knowledge graph — even
+    those with zero drafts. This lets users find and manually seed any node in
+    the question-gen sidebar without having to run a generation job first.
+    """
     result = await db.execute(text("""
         SELECT
-            d.kc_id::text AS kc_id,
-            d.kc_name,
-            d.kc_code,
+            kc.id::text                                                        AS kc_id,
+            COALESCE(MAX(d.kc_name), kc.name)                                 AS kc_name,
+            COALESCE(MAX(d.kc_code), kc.code)                                 AS kc_code,
             kc.grade,
             kc.chapter_info,
-            COUNT(*) FILTER (WHERE d.status = 'pending') AS pending,
-            COUNT(*) FILTER (WHERE d.status = 'approved') AS approved,
-            COUNT(*) FILTER (WHERE d.status = 'rejected') AS rejected,
-            COUNT(*) FILTER (WHERE d.status = 'edited_approved') AS edited_approved,
-            COUNT(*) FILTER (WHERE d.flagged = true) AS flagged,
-            COUNT(*) AS total
-        FROM item_drafts d
-        LEFT JOIN knowledge_components kc ON d.kc_id = kc.id
-        GROUP BY d.kc_id, d.kc_name, d.kc_code, kc.grade, kc.chapter_info
-        ORDER BY d.kc_code
+            COUNT(d.id) FILTER (WHERE d.status = 'pending')                   AS pending,
+            COUNT(d.id) FILTER (WHERE d.status = 'approved')                  AS approved,
+            COUNT(d.id) FILTER (WHERE d.status = 'rejected')                  AS rejected,
+            COUNT(d.id) FILTER (WHERE d.status = 'edited_approved')           AS edited_approved,
+            COUNT(d.id) FILTER (WHERE d.flagged = true)                       AS flagged,
+            COUNT(d.id)                                                        AS total
+        FROM knowledge_components kc
+        LEFT JOIN item_drafts d ON d.kc_id = kc.id
+        WHERE EXISTS (
+            SELECT 1 FROM kc_prerequisites e
+            WHERE e.kc_id = kc.id OR e.prereq_id = kc.id
+        )
+        GROUP BY kc.id, kc.name, kc.code, kc.grade, kc.chapter_info
+        ORDER BY kc.code
     """))
     rows = result.fetchall()
     return {

@@ -102,6 +102,7 @@ const CSS = `
   .badge-purple { background: #1a1240; color: var(--accent-light); }
   .badge-blue { background: var(--blue-bg); color: var(--blue); }
   .badge-gray { background: var(--surface3); color: var(--text-muted); }
+  .badge-empty { background: transparent; color: #f97316; border: 1px dashed #f97316; } /* no drafts yet */
 
   /* Content panel */
   .content { display: flex; flex-direction: column; overflow: hidden; }
@@ -1067,6 +1068,7 @@ export default function QuestionGenPage() {
   const totalFiltered = filteredGrade6Kcs.length + filteredOtherKcs.length;
 
   const getKcStatusClass = (k: KCStats) => {
+    if (k.total === 0) return "badge-empty";          // no drafts at all — newly visible
     if (k.pending === 0 && k.total > 0) return "badge-green";
     if (k.approved > 0 || k.edited_approved > 0) return "badge-yellow";
     return "badge-gray";
@@ -1262,7 +1264,10 @@ export default function QuestionGenPage() {
                           </span>
                         )}
                         {k.rejected > 0 && <span className="badge badge-red">✗{k.rejected}</span>}
-                        <span className={`badge ${getKcStatusClass(k)}`}>{k.total}</span>
+                        <span
+                          className={`badge ${getKcStatusClass(k)}`}
+                          title={k.total === 0 ? "Chưa có câu hỏi nào — có thể Add thủ công hoặc Generate" : undefined}
+                        >{k.total === 0 ? "0 câu" : k.total}</span>
                       </div>
                     </div>
                   ))}
@@ -1312,7 +1317,10 @@ export default function QuestionGenPage() {
                               </span>
                             )}
                             {k.rejected > 0 && <span className="badge badge-red">✗{k.rejected}</span>}
-                            <span className={`badge ${getKcStatusClass(k)}`}>{k.total}</span>
+                            <span
+                              className={`badge ${getKcStatusClass(k)}`}
+                              title={k.total === 0 ? "Chưa có câu hỏi nào — có thể Add thủ công hoặc Generate" : undefined}
+                            >{k.total === 0 ? "0 câu" : k.total}</span>
                           </div>
                         </div>
                       ))}
