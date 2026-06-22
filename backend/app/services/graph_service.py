@@ -1091,6 +1091,7 @@ async def create_note(
     db.add(note)
     await db.commit()
     await db.refresh(note)
+    invalidate_graph_cache()  # flush Redis so next GET /graph includes the new note
     return {
         "id": str(note.id),
         "content": note.content,
@@ -1127,6 +1128,7 @@ async def update_note(
     note.updated_at = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(note)
+    invalidate_graph_cache()  # flush Redis so next GET /graph reflects updated note position/content
     return {
         "id": str(note.id),
         "content": note.content,
@@ -1143,6 +1145,7 @@ async def delete_note(db: AsyncSession, note_id: str) -> dict:
     if note:
         await db.delete(note)
         await db.commit()
+        invalidate_graph_cache()  # flush Redis so next GET /graph omits the deleted note
     return {"ok": True}
 
 

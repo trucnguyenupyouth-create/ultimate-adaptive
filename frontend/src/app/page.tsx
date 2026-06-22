@@ -647,18 +647,23 @@ function GraphBuilderInner() {
         try {
           const healthData = await graphApi.getHealth();
           setHealth(healthData);
-          // Re-render nodes with health overlays (root/leaf/low-item indicators)
-          setNodes((current) => toFlowNodes(
-            graphData.nodes,
-            graphData.blocks || [],
-            healthData,
-            handleBlockRename,
-            handleBlockDelete,
-            handleBlockResize
-          ).map((newNode) => {
-            const existing = current.find(n => n.id === newNode.id);
-            return existing ? { ...newNode, position: existing.position } : newNode;
-          }));
+          // Re-render KC+block nodes with health overlays,
+          // but preserve any noteNode entries that toFlowNodes() doesn't emit.
+          setNodes((current) => {
+            const existingNoteNodes = current.filter((n) => n.type === "noteNode");
+            const updatedKcAndBlockNodes = toFlowNodes(
+              graphData.nodes,
+              graphData.blocks || [],
+              healthData,
+              handleBlockRename,
+              handleBlockDelete,
+              handleBlockResize
+            ).map((newNode) => {
+              const existing = current.find((n) => n.id === newNode.id);
+              return existing ? { ...newNode, position: existing.position } : newNode;
+            });
+            return [...updatedKcAndBlockNodes, ...existingNoteNodes];
+          });
         } catch {
           // Health is non-critical — fail silently
         } finally {
