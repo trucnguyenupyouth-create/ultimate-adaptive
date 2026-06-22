@@ -1,0 +1,16 @@
+﻿kc_code,kc_name,chapter_info,have_items,skip_reasons
+G6-MATH-DO-DAI-DOAN,Đo độ dài đoạn thẳng,B32K2,9,name pattern '^đo\b'
+G6-MATH-DO-GOC-BANG,Nhận biết số đo góc và đo góc bằng thước đo góc,B37K2,6,name pattern '\bđo .* bằng thước\b'
+G6-MATH-DOC-VA-PHAN,Đọc và phân tích dữ liệu từ bảng thống kê ,B39K2,5,flag_note matches 'test bằng visual' | notes=nên test bằng visual dù hiện tại test thế này cũng được
+G6-MATH-DOC-VA-PHAN-1,Đọc và phân tích dữ liệu từ biểu đồ tranh ,B39K2 ,6,flag_note matches 'test bằng visual' | notes=nên test bằng visual
+G6-MATH-DOC-VA-PHAN-2,Đọc và phân tích dữ liệu từ biểu đồ cột ,B40K2,9,flag_note matches 'test bằng visual' | notes=nên test bằng visual
+G6-MATH-DOC-VA-PHAN-3,Đọc và phân tích dữ liệu từ biểu đồ cột kép ,B41K2,6,flag_note matches 'test bằng visual' | notes=test bằng visual
+G6-MATH-LAP-BANG-THONG,Lập bảng thống kê từ dữ liệu thô,B39K2,3,name pattern '\blập bảng\b'
+G6-MATH-TINH-XAC-SUAT,Tính xác suất thực nghiệm k/n ,B43K2,6,flag_note matches 'test bằng visual' | notes=nên test bằng visual
+G6-MATH-VE-BIEU-DO,Vẽ biểu đồ cột ,B40K2,4,flag_note matches 'test bằng visual' | notes=nên test bằng visual | name pattern '^vẽ\b'
+G6-MATH-VE-BIEU-DO-1,Vẽ biểu đồ cột kép ,B41K2,7,flag_note matches 'test bằng visual' | notes=test bằng visual | name pattern '^vẽ\b'
+G6-MATH-VE-HINH-BINH,Vẽ hình bình hành,B19K1,6,name pattern '^vẽ\b'
+G6-MATH-VE-HINH-CHU,Vẽ hình chữ nhật ,B19K1,7,name pattern '^vẽ\b'
+G6-MATH-VE-HINH-TAM,Vẽ hình tam giác đều ,B18K1,1,flag_note matches 'node khó test' | notes=node khó test | name pattern '^vẽ\b'
+G6-MATH-VE-HINH-THOI,Vẽ hình thoi,B19K1,8,name pattern '^vẽ\b'
+G6-MATH-VE-HINH-VUONG,Vẽ Hình vuông,B18K1,6,flag_note matches 'node vẽ hình' | notes=node vẽ hình | name pattern '^vẽ\b'
