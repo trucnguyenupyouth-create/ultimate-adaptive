@@ -117,22 +117,27 @@ class KnowledgeGraph:
         """
         KST: find the best KC to start assessment from.
 
-        Strategy:
-          1. Eligible KCs = KCs where ALL direct prerequisites are in known_kcs
-             (student has the foundation to attempt them)
-          2. Score each eligible KC:
-             score = fulfilled_ancestors + unmastered_descendants
-             → maximise: pick the KC in the "middle" of the graph
-               - many fulfilled ancestors = student has solid foundation below it
-               - many unmastered descendants = lots of knowledge unlocked above it
-          3. For new student (known_kcs = ∅):
-             only root KCs are eligible → pick most central root (most descendants)
+        Strategy for NEW STUDENT (known_kcs = ∅):
+          - Drop the prerequisite eligibility filter entirely
+          - Score each KC by: total_ancestors + total_descendants
+            → Maximises both-way connectivity = true "middle" of graph
+            → Node with highest betweenness-like score divides graph most evenly
+            → Answering it correctly unlocks the most knowledge above
+            → Answering it incorrectly reveals the most remediable gaps below
+          - This avoids starting at a root (dead-end on fail) or leaf (useless on pass)
+
+        Strategy for RETURNING STUDENT (known_kcs non-empty):
+          - Eligible KCs = only KCs where ALL direct prerequisites are in known_kcs
+            (student has the prerequisite foundation to attempt them)
+          - Score: fulfilled_ancestors + unmastered_descendants
+            → Picks the KC at the frontier of current knowledge
 
         Returns None if no eligible KC found (e.g. empty graph or all mastered).
         """
         if len(self._G) == 0:
             return None
 
+        is_new_student = len(known_kcs) == 0
         best_kc: Optional[str] = None
         best_score: int = -1
 
@@ -140,24 +145,47 @@ class KnowledgeGraph:
             if kc in known_kcs:
                 continue
 
-            # Check all direct prerequisites are fulfilled
-            direct_prereqs = list(self._G.predecessors(kc))
-            if not all(p in known_kcs for p in direct_prereqs):
-                continue  # not eligible — missing prerequisites
+            if is_new_student:
+                # For new students: score by ancestors × descendants (PRODUCT, not sum).
+                #
+                # Why product?
+                #   - sum(anc + desc) rewards roots (0 anc + many desc = high sum)
+                #     but roots are DEAD ENDS on fail — no remediation path.
+                #   - product(anc × desc) = 0 when either side is 0.
+                #     A root gets score 0 (dead end). A leaf gets score 0 (useless).
+                #     Only true MIDDLE nodes (ancestors AND descendants > 0) score high.
+                #
+                # This is the "binary search on knowledge space" intuition:
+                #   Best starting point = node that splits the graph most evenly.
+                #   Pass → explore desc subtree above.
+                #   Fail → diagnose anc subtree below.
+                #   High product = both directions are meaningful.
+                #
+                # Equivalent to argmax of information gain in both directions.
+                # Reference: ALEKS entry-point selection (Falmagne et al.)
+                all_ancestors = len(nx.ancestors(self._G, kc))
+                all_descendants = len(nx.descendants(self._G, kc))
+                score = all_ancestors * all_descendants  # PRODUCT not sum
+            else:
+                # For returning students: must have all prerequisites fulfilled.
+                direct_prereqs = list(self._G.predecessors(kc))
+                if not all(p in known_kcs for p in direct_prereqs):
+                    continue  # not eligible — missing prerequisites
 
-            fulfilled_ancestors = sum(
-                1 for a in nx.ancestors(self._G, kc) if a in known_kcs
-            )
-            unmastered_descendants = sum(
-                1 for d in nx.descendants(self._G, kc) if d not in known_kcs
-            )
-            score = fulfilled_ancestors + unmastered_descendants
+                fulfilled_ancestors = sum(
+                    1 for a in nx.ancestors(self._G, kc) if a in known_kcs
+                )
+                unmastered_descendants = sum(
+                    1 for d in nx.descendants(self._G, kc) if d not in known_kcs
+                )
+                score = fulfilled_ancestors + unmastered_descendants
 
             if score > best_score:
                 best_score = score
                 best_kc = kc
 
         return best_kc
+
 
     # ── Navigation ────────────────────────────────────────────────────────
 

@@ -23,6 +23,7 @@ Cold start defaults (per spec):
 from __future__ import annotations
 
 import math
+import random
 from typing import Optional
 
 
@@ -146,18 +147,34 @@ def select_zpd(
         return None
 
     pool = items
+    is_repeat_fallback = False
     if seen_ids:
         pool = [i for i in items if i.get("id") not in seen_ids]
     if not pool:
-        pool = items  # fallback: allow repeats if pool exhausted
+        # Item pool exhausted — fall back to repeats
+        pool = items
+        is_repeat_fallback = True
 
-    return min(
+    # Shuffle before min() to randomise tie-breaking.
+    # Without this, when all items share the same b value (and therefore
+    # the same |P - target_p| distance), min() always returns the first
+    # item in the list, causing the same question to appear repeatedly.
+    pool = list(pool)  # copy so we don't mutate caller's list
+    random.shuffle(pool)
+
+    best = min(
         pool,
         key=lambda item: abs(
             p_correct(theta, item.get("irt_a", 1.0), item.get("irt_b", 0.0), item.get("irt_c", 0.25))
             - target_p
         )
     )
+
+    if is_repeat_fallback:
+        best = dict(best)  # shallow copy so we can annotate
+        best["_is_repeat"] = True
+
+    return best
 
 
 # ── ZPD target helper ─────────────────────────────────────────────────────────

@@ -1,0 +1,452 @@
+{
+  "G9-MATH-NHAN-BIET-PHAN": {
+    "questions": [
+      {
+        "question": "Trong các cách viết sau đây, cách viết nào cho ta một phân số?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "4/0",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "1,5/3",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "-2/7",
+            "is_correct": true
+          },
+          {
+            "label": "D",
+            "text": "5/(-2,4)",
+            "is_correct": false
+          }
+        ],
+        "irt_b": 0.0,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": true
+      },
+      {
+        "question": "Điều kiện bắt buộc để biểu thức a/b là một phân số (với a, b ∈ ℤ) là gì?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "a ≠ 0",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "b ≠ 0",
+            "is_correct": true
+          },
+          {
+            "label": "C",
+            "text": "a và b phải cùng dấu",
+            "is_correct": false
+          },
+          {
+            "label": "D",
+            "text": "b > 0",
+            "is_correct": false
+          }
+        ],
+        "irt_b": 0.0,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": true
+      },
+      {
+        "question": "Số nguyên -8 có thể được viết dưới dạng phân số là:",
+        "answers": [
+          {
+            "label": "A",
+            "text": "-8/1",
+            "is_correct": true
+          },
+          {
+            "label": "B",
+            "text": "1/(-8)",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "-8/0",
+            "is_correct": false
+          },
+          {
+            "label": "D",
+            "text": "Không thể viết vì -8 là số âm",
+            "is_correct": false
+          }
+        ],
+        "irt_b": -1.0,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": false
+      },
+      {
+        "question": "Phát biểu nào sau đây là ĐÚNG nhất về định nghĩa phân số?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "Phân số là thương của phép chia một số tự nhiên cho một số tự nhiên khác 0.",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "Phân số là một số có dạng a/b, trong đó a và b là các số nguyên.",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "Phân số là một số có dạng a/b, trong đó a, b ∈ ℤ và b ≠ 0.",
+            "is_correct": true
+          },
+          {
+            "label": "D",
+            "text": "Phân số là một số có dạng a/b, trong đó a ≠ 0 và b ≠ 0.",
+            "is_correct": false
+          }
+        ],
+        "irt_b": -1.0,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": true
+      },
+      {
+        "question": "Trong các phân số sau: -3/4; 5/(-2); -7/(-8); 0/9. Phân số nào là phân số dương?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "-3/4",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "5/(-2)",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "-7/(-8)",
+            "is_correct": true
+          },
+          {
+            "label": "D",
+            "text": "0/9",
+            "is_correct": false
+          }
+        ],
+        "irt_b": -1.0,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": true
+      },
+      {
+        "question": "Cho tập hợp M = {5/2; -3/0; 4/1; 0/(-7); 1,2/4}. Số phần tử trong tập M là phân số là:",
+        "answers": [
+          {
+            "label": "A",
+            "text": "5",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "4",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "3",
+            "is_correct": true
+          },
+          {
+            "label": "D",
+            "text": "2",
+            "is_correct": false
+          }
+        ],
+        "irt_b": 1.5,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": false
+      },
+      {
+        "question": "Tìm điều kiện của số nguyên n để biểu thức A = 5/(n - 3) là một phân số.",
+        "answers": [
+          {
+            "label": "A",
+            "text": "n ≠ 0",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "n ≠ 3",
+            "is_correct": true
+          },
+          {
+            "label": "C",
+            "text": "n = 3",
+            "is_correct": false
+          },
+          {
+            "label": "D",
+            "text": "n ∈ ℤ",
+            "is_correct": false
+          }
+        ],
+        "irt_b": 1.5,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": false
+      },
+      {
+        "question": "Khẳng định nào sau đây SAI khi nói về các cách biểu diễn phân số?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "Phân số -a/b luôn bằng a/(-b) với mọi b ≠ 0.",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "Mọi số nguyên n đều có thể viết dưới dạng phân số n/1.",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "Một phân số có tử và mẫu là hai số nguyên đối nhau (khác 0) luôn có giá trị bằng -1.",
+            "is_correct": false
+          },
+          {
+            "label": "D",
+            "text": "Phân số a/b là số dương khi và chỉ khi a và b là các số nguyên dương.",
+            "is_correct": true
+          }
+        ],
+        "irt_b": 0.8,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": false
+      },
+      {
+        "question": "Xét các nhận định sau:\n(1) Số 0 là phân số có tử bằng 0 và mẫu là một số nguyên bất kỳ.\n(2) Phân số có tử và mẫu trái dấu luôn nhỏ hơn 0.\n(3) Mọi phân số có mẫu bằng 1 đều là số nguyên.\nSố nhận định ĐÚNG là:",
+        "answers": [
+          {
+            "label": "A",
+            "text": "0",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "1",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "2",
+            "is_correct": true
+          },
+          {
+            "label": "D",
+            "text": "3",
+            "is_correct": false
+          }
+        ],
+        "irt_b": 0.8,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": false
+      }
+    ],
+    "raw": "**Câu 1 (Dễ - b=-1.0):**\nQ: Trong các cách viết sau đây, cách viết nào cho ta một phân số?\nA: 4/0\nB: 1,5/3\nC: -2/7\nD: 5/(-2,4)\nĐúng: C\nAnchor: FALSE\nSai lầm A: Nhầm lẫn rằng mẫu số có thể bằng 0.\nSai lầm B: Nhầm lẫn rằng tử số có thể là số thập phân (không phải số nguyên).\nSai lầm C: Không có sai lầm.\nSai lầm D: Nhầm lẫn rằng mẫu số có thể là số thập phân.\n\n**Câu 2 (Dễ - b=-1.0):**\nQ: Điều kiện bắt buộc để biểu thức a/b là một phân số (với a, b ∈ ℤ) là gì?\nA: a ≠ 0\nB: b ≠ 0\nC: a và b phải cùng dấu\nD: b > 0\nĐúng: B\nAnchor: FALSE\nSai lầm A: Nhầm lẫn điều kiện của mẫu số sang tử số.\nSai lầm B: Không có sai lầm.\nSai lầm C: Ngộ nhận rằng phân số chỉ tồn tại ở dạng số dương.\nSai lầm D: Ngộ nhận rằng mẫu số bắt buộc phải là số nguyên dương (không biết mẫu có thể âm).\n\n**Câu 3 (Dễ - b=-1.0):**\nQ: Số nguyên -8 có thể được viết dưới dạng phân số là:\nA: -8/1\nB: 1/(-8)\nC: -8/0\nD: Không thể viết vì -8 là số âm\nĐúng: A\nAnchor: FALSE\nSai lầm A: Không có sai lầm.\nSai lầm B: Nhầm lẫn giữa số nguyên và nghịch đảo của nó.\nSai lầm C: Vi phạm điều kiện mẫu phải khác 0.\nSai lầm D: Ngộ nhận số nguyên âm không phải là một phân số.\n\n**Câu 4 (Trung bình - b=0.0):**\nQ: Phát biểu nào sau đây là ĐÚNG nhất về định nghĩa phân số?\nA: Phân số là thương của phép chia một số tự nhiên cho một số tự nhiên khác 0.\nB: Phân số là một số có dạng a/b, trong đó a và b là các số nguyên.\nC: Phân số là một số có dạng a/b, trong đó a, b ∈ ℤ và b ≠ 0.\nD: Phân số là một số có dạng a/b, trong đó a ≠ 0 và b ≠ 0.\nĐúng: C\nAnchor: TRUE\nSai lầm A: Chưa mở rộng khái niệm từ số tự nhiên sang số nguyên.\nSai lầm B: Thiếu điều kiện tiên quyết là mẫu số b ≠ 0.\nSai lầm C: Không có sai lầm.\nSai lầm D: Thừa điều kiện a ≠ 0 (tử số hoàn toàn có thể bằng 0).\n\n**Câu 5 (Trung bình - b=0.0):**\nQ: Trong các phân số sau: -3/4; 5/(-2); -7/(-8); 0/9. Phân số nào là phân số dương?\nA: -3/4\nB: 5/(-2)\nC: -7/(-8)\nD: 0/9\nĐúng: C\nAnchor: TRUE\nSai lầm A: Nhầm rằng có dấu trừ là phân số âm (không xét dấu của mẫu).\nSai lầm B: Nhầm rằng chỉ cần một trong hai tử hoặc mẫu âm là phân số dương.\nSai lầm C: Không có sai lầm.\nSai lầm D: Nhầm lẫn số 0 là số dương.\n\n**Câu 6 (Trung bình-khó - b=+0.8):**\nQ: Cho tập hợp M = {5/2; -3/0; 4/1; 0/(-7); 1,2/4}. Số phần tử trong tập M là phân số là:\nA: 5\nB: 4\nC: 3\nD: 2\nĐúng: C\nAnchor: FALSE\nSai lầm A: Không loại bỏ trường hợp mẫu bằng 0 và tử là số thập phân.\nSai lầm B: Chỉ loại bỏ được trường hợp mẫu bằng 0, vẫn giữ lại 1,2/4.\nSai lầm C: Không có sai lầm (Các phân số là: 5/2; 4/1; 0/-7).\nSai lầm D: Loại bỏ nhầm cả 4/1 (nghĩ số nguyên không là phân số) hoặc 0/-7 (nghĩ tử bằng 0 không là phân số).\n\n**Câu 7 (Trung bình-khó - b=+0.8):**\nQ: Tìm điều kiện của số nguyên n để biểu thức A = 5/(n - 3) là một phân số.\nA: n ≠ 0\nB: n ≠ 3\nC: n = 3\nD: n ∈ ℤ\nĐúng: B\nAnchor: FALSE\nSai lầm A: Áp dụng máy móc điều kiện \"mẫu khác 0\" thành \"biến số khác 0\".\nSai lầm B: Không có sai lầm.\nSai lầm C: Nhầm lẫn giữa điều kiện để biểu thức có nghĩa và điều kiện để mẫu bằng 0.\nSai lầm D: Quên mất điều kiện mẫu phải khác 0, chỉ nghĩ đến tập số nguyên.\n\n**Câu 8 (Khó - b=+1.5):**\nQ: Khẳng định nào sau đây SAI khi nói về các cách biểu diễn phân số?\nA: Phân số -a/b luôn bằng a/(-b) với mọi b ≠ 0.\nB: Mọi số nguyên n đều có thể viết dưới dạng phân số n/1.\nC: Một phân số có tử và mẫu là hai số nguyên đối nhau (khác 0) luôn có giá trị bằng -1.\nD: Phân số a/b là số dương khi và chỉ khi a và b là các số nguyên dương.\nĐúng: D\nAnchor: FALSE\nSai lầm A: Khẳng định này đúng (tính chất đổi dấu), học sinh chọn vì tưởng sai.\nSai lầm B: Khẳng định này đúng, học sinh chọn vì chưa nhận diện số nguyên là phân số.\nSai lầm C: Khẳng định này đúng, học sinh chọn vì không hiểu khái niệm số đối trong phân số.\nSai lầm D: Đây là khẳng định SAI vì phân số dương còn có trường hợp cả tử và mẫu cùng âm.\n\n**Câu 9 (Khó - b=+1.5):**\nQ: Xét các nhận định sau:\n(1) Số 0 là phân số có tử bằng 0 và mẫu là một số nguyên bất kỳ.\n(2) Phân số có tử và mẫu trái dấu luôn nhỏ hơn 0.\n(3) Mọi phân số có mẫu bằng 1 đều là số nguyên.\nSố nhận định ĐÚNG là:\nA: 0\nB: 1\nC: 2\nD: 3\nĐúng: C\nSai lầm A: Không nhận ra các nhận định (2) và (3) là đúng.\nSai lầm B: Chỉ nhận ra được một trong hai nhận định đúng.\nSai lầm C: Không có sai lầm. (Nhận định 1 sai vì thiếu điều kiện mẫu khác 0; 2 và 3 đúng).\nSai lầm D: Ngộ nhận nhận định (1) là đúng (quên điều kiện mẫu khác 0)."
+  },
+  "G6-MATH-NHAN-BIET-DOC": {
+    "questions": [
+      {
+        "question": "Trong các cách viết sau đây, cách viết nào biểu diễn một số nguyên âm?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "5",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "−5",
+            "is_correct": true
+          },
+          {
+            "label": "C",
+            "text": "0",
+            "is_correct": false
+          },
+          {
+            "label": "D",
+            "text": "+5",
+            "is_correct": false
+          }
+        ],
+        "irt_b": 0.0,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": true
+      },
+      {
+        "question": "Khẳng định nào sau đây mô tả đúng nhất về tập hợp các số nguyên ℤ?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "ℤ = {..., −3, −2, −1, 1, 2, 3, ...}",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "Tập hợp ℤ bao gồm các số nguyên âm và các số tự nhiên.",
+            "is_correct": true
+          },
+          {
+            "label": "C",
+            "text": "Tập hợp ℤ chỉ gồm các số có dấu \"−\" phía trước.",
+            "is_correct": false
+          },
+          {
+            "label": "D",
+            "text": "Tập hợp ℤ chính là tập hợp ℕ nhưng kéo dài về bên phải trục số.",
+            "is_correct": false
+          }
+        ],
+        "irt_b": -1.0,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": true
+      },
+      {
+        "question": "Trên trục số nằm ngang với điểm gốc là 0, phát biểu nào sau đây là SAI?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "Các số nguyên âm nằm bên trái điểm 0.",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "Khoảng cách từ điểm −3 đến điểm 0 là 3 đơn vị.",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "Số đối của −4 là số nằm cách điểm 0 một khoảng bằng 4 đơn vị về bên phải.",
+            "is_correct": false
+          },
+          {
+            "label": "D",
+            "text": "Điểm biểu diễn số −2 nằm bên phải điểm biểu diễn số −1.",
+            "is_correct": true
+          }
+        ],
+        "irt_b": 1.5,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": false
+      },
+      {
+        "question": "Gọi x là một số nguyên. Điều kiện cần và đủ để x là một số nguyên âm là:",
+        "answers": [
+          {
+            "label": "A",
+            "text": "x là số đối của một số tự nhiên.",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "x là một số thuộc tập hợp ℤ và x ≠ 0.",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "x là số đối của một số thuộc tập hợp ℕ*.",
+            "is_correct": true
+          },
+          {
+            "label": "D",
+            "text": "x là một số có dấu \"−\" đứng trước nó.",
+            "is_correct": false
+          }
+        ],
+        "irt_b": 0.8,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": false
+      }
+    ],
+    "raw": "Chào bạn, với tư cách là Chuyên gia Giáo dục Toán học và Psychometrician, tôi xin cung cấp bộ câu hỏi trắc nghiệm được thiết kế chuẩn hóa theo mô hình IRT và bám sát các sai lầm nhận thức phổ biến của học sinh lớp 6 về số nguyên âm.\n\n---\n\n**Câu 1 (Dễ - b=−1.0):**\nQ: Trong các cách viết sau đây, cách viết nào biểu diễn một số nguyên âm?\nA: 5\nB: −5\nC: 0\nD: +5\nĐúng: B\nAnchor: FALSE\nSai lầm A: Nhầm lẫn giữa số nguyên âm và số tự nhiên (số nguyên dương).\nSai lầm B: Đúng. Nhận biết được dấu \"−\" đứng trước số tự nhiên khác 0.\nSai lầm C: Nhầm số 0 là số nguyên âm (số 0 không là số nguyên âm cũng không là số nguyên dương).\nSai lầm D: Nhầm ký hiệu số nguyên dương là số nguyên âm.\n\n**Câu 2 (TB - b=0.0):**\nQ: Khẳng định nào sau đây mô tả đúng nhất về tập hợp các số nguyên ℤ?\nA: ℤ = {..., −3, −2, −1, 1, 2, 3, ...}\nB: Tập hợp ℤ bao gồm các số nguyên âm và các số tự nhiên.\nC: Tập hợp ℤ chỉ gồm các số có dấu \"−\" phía trước.\nD: Tập hợp ℤ chính là tập hợp ℕ nhưng kéo dài về bên phải trục số.\nĐúng: B\nAnchor: TRUE\nSai lầm A: Quên số 0 trong tập hợp số nguyên (sai lầm kinh điển).\nSai lầm B: Đúng. Vì ℕ = {0, 1, 2, 3, ...}, nên ℤ = {Số nguyên âm} ∪ {0, 1, 2, ...} là chính xác.\nSai lầm C: Đồng nhất tập ℤ với tập số nguyên âm ℤ⁻.\nSai lầm D: Nhầm lẫn về cấu trúc trục số (số âm nằm bên trái) và quan hệ giữa các tập hợp.\n\n**Câu 3 (TB-Khó - b=+0.8):**\nQ: Trên trục số nằm ngang với điểm gốc là 0, phát biểu nào sau đây là SAI?\nA: Các số nguyên âm nằm bên trái điểm 0.\nB: Khoảng cách từ điểm −3 đến điểm 0 là 3 đơn vị.\nC: Số đối của −4 là số nằm cách điểm 0 một khoảng bằng 4 đơn vị về bên phải.\nD: Điểm biểu diễn số −2 nằm bên phải điểm biểu diễn số −1.\nĐúng: D\nAnchor: FALSE\nSai lầm A: Phát biểu đúng về vị trí (học sinh có thể chọn nếu nhầm hướng).\nSai lầm B: Phát biểu đúng về giá trị tuyệt đối/khoảng cách (học sinh dễ nhầm khoảng cách cũng mang dấu âm).\nSai lầm C: Phát biểu đúng về số đối (học sinh thường nhầm số đối của −4 vẫn là −4).\nSai lầm D: Đúng (vì đây là câu sai). Học sinh thường nghĩ 2 > 1 nên −2 phải nằm bên phải −1, quên rằng trên trục số âm, số có trị tuyệt đối lớn hơn thì nằm xa điểm 0 hơn về bên trái.\n\n**Câu 4 (Khó - b=+1.5):**\nQ: Gọi x là một số nguyên. Điều kiện cần và đủ để x là một số nguyên âm là:\nA: x là số đối của một số tự nhiên.\nB: x là một số thuộc tập hợp ℤ và x ≠ 0.\nC: x là số đối của một số thuộc tập hợp ℕ*.\nD: x là một số có dấu \"−\" đứng trước nó.\nĐúng: C\nAnchor: FALSE\nSai lầm A: Sai vì số đối của 0 là 0 (không phải số âm).\nSai lầm B: Thiếu điều kiện x < 0 (x có thể là số nguyên dương).\nSai lầm C: Đúng. Vì ℕ* = {1, 2, 3, ...}, số đối của chúng chắc chắn là {−1, −2, −3, ...}.\nSai lầm D: Chưa đủ chặt chẽ. Ví dụ: −(−3) có dấu \"−\" ở trước nhưng kết quả là 3 (số dương). Câu này kiểm tra tư duy logic về định nghĩa tập hợp."
+  },
+  "G6-MATH-QUY-DONG-MAU": {
+    "questions": [
+      {
+        "question": "Cho hai phân số a/b và c/d (với a, b, c, d ∈ ℤ; b, d ≠ 0). Trong các khẳng định sau về quy trình quy đồng mẫu số, khẳng định nào là ĐÚNG nhất?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "Mẫu chung M phải là một số nguyên dương và là bội chung của |b| và |d|.",
+            "is_correct": true
+          },
+          {
+            "label": "B",
+            "text": "Thừa số phụ của phân số a/b được tìm bằng cách lấy mẫu chung M chia cho tử số a.",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "Nếu mẫu số b < 0, ta chỉ cần nhân tử số a với (−1) rồi giữ nguyên mẫu b để tìm mẫu chung.",
+            "is_correct": false
+          },
+          {
+            "label": "D",
+            "text": "Sau khi tìm được mẫu chung M và thừa số phụ tương ứng k, ta có: a/b = (a × k)/b.",
+            "is_correct": false
+          }
+        ],
+        "irt_b": 0.8,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": false
+      },
+      {
+        "question": "Một học sinh thực hiện quy đồng mẫu hai phân số 3/−5 và 2/3 theo các bước sau:\nBước 1: Chọn mẫu chung M = BCNN(5, 3) = 15.\nBước 2: Tìm thừa số phụ: 15 ÷ 5 = 3; 15 ÷ 3 = 5.\nBước 3: Viết kết quả: 3/−5 = (3 × 3)/15 = 9/15 và 2/3 = (2 × 5)/15 = 10/15.\nPhân tích nào sau đây chỉ ra đúng sai lầm của học sinh trên?",
+        "answers": [
+          {
+            "label": "A",
+            "text": "Học sinh sai ở Bước 1 vì mẫu chung M phải là tích của hai mẫu số: (−5) × 3 = −15.",
+            "is_correct": false
+          },
+          {
+            "label": "B",
+            "text": "Học sinh sai ở Bước 2 vì thừa số phụ của phân số thứ nhất phải là 15 ÷ 3 = 5.",
+            "is_correct": false
+          },
+          {
+            "label": "C",
+            "text": "Học sinh sai ở Bước 3 vì 9/15 không bằng 3/−5; học sinh đã quên xử lý dấu trừ ở mẫu hoặc nhân thiếu dấu ở tử.",
+            "is_correct": true
+          },
+          {
+            "label": "D",
+            "text": "Học sinh sai ở Bước 3 vì khi nhân tử số với 3 thì mẫu số cũng phải nhân với 3, kết quả mẫu phải là −15.",
+            "is_correct": false
+          }
+        ],
+        "irt_b": 1.5,
+        "irt_a": 1.0,
+        "irt_c": 0.25,
+        "is_diagnostic_anchor": false
+      }
+    ],
+    "raw": "**Câu 1 (TB-Khó - b=+0.8):**\nQ: Cho hai phân số a/b và c/d (với a, b, c, d ∈ ℤ; b, d ≠ 0). Trong các khẳng định sau về quy trình quy đồng mẫu số, khẳng định nào là ĐÚNG nhất?\nA: Mẫu chung M phải là một số nguyên dương và là bội chung của |b| và |d|.\nB: Thừa số phụ của phân số a/b được tìm bằng cách lấy mẫu chung M chia cho tử số a.\nC: Nếu mẫu số b < 0, ta chỉ cần nhân tử số a với (−1) rồi giữ nguyên mẫu b để tìm mẫu chung.\nD: Sau khi tìm được mẫu chung M và thừa số phụ tương ứng k, ta có: a/b = (a × k)/b.\nĐúng: A\nAnchor: FALSE\nSai lầm A: Không có (đây là đáp án đúng theo quy tắc tìm mẫu chung dương).\nSai lầm B: Nhầm lẫn giữa việc chia mẫu chung cho mẫu số và chia mẫu chung cho tử số khi tìm thừa số phụ.\nSai lầm C: Quên rằng khi đổi dấu tử thì phải đổi dấu cả mẫu để đảm bảo phân số bằng phân số ban đầu (mẫu phải dương).\nSai lầm D: Nhân tử số với thừa số phụ nhưng lại giữ nguyên mẫu số cũ thay vì đưa về mẫu chung M.\n\n**Câu 2 (Khó - b=+1.5):**\nQ: Một học sinh thực hiện quy đồng mẫu hai phân số 3/−5 và 2/3 theo các bước sau:\nBước 1: Chọn mẫu chung M = BCNN(5, 3) = 15.\nBước 2: Tìm thừa số phụ: 15 ÷ 5 = 3; 15 ÷ 3 = 5.\nBước 3: Viết kết quả: 3/−5 = (3 × 3)/15 = 9/15 và 2/3 = (2 × 5)/15 = 10/15.\nPhân tích nào sau đây chỉ ra đúng sai lầm của học sinh trên?\nA: Học sinh sai ở Bước 1 vì mẫu chung M phải là tích của hai mẫu số: (−5) × 3 = −15.\nB: Học sinh sai ở Bước 2 vì thừa số phụ của phân số thứ nhất phải là 15 ÷ 3 = 5.\nC: Học sinh sai ở Bước 3 vì 9/15 không bằng 3/−5; học sinh đã quên xử lý dấu trừ ở mẫu hoặc nhân thiếu dấu ở tử.\nD: Học sinh sai ở Bước 3 vì khi nhân tử số với 3 thì mẫu số cũng phải nhân với 3, kết quả mẫu phải là −15.\nĐúng: C\nAnchor: FALSE\nSai lầm A: Nhầm lẫn rằng mẫu chung luôn luôn phải là tích hai mẫu (không tối ưu) và không hiểu quy tắc mẫu chung nên dương.\nSai lầm B: Nhầm lẫn thừa số phụ của phân số này với phân số kia.\nSai lầm C: Không có (đây là phân tích đúng về lỗi vi phạm tính bằng nhau của phân số do bỏ quên dấu trừ).\nSai lầm D: Học sinh này hiểu sai mục tiêu của quy đồng là đưa về mẫu chung dương (15), vấn đề không phải là giữ lại mẫu −15 mà là tử số phải tương ứng (phải là −9)."
+  }
+}
