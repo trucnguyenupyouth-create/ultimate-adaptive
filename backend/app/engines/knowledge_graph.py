@@ -33,65 +33,111 @@ class KCNode:
 @dataclass
 class KnowledgeGraph:
     """
-    Directed Acyclic Graph where edge A → B means:
-      "A is a prerequisite of B"
-      (you must master A before attempting B)
+    Two-layer directed graph over knowledge components.
 
-    Usage:
-        kg = KnowledgeGraph()
-        kg.add_kc(KCNode(id="uuid-1", code="G9-ALG-PT1", name="Phương trình bậc 1", grade=9))
-        kg.add_prerequisite(kc_id="uuid-2", prereq_id="uuid-1")  # uuid-1 must come before uuid-2
-        start = kg.find_starting_kc(known_kcs=set())
+    _G       — HARD prerequisite edges only (edge_type == "prerequisite").
+               Must be a DAG. Used for:
+                 • Cycle detection (reject any new prerequisite that creates a cycle)
+                 • Assessment navigation (find_starting_kc, navigate)
+                 • KST inference (ancestors/descendants = mastered → mastered above)
+
+    _G_full  — ALL edges (prerequisite + inference + unsure).
+               No cycle constraint. Used for:
+                 • Frontend visualisation (to_dict)
+                 • Any soft-link analysis that needs the full picture
+
+    Rationale:
+        inference edges model "if student knows A, they likely know B" — a
+        probabilistic observation, NOT a pedagogical requirement. A cycle
+        A → B (inference) → A is perfectly valid ("knowing either suggests
+        the other"). Forcing DAG validation on them would wrongly reject
+        legitimate soft links.
+
+        unsure edges are editorial bookmarks; they carry no semantic
+        constraint at all.
     """
 
+    # Hard prerequisite graph — DAG enforced
     _G: nx.DiGraph = field(default_factory=nx.DiGraph, init=False, repr=False)
+    # Full graph — all edge types, no cycle constraint
+    _G_full: nx.DiGraph = field(default_factory=nx.DiGraph, init=False, repr=False)
 
     # ── Build ──────────────────────────────────────────────────────────────
 
     def add_kc(self, kc: KCNode) -> None:
         self._G.add_node(kc.id, **kc.__dict__)
+        self._G_full.add_node(kc.id, **kc.__dict__)
 
-    def add_prerequisite(self, kc_id: str, prereq_id: str, label: str | None = None, weight: float = 1.0) -> None:
+    def add_prerequisite(
+        self,
+        kc_id: str,
+        prereq_id: str,
+        label: str | None = None,
+        weight: float = 1.0,
+        edge_type: str = "prerequisite",
+    ) -> None:
         """
-        Add edge prereq_id → kc_id  (prereq must be mastered before kc).
-        Raises ValueError if this would create a cycle.
+        Add a directed edge prereq_id → kc_id.
+
+        • edge_type == "prerequisite":
+            Hard dependency — A must be mastered before B.
+            Cycle check is enforced on _G.
+            Raises ValueError if the edge would create a cycle.
+
+        • edge_type == "inference" | "unsure":
+            Soft/probabilistic link — no cycle check.
+            Added to _G_full only; invisible to assessment logic.
         """
         if kc_id == prereq_id:
             raise ValueError("A KC cannot be its own prerequisite.")
-        # Test on a copy before mutating
-        test_G = self._G.copy()
-        test_G.add_edge(prereq_id, kc_id)
-        if not nx.is_directed_acyclic_graph(test_G):
-            raise ValueError(
-                f"Adding prerequisite {prereq_id} → {kc_id} would create a cycle."
-            )
-        self._G.add_edge(prereq_id, kc_id, label=label, weight=weight)
+
+        common_attrs = dict(label=label, weight=weight, edge_type=edge_type)
+
+        if edge_type == "prerequisite":
+            # Test on a copy before mutating _G
+            test_G = self._G.copy()
+            test_G.add_edge(prereq_id, kc_id)
+            if not nx.is_directed_acyclic_graph(test_G):
+                raise ValueError(
+                    f"Adding prerequisite {prereq_id} → {kc_id} would create a cycle."
+                )
+            self._G.add_edge(prereq_id, kc_id, **common_attrs)
+
+        # All types go into the full graph (no cycle constraint)
+        self._G_full.add_edge(prereq_id, kc_id, **common_attrs)
 
     def remove_prerequisite(self, kc_id: str, prereq_id: str) -> None:
         if self._G.has_edge(prereq_id, kc_id):
             self._G.remove_edge(prereq_id, kc_id)
+        if self._G_full.has_edge(prereq_id, kc_id):
+            self._G_full.remove_edge(prereq_id, kc_id)
 
     def load_from_dicts(
         self,
         kcs: list[dict],
-        prerequisites: list[dict]  # [{kc_id, prereq_id, label, weight}, ...]
+        prerequisites: list[dict]  # [{kc_id, prereq_id, label, weight, edge_type?}, ...]
     ) -> None:
         """Bulk load from DB query results."""
         for kc in kcs:
             self._G.add_node(kc["id"], **kc)
+            self._G_full.add_node(kc["id"], **kc)
         for edge in prerequisites:
-            # Direct add (already validated in DB on insert)
-            self._G.add_edge(
-                edge["prereq_id"],
-                edge["kc_id"],
+            etype = edge.get("edge_type", "prerequisite")
+            attrs = dict(
                 label=edge.get("label"),
-                weight=edge.get("weight", 1.0)
+                weight=edge.get("weight", 1.0),
+                edge_type=etype,
             )
+            # Only hard prerequisites go into _G (DAG layer)
+            if etype == "prerequisite":
+                self._G.add_edge(edge["prereq_id"], edge["kc_id"], **attrs)
+            # All edges go into _G_full (visualisation layer)
+            self._G_full.add_edge(edge["prereq_id"], edge["kc_id"], **attrs)
 
     # ── Validation ────────────────────────────────────────────────────────
 
     def validate_dag(self) -> bool:
-        """Returns True if graph is a valid DAG (no cycles)."""
+        """Returns True if the hard-prerequisite graph is a valid DAG (no cycles)."""
         return nx.is_directed_acyclic_graph(self._G)
 
     def health_check(self) -> dict:
@@ -101,14 +147,19 @@ class KnowledgeGraph:
           - Isolated nodes (no edges)
           - Potential dead-ends (no successors = leaf nodes in prerequisite tree)
         """
-        nodes = list(self._G.nodes())
+        nodes = list(self._G_full.nodes())
         return {
             "total_kcs": len(nodes),
-            "total_edges": self._G.number_of_edges(),
+            "total_edges": self._G_full.number_of_edges(),
+            "prerequisite_edges": self._G.number_of_edges(),
+            "inference_edges": sum(
+                1 for _, _, d in self._G_full.edges(data=True)
+                if d.get("edge_type") in ("inference", "unsure")
+            ),
             "is_dag": self.validate_dag(),
-            "root_kcs": [n for n in nodes if self._G.in_degree(n) == 0],   # no prerequisites
-            "leaf_kcs": [n for n in nodes if self._G.out_degree(n) == 0],  # no successors
-            "isolated_kcs": list(nx.isolates(self._G)),
+            "root_kcs": [n for n in nodes if self._G.in_degree(n) == 0],   # no hard prerequisites
+            "leaf_kcs": [n for n in nodes if self._G.out_degree(n) == 0],  # no hard successors
+            "isolated_kcs": list(nx.isolates(self._G_full)),
         }
 
     # ── Assessment Entry ──────────────────────────────────────────────────
@@ -238,27 +289,35 @@ class KnowledgeGraph:
 
     def get_kc_info(self, kc_id: str) -> Optional[dict]:
         """Node attributes for a KC."""
-        if kc_id not in self._G:
+        if kc_id not in self._G_full:
             return None
-        return dict(self._G.nodes[kc_id])
+        return dict(self._G_full.nodes[kc_id])
 
     def to_dict(self) -> dict:
-        """Serialise graph to JSON-safe dict for frontend visualisation."""
+        """Serialise graph to JSON-safe dict for frontend visualisation.
+
+        Uses _G_full so that inference and unsure edges are included.
+        The frontend needs all edge types to render the full graph picture.
+        Assessment logic (find_starting_kc, navigate) continues to use _G
+        (hard prerequisites only).
+        """
         return {
             "nodes": [
-                {"id": n, **self._G.nodes[n]}
-                for n in self._G.nodes()
+                {"id": n, **self._G_full.nodes[n]}
+                for n in self._G_full.nodes()
             ],
             "edges": [
                 {
                     "source": u,
                     "target": v,
-                    "label": self._G.edges[u, v].get("label"),
-                    "weight": self._G.edges[u, v].get("weight", 1.0)
+                    "label": self._G_full.edges[u, v].get("label"),
+                    "weight": self._G_full.edges[u, v].get("weight", 1.0),
+                    "edge_type": self._G_full.edges[u, v].get("edge_type", "prerequisite"),
                 }
-                for u, v in self._G.edges()
+                for u, v in self._G_full.edges()
             ],
         }
 
     def __len__(self) -> int:
-        return len(self._G)
+        """Total number of KCs (nodes) in the graph."""
+        return len(self._G_full)

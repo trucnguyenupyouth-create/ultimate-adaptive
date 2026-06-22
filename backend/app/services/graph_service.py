@@ -150,7 +150,13 @@ async def add_prerequisite(
     performed_by: str | None = None,
 ) -> dict:
     """
-    Add a prerequisite edge with DAG validation.
+    Add a directed edge between two KCs.
+
+    edge_type controls semantic + validation behaviour:
+      "prerequisite" → hard dependency; DAG cycle check is enforced.
+      "inference"    → soft/probabilistic link; cycles are allowed.
+      "unsure"       → editorial bookmark; no validation constraints.
+
     Returns {"ok": True} or {"ok": False, "error": "..."}
     """
     kc_uuid     = uuid.UUID(kc_id)
@@ -160,7 +166,8 @@ async def add_prerequisite(
     if kc_uuid == prereq_uuid:
         return {"ok": False, "error": "A KC cannot be its own prerequisite."}
 
-    # ── Guard: duplicate edge (NetworkX add_edge is idempotent → won't raise) ─
+    # ── Guard: duplicate edge ─────────────────────────────────────────────
+    # (NetworkX add_edge is idempotent — it won't raise on duplicates)
     existing_stmt = select(KCPrerequisite).where(
         KCPrerequisite.kc_id    == kc_uuid,
         KCPrerequisite.prereq_id == prereq_uuid,
@@ -175,10 +182,16 @@ async def add_prerequisite(
             ),
         }
 
-    # ── Cycle detection on in-memory graph (cheap, no DB write yet) ───────
+    # ── Add to in-memory graph (cycle check runs here for prerequisite type) ─
     kg = await get_graph(db)
     try:
-        kg.add_prerequisite(kc_id=kc_id, prereq_id=prereq_id, label=label, weight=weight)
+        kg.add_prerequisite(
+            kc_id=kc_id,
+            prereq_id=prereq_id,
+            label=label,
+            weight=weight,
+            edge_type=edge_type,
+        )
     except ValueError as e:
         return {"ok": False, "error": str(e)}
 
@@ -203,6 +216,7 @@ async def add_prerequisite(
     await db.commit()
     # Note: do NOT invalidate cache — we already mutated the in-memory graph above
     return {"ok": True}
+
 
 
 async def get_edge_detail(db: AsyncSession, kc_id: str, prereq_id: str) -> dict | None:
