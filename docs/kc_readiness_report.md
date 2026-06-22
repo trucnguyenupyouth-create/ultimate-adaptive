@@ -1,600 +1,280 @@
-# Báo cáo Chi tiết Trạng thái KCs — Toán Lớp 6
+# KC Readiness Report — L1 Eligibility Audit
 
-> Generated: 2026-06-20 | Total: 148 KCs
+> Generated: 2026-06-22 | SE_STOP=0.50 | MIN_KC_ITEMS=5 | L1 target=10 items
 
-## Tổng quan
+## Summary
 
-| Trạng thái | Số lượng | % |
-|-----------|---------|---|
-| ✅ Ready (đủ điều kiện) | 63 | 42% |
-| ⚠️ Partial (có items nhưng thiếu) | 52 | 35% |
-| 🔴 No Items (chưa có câu hỏi) | 33 | 22% |
-| 🟣 Isolated (không có edge) | 13 | 8% |
-
-## Tiêu chí tối thiểu (Minimum Acceptance)
-
-Mỗi KC cần đạt **TẤT CẢ** các điều kiện sau:
-
-| # | Tiêu chí | Lý do |
-|---|---------|-------|
-| 1 | ≥ 3 items tổng | IRT cần ≥3 data points để ZPD selection có ý nghĩa |
-| 2 | ≥ 1 easy (irt_b < -0.5) | Weak student cần câu dễ để build confidence |
-| 3 | ≥ 1 medium (-0.5 ≤ irt_b ≤ 0.5) | Entry point cho Cold Start assessment |
-| 4 | ≥ 1 hard (irt_b > 0.5) | Strong student cần câu khó để confirm mastery |
-| 5 | ≥ 1 diagnostic anchor | CAT Cold Start cần anchor item (medium + high discrimination) |
-| 6 | ≥ 1 edge trong graph | KC phải được kết nối trong KST graph |
-
-## Tổng hợp vấn đề
-
-| Vấn đề | Số KCs bị ảnh hưởng | Mức độ |
-|--------|-------------------|--------|
-| 🔴 Không có items nào | 33 | CRITICAL — assessment crash nếu traverse qua |
-| 🟠 Items < 3 | 11 | HIGH — IRT ZPD không đủ pool |
-| 🟡 Thiếu Easy items | 26 | MEDIUM — weak student frustration |
-| 🟡 Thiếu Medium items | 1 | MEDIUM — Cold Start fallback |
-| 🟡 Thiếu Hard items | 46 | MEDIUM — strong student ceiling |
-| 🟡 Thiếu Anchor items | 21 | MEDIUM — Cold Start dùng ZPD thay vì anchor |
-| ⚪ Isolated (no edges) | 13 | LOW — không ảnh hưởng assessment nhưng unreachable |
+| | Count |
+|--|--|
+| Connected KCs total | 231 |
+| **L1-ready** (>=10 items) | **20** |
+| **Need items** (<10 items) | **211** |
 
 ---
-
-## Chi tiết từng KC
-
-> **Cách đọc bảng:**
-> - Cột `E/M/H/A`: số lượng items Easy / Medium / Hard / Anchor
-> - Cột `In/Out`: số edges đến / đi (prerequisite graph)
-> - Cột `Thiếu`: liệt kê cụ thể cần bổ sung gì
-> - Sắp xếp theo chapter_info (B1K1, B2K1, ... B43K2)
-
-
-### Block 16 (16K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-TINH-CHAT-PHEP | Tính chất phép nhân | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-
-### Block B10 (B10K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-SO | Nhận biết số nguyên tố và hợp số | 6 | 2/1/3/2 | 1/1 | ✅ | — |
-| G6-MATH-PHAN-TICH-RA | Phân tích ra thừa số nguyên tố | 4 | 1/1/2/1 | 2/3 | ✅ | — |
-
-### Block B11 (B11K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-RUT-GON-VE | Rút gọn về phân số tối giản | 4 | 2/2/0/2 | 1/0 | ⚠️ | +1 hard (b>0.5) |
-| G6-MATH-TIM-UCLN | Tìm ƯCLN | 4 | 1/3/0/3 | 2/1 | ⚠️ | +1 hard (b>0.5) |
-| G9-MATH-NHAN-BIET-UOC | Nhận Biết ước chung và ƯCLN | 3 | 2/1/0/1 | 1/2 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B12 (B12K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-BOI | Nhận biết bội chung và BCNN | 5 | 1/2/2/2 | 1/1 | ✅ | — |
-| G6-MATH-QUY-DONG-PHAN | Quy đồng mẫu các phân số | 1 | 0/1/0/1 | 2/0 | ⚠️ | +2 items, +1 easy (b<-0.5), +1 hard (b>0.5) |
-| G6-MATH-TIM-BCNN | Tìm BCNN | 2 | 0/2/0/2 | 2/2 | ⚠️ | +1 items, +1 easy (b<-0.5), +1 hard (b>0.5) |
-
-### Block B13 (B13K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-DOC | Nhận biết, đọc và viết số nguyên âm | 6 | 2/2/2/2 | 0/9 | ✅ | — |
-| G9-MATH-SO-SANH-HAI-1 | Biểu diễn số nguyên trên trục số và so s | 0 | 0/0/0/0 | 1/3 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B14 (B14K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-CONG-HAI-SO | Cộng hai số nguyên âm | 6 | 2/2/2/2 | 1/1 | ✅ | — |
-| G6-MATH-NHAN-BIET-SO-1 | Xác định số đối của một số nguyên | 7 | 2/2/3/2 | 1/3 | ✅ | — |
-| G6-MATH-TU-CHO-SO | Trừ hai số nguyên | 0 | 0/0/0/0 | 1/1 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G9-MATH-CONG-HAI-SO | Cộng hai số nguyên khác dấu  | 0 | 0/0/0/0 | 1/2 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B15 (B15K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-BO-DAU-NGOAC | Bỏ dấu ngoặc có dấu + đằng trước  | 9 | 3/2/4/2 | 0/1 | ✅ | — |
-| G6-MATH-BO-NGOAC-LONG | Bỏ ngoặc lồng nhau  | 8 | 3/1/4/1 | 3/0 | ✅ | — |
-| G9-MATH-BO-DAU-NGOAC | Bỏ dấu ngoặc có dấu - đằng trước | 0 | 0/0/0/0 | 1/2 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B16 (B16K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-HAI-SO | Nhân hai số nguyên khác dấu  | 2 | 1/1/0/1 | 1/4 | ⚠️ | +1 items, +1 hard (b>0.5) |
-| G6-MATH-NHAN-HAI-SO-1 | Nhân hai số nguyên cùng dấu | 3 | 1/2/0/2 | 1/4 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B17 (B17K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-MO | Nhận biết - Mở rộng ước và bội sang số n | 5 | 2/1/2/1 | 1/1 | ✅ | — |
-| G6-MATH-TIM-UOC-VA | Tìm ước và bội số  | 0 | 0/0/0/0 | 3/1 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G9-MATH-NHAN-BIET-MO | Nhận biết mở rộng mối quan hệ chia hết s | 0 | 0/0/0/0 | 3/1 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G9-MATH-THUC-HIEN-PHEP | Thực hiện phép chia hết hai số nguyên -  | 0 | 0/0/0/0 | 2/3 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B18 (B18K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-MO-TA-CAC | Mô tả các tính chất của tam giác đều | 5 | 2/2/1/2 | 0/1 | ✅ | — |
-| G6-MATH-MO-TA-CAC-1 | Mô tả các tính chất của hình vuông | 9 | 3/2/4/2 | 0/1 | ✅ | — |
-| G6-MATH-MO-TA-CAC-2 | Mô tả các tính chất của lục giác đều  | 4 | 1/1/2/1 | 0/1 | ✅ | — |
-| G6-MATH-NHAN-BIET-HINH | Nhận biết hình vuông  | 7 | 3/2/2/2 | 1/1 | ✅ | — |
-| G6-MATH-NHAN-BIET-TAM | Nhận biết tam giác đều  | 5 | 2/2/1/2 | 1/1 | ✅ | — |
-| G6-MATH-VE-HINH-TAM | Vẽ hình tam giác đều  | 1 | 0/1/0/1 | 1/0 | ⚠️ | +2 items, +1 easy (b<-0.5), +1 hard (b>0.5) |
-| G6-MATH-VE-HINH-VUONG | Vẽ Hình vuông | 0 | 0/0/0/0 | 1/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B19 (B19K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-MO-TA-CAC-3 | Mô tả các yếu tố cơ bản , góc (độ), độ d | 5 | 2/2/1/2 | 0/3 | ✅ | — |
-| G6-MATH-VE-HINH-BINH | Vẽ hình bình hành | 0 | 0/0/0/0 | 1/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G6-MATH-VE-HINH-CHU | Vẽ hình chữ nhật  | 0 | 0/0/0/0 | 1/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G6-MATH-VE-HINH-THOI | Vẽ hình thoi | 0 | 0/0/0/0 | 1/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G9-MATH-MO-TA-CAC | Mô tả các yếu tố cơ bản , góc (độ), độ d | 3 | 1/2/0/2 | 0/1 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B1 (B1K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-BIEU-DIEN-TAP | Biểu diễn tập hợp - Chỉ ra tính chất đặc | 6 | 0/6/0/0 | 1/0 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-| G6-MATH-CLAUDE-SUGGEST-TAP | Nhận biết tập hợp rỗng và sử dụng ký hiệ | 6 | 0/6/0/0 | 1/0 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-| G6-MATH-NHAN-BIET-PHAN | Nhận biết phần tử thuộc hoặc không thuộc | 6 | 0/6/0/0 | 1/2 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-| G6-MATH-NHAN-BIET-TAP | Nhận biết tập hợp và liệt kê tập hợp | 7 | 0/7/0/0 | 0/2 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-
-### Block B20 (B20)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-DIEN-TICH-HINH-1 | Diện tích hình bình hành | 5 | 2/1/2/1 | 1/0 | ✅ | — |
-| G6-MATH-DIEN-TICH-HINH | Diện tích hình thoi | 5 | 2/1/2/1 | 1/0 | ✅ | — |
-| G6-MATH-TINH-CHU-VI | Tính chu vi hình bình hành | 5 | 1/4/0/4 | 1/0 | ⚠️ | +1 hard (b>0.5) |
-| G6-MATH-TINH-CHU-VI-1 | Tính chu vi hình thoi | 5 | 1/4/0/4 | 1/0 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B21 (B21K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-HINH-1 | Nhận biết hình có trục đối xứng | 4 | 1/2/1/2 | 1/1 | ✅ | — |
-| G6-MATH-TIM-VA-XAC | Tìm và xác định trục đối xứng của hình p | 7 | 2/4/1/4 | 0/1 | ✅ | — |
-| G9-MATH-TIM-VA-XAC | Tìm và xác định trục đối xứng của vật th | 0 | 0/0/0/0 | 1/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B22 (B22K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-HINH-2 | Nhận biết hình có tâm đối xứng | 0 | 0/0/0/0 | 0/2 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G6-MATH-XAC-DINH-VI | Xác định vị trí tâm đối xứng của hình ph | 0 | 0/0/0/0 | 1/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G6-MATH-XAC-DINH-VI-1 | Xác định vị trí tâm đối xứng của các hìn | 0 | 0/0/0/0 | 1/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B23 (B23K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-HAI | Kiểm tra hai phân số bằng nhau bằng điều | 8 | 2/2/4/2 | 3/0 | ✅ | — |
-| G6-MATH-TINH-CHAT-CO | Áp dụng tính chất cơ bản của phân số bằn | 0 | 0/0/0/0 | 5/1 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G9-MATH-NHAN-BIET-PHAN | Nhận biết phân số có tử và mẫu là số ngu | 1 | 0/1/0/1 | 1/11 | ⚠️ | +2 items, +1 easy (b<-0.5), +1 hard (b>0.5) |
-
-### Block B24 (B24K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-HON | Nhận biết hỗn số dương | 6 | 2/2/2/2 | 1/0 | ✅ | — |
-| G6-MATH-QUY-DONG-MAU | Quy đồng mẫu các phân số có tử/mẫu nguyê | 4 | 0/4/0/2 | 4/4 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5) |
-| G6-MATH-SO-SANH-HAI | So sánh hai phân số cùng mẫu  | 7 | 4/3/0/3 | 2/1 | ⚠️ | +1 hard (b>0.5) |
-| G6-MATH-SO-SANH-HAI-1 | So sánh hai phân số khác mẫu bằng cách q | 3 | 1/2/0/2 | 2/0 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B25 (B25K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MAMATMATHMAT | Trừ hai phân số khác mẫu | 0 | 0/0/0/0 | 2/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G6-MATH-CONG-HAI-PHAN | Cộng hai phân số cùng mẫu  | 6 | 2/2/2/2 | 3/1 | ✅ | — |
-| G6-MATH-CONG-HAI-PHAN-1 | Cộng hai phân số khác mẫu bằng cách quy  | 6 | 1/3/2/3 | 2/0 | ✅ | — |
-| G6-MATH-SO-DOI-CUA | Xác định số đối của phân số | 2 | 1/1/0/1 | 2/0 | ⚠️ | +1 items, +1 hard (b>0.5) |
-| G6-MATH-TRU-HAI-PHAN | Trừ hai phân số cùng mẫu | 1 | 0/1/0/1 | 2/1 | ⚠️ | +2 items, +1 easy (b<-0.5), +1 hard (b>0.5) |
-
-### Block B26 (B26K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-CHIA-HAI-PHAN | Chia hai phân số  | 8 | 2/3/3/1 | 2/2 | ✅ | — |
-| G6-MATH-NHAN-HAI-PHAN | Nhân hai phân số  | 10 | 4/2/4/2 | 3/2 | ✅ | — |
-| G6-MATH-PHAN-SO-NGHICH | Phân số nghịch đảo  | 8 | 3/4/1/4 | 1/1 | ✅ | — |
-
-### Block B27 (B27K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-TIM-GIA-TRI | Tìm giá trị phân số của một số | 5 | 2/3/0/3 | 2/0 | ⚠️ | +1 hard (b>0.5) |
-| G9-MATH-TIM-MOT-SO | Tìm một số biết giá trị phân số của nó | 0 | 0/0/0/0 | 2/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B28 (B28K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-VA | Nhận biết và đọc/viết số thập phân âm | 8 | 2/2/4/2 | 1/6 | ✅ | — |
-| G6-MATH-SO-SANH-HAI-2 | So sánh hai số thập phân | 4 | 1/3/0/3 | 2/0 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B29 (B29K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-CHIA-SO-THAP | Chia số thập phân có dấu | 9 | 2/4/3/4 | 2/0 | ✅ | — |
-| G6-MATH-CONG-TRU-SO | Cộng trừ số thập phân có dấu  | 6 | 2/2/2/2 | 2/0 | ✅ | — |
-| G6-MATH-NHAN-SO-THAP | Nhân số thập phân có dấu | 11 | 4/5/2/5 | 1/0 | ✅ | — |
-
-### Block B2 (B2K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G9-MATH-BIEU-DIEN-MOI | Biểu diễn mỗi số tự nhiên thành tổng giá | 6 | 0/6/0/0 | 1/0 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-| G9-MATH-BIEU-DIEN-SO | Biểu diễn số tự nhiên nhỏ hơn <30 thành  | 6 | 0/6/0/0 | 0/0 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor, ⚠️ isolated |
-| G9-MATH-DOC-VA-VIET | Đọc và viết chữ số | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-| G9-MATH-NHAN-BIET-GIA | Nhận biết giá trị các chữ số của một số  | 6 | 0/6/0/0 | 0/2 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-
-### Block B30 (B30K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-LAM-TRON-SO | Làm tròn số thập phân có dấu đến hàng ch | 4 | 2/1/1/1 | 2/2 | ✅ | — |
-| G6-MATH-UOC-LUONG-KET | Ước lượng kết quả phép tính với số thập  | 0 | 0/0/0/0 | 1/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B31 (B31K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-B31K2 | Tính tỉ số của hai số và viết dưới dạng  | 6 | 2/2/2/2 | 1/3 | ✅ | — |
-| G6-MATH-TIM-GIA-TRI-1 | Tìm giá trị phần trăm của một số | 12 | 6/6/0/6 | 1/1 | ⚠️ | +1 hard (b>0.5) |
-| G6-MATH-TIM-MOT-SO | Tìm một số biết giá trị phần trăm | 2 | 0/2/0/2 | 1/1 | ⚠️ | +1 items, +1 easy (b<-0.5), +1 hard (b>0.5) |
-
-### Block B32 (B32K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-BA-DIEM-THANG | Ba điểm thẳng hàng | 6 | 2/2/2/2 | 1/1 | ✅ | — |
-| G6-MATH-DO-DAI-DOAN | Đo độ dài đoạn thẳng | 0 | 0/0/0/0 | 1/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G6-MATH-DUONG-THANG-DI | Đường thẳng đi qua hai điểm phân biệt -  | 1 | 0/1/0/1 | 1/0 | ⚠️ | +2 items, +1 easy (b<-0.5), +1 hard (b>0.5) |
-| G6-MATH-HAI-DUONG-THANG | Hai đường thẳng song song, cắt nhau, trù | 5 | 1/2/2/2 | 1/4 | ✅ | — |
-| G6-MATH-NHAN-BIET-DIEM | Nhận biết điểm thuộc/không thuộc đường t | 4 | 1/2/1/2 | 1/2 | ✅ | — |
-| G6-MATH-TIA | Tia | 1 | 0/1/0/1 | 0/3 | ⚠️ | +2 items, +1 easy (b<-0.5), +1 hard (b>0.5) |
-| G6-MATH-TIA-DOI-NHAU | Tia đối nhau | 4 | 0/4/0/4 | 2/3 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5) |
-
-### Block B33 (B33K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-DIEM-NAM-GIUA | Điểm nằm giữa hai điểm  | 5 | 2/1/2/1 | 1/3 | ✅ | — |
-
-### Block B34 (B34K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-CONG-DO-DAI | Cộng độ dài đoạn thẳng  | 5 | 1/2/2/2 | 2/1 | ✅ | — |
-| G6-MATH-NHAN-BIET-DOAN | Nhận biết đoạn thẳng | 4 | 1/2/1/2 | 0/3 | ✅ | — |
-| G6-MATH-SO-SANH-DO | So sánh độ dài đoạn thẳng | 5 | 1/4/0/4 | 1/2 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B35 (B35K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-TRUNG | Nhận biết trung điểm của đoạn thẳng  | 5 | 0/4/1/2 | 1/3 | ⚠️ | +1 easy (b<-0.5) |
-| G6-MATH-TINH-DO-DAI | Tính độ dài qua trung điểm  | 8 | 4/3/1/3 | 3/0 | ✅ | — |
-
-### Block B36 (B36K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-DIEM-TRONG-CUA | Điểm trong của một góc  | 5 | 2/1/2/1 | 1/0 | ✅ | — |
-| G6-MATH-GOC-BET | Góc bẹt | 6 | 2/2/2/2 | 3/0 | ✅ | — |
-| G9-MATH-NHAN-BIET-GOC | Nhận biết góc - đỉnh, cạnh, ký hiệu | 3 | 1/2/0/2 | 1/4 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B37 (B37K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-B37K2 | Nhận biết góc đặc biệt  | 7 | 2/2/3/2 | 1/4 | ✅ | — |
-| G6-MATH-DO-GOC-BANG | Đo góc bằng thước đo góc | 0 | 0/0/0/0 | 0/1 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-| G6-MATH-SO-SANH-HAI-3 | So sánh hai góc  | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-
-### Block B38 (B38K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-CHON-PHUONG-PHAP | Chọn phương pháp thu thập dữ liệu  | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-| G6-MATH-NHAN-BIET-DU | Nhận biết dữ liệu, phân biệt số liệu và  | 6 | 2/2/2/2 | 0/2 | ✅ | — |
-
-### Block B39 (B39K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-DOC-VA-PHAN | Đọc và phân tích dữ liệu từ bảng thống k | 5 | 2/2/1/2 | 0/3 | ✅ | — |
-| G6-MATH-LAP-BANG-THONG | Lập bảng thống kê từ dữ liệu thô | 3 | 1/1/1/1 | 1/0 | ✅ | — |
-| G6-MATH-LAP-BIEU-DO | Lập biểu đồ tranh từ bảng thống kê | 6 | 2/2/2/2 | 1/1 | ✅ | — |
-| G6-MATH-DOC-VA-PHAN-1 | Đọc và phân tích dữ liệu từ biểu đồ tran | 6 | 2/2/2/2 | 0/1 | ✅ | — |
-
-### Block B3 (B3K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-KI-HIEU-NHO | Nhận biết và sử dụng đúng ký hiệu ≤ và ≥ | 6 | 0/6/0/0 | 1/1 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-| G9-MATH-SO-SANH-HAI | So sánh hai số tự nhiên và biểu diễn trê | 6 | 0/6/0/0 | 2/2 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-
-### Block B40 (B40K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-DOC-VA-PHAN-2 | Đọc và phân tích dữ liệu từ biểu đồ cột  | 9 | 3/2/4/2 | 1/2 | ✅ | — |
-| G6-MATH-NHAN-RA-VAN | Nhận ra vấn đề, quy luật từ biểu đồ cột  | 5 | 1/4/0/4 | 1/0 | ⚠️ | +1 hard (b>0.5) |
-| G6-MATH-VE-BIEU-DO | Vẽ biểu đồ cột từ bảng thống kê | 4 | 2/2/0/2 | 3/1 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B41 (B41K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-DOC-VA-PHAN-3 | Đọc và phân tích dữ liệu từ biểu đồ cột  | 6 | 2/2/2/2 | 2/1 | ✅ | — |
-| G6-MATH-NHAN-RA-QUY | Nhận ra quy luật từ biểu đồ cột kép  | 4 | 2/1/1/1 | 1/0 | ✅ | — |
-| G6-MATH-VE-BIEU-DO-1 | Vẽ biểu đồ cột kép từ bảng thống kê | 0 | 0/0/0/0 | 1/2 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H) |
-
-### Block B42 (B42K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-LIET-KE-KET | Liệt kê kết quả có thể của thí nghiệm gh | 6 | 2/2/2/2 | 1/1 | ✅ | — |
-| G6-MATH-LIET-KE-TAT | Liệt kê tất cả kết quả có thể của trò ch | 6 | 2/2/2/2 | 0/3 | ✅ | — |
-| G6-MATH-NHAN-BIET-SU | Nhận biết sự kiện xảy ra hay không dựa t | 6 | 2/2/2/2 | 2/2 | ✅ | — |
-| G6-MATH-NHAN-BIET-TINH | Nhận biết tính không đoán trước của kết  | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-
-### Block B43 (B43K2)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-XET-XAC | Nhận xét xác suất thực nghiệm  | 6 | 2/3/1/3 | 1/0 | ✅ | — |
-| G6-MATH-TINH-XAC-SUAT | Tính xác suất thực nghiệm k/n từ bảng số | 6 | 2/4/0/4 | 1/1 | ⚠️ | +1 hard (b>0.5) |
-
-### Block B4 (B4K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-AP-DUNG-TINH | Nhận biết và xác định tính chất giao hoá | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-| G6-MATH-NHAN-BIET-DIEU | Nhận biết điều kiện phép trừ thực hiện đ | 6 | 1/5/0/0 | 1/0 | ⚠️ | +1 hard (b>0.5), +1 anchor |
-
-### Block B5 (B5K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-AP-DUNG-TINH-1 | Nhận biết và áp dụng tính chất phân phối | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-| G6-MATH-PHAN-BIET-PHEP | Phân biệt phép chia hết và phép chia có  | 6 | 2/2/2/0 | 0/8 | ⚠️ | +1 anchor |
-| G9-MATH-1AP-DUNG-TINH | Nhận biết và xác định tính chất giao hoá | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-| G9-MATH-PHAN-PHOI-NHAN | Nhận biết và áp dụng tính chất phân phối | 5 | 1/3/1/0 | 0/1 | ⚠️ | +1 anchor |
-
-### Block B6 (B6K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-TINH-GIA-TRI | Tính giá trị luỹ thừa | 1 | 1/0/0/0 | 2/1 | ⚠️ | +2 items, +1 medium, +1 hard (b>0.5), +1 anchor |
-| G9-MATH-CHIA-LUY-THUA | Chia luỹ thừa cùng cơ số áp dụng quy tắc | 6 | 0/3/3/0 | 1/0 | ⚠️ | +1 easy (b<-0.5), +1 anchor |
-| G9-MATH-NHAN-BIET-BINH | Nhận biết bình phương, lập phương, | 8 | 2/4/2/4 | 1/2 | ✅ | — |
-| G9-MATH-NHAN-BIET-CAU | Nhận biết cấu trúc lũy thừa (cơ số, số m | 6 | 2/2/2/0 | 0/8 | ⚠️ | +1 anchor |
-| G9-MATH-NHAN-BIET-SO | Nhận biết số chính phương | 4 | 2/2/0/2 | 2/0 | ⚠️ | +1 hard (b>0.5) |
-| G9-MATH-NHAN-LUY-THUA | Nhân luỹ thừa cùng cơ số áp dụng quy tắc | 6 | 1/3/2/0 | 1/0 | ⚠️ | +1 anchor |
-
-### Block B7 (B7K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-AP-DUNG-DUNG | Áp dụng đúng thứ tự phép tính KHÔNG có n | 7 | 2/2/3/2 | 1/0 | ✅ | — |
-| G6-MATH-AP-DUNG-DUNG-1 | Áp dụng đúng thứ tự phép tính CÓ ngoặc ( | 7 | 2/3/2/2 | 0/1 | ✅ | — |
-
-### Block B8 (B8K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-NHAN-BIET-KY | Nhận biết ký hiệu chia hết, không chia h | 6 | 2/2/2/2 | 1/0 | ✅ | — |
-| G6-MATH-TIM-BOI-CUA | Tìm bội của một số  | 6 | 3/1/2/1 | 1/1 | ✅ | — |
-| G6-MATH-TIM-UOC-CUA | Tìm ước của một số  | 6 | 2/2/2/2 | 1/1 | ✅ | — |
-| G6-MATH-TINH-CHAT-CHIA | Tính chất chia hết của một tổng TC1, TC2 | 6 | 2/2/2/2 | 1/0 | ✅ | — |
-| G6-MATH-XAC-DINH-UOC | Xác định ước và bội trong phép chia hết  | 6 | 1/3/2/2 | 1/5 | ✅ | — |
-
-### Block B9 (B9K1)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-DAU-HIEU-CHIA | Dấu hiệu chia hết cho 2  | 6 | 0/6/0/0 | 1/0 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-| G6-MATH-DAU-HIEU-CHIA-1 | Dấu hiệu chia hết cho 9  | 6 | 0/6/0/0 | 1/0 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-| G9-MATH-DAU-HIEU-CHIA | Dấu hiệu chia hết cho 5 | 6 | 0/6/0/0 | 1/0 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-| G9-MATH-DAU-HIEU-CHIA-1 | Dấu hiệu chia hết cho 3 | 6 | 0/6/0/0 | 1/0 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor |
-
-### Block TIỂU HỌC (TIỂU HỌC)
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-CHIA-DAT-TINH | Chia đặt tính  | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-| G6-MATH-CONG-TRU-DAT | Cộng Trừ, đặt tính tiểu học  | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-| G6-MATH-NHAN-DAT-TINH | Nhân đặt tính  | 0 | 0/0/0/0 | 0/0 | 🔴 | **TẠO 6 ITEMS** (2E+2M+2H), ⚠️ isolated |
-| G9-MATH-SO-LIEN-TRUOC | Số liền trước liền sau  | 6 | 0/6/0/0 | 0/0 | ⚠️ | +1 easy (b<-0.5), +1 hard (b>0.5), +1 anchor, ⚠️ isolated |
-
-### Block Tiêu học  (Tiêu học )
-
-| Code | Name | Total | E/M/H/A | In/Out | Status | Thiếu |
-|------|------|-------|---------|--------|--------|-------|
-| G6-MATH-DIEM-DUONG-THANG | Điểm, đường thẳng  | 10 | 4/2/4/2 | 0/2 | ✅ | — |
+## Grade 6 — 129 KCs need items
+
+**Total items to generate:** 586
+Breakdown: 37 anchors (b=0) + 202 easy (b=-1) + 38 medium (b=+0.8) + 250 hard (b=+1.5)
+
+### EMPTY — 0 items (dead nodes)
+
+| KC Name | Code | Have | +Anch | +Easy | +Med | +Hard | Total to add |
+|---------|------|------|-------|-------|------|-------|--------------|
+| Trừ hai phân số khác mẫu | G6-MAMATMATHMAT | 0 | 2 | 3 | 2 | 3 | **10** |
+| So sánh hai góc  | G6-MATH-SO-SANH-HAI-3 | 0 | 2 | 3 | 2 | 3 | **10** |
+| Tìm một số biết giá trị phân số của nó | G9-MATH-TIM-MOT-SO | 0 | 2 | 3 | 2 | 3 | **10** |
+
+### LOW — 1-4 items
+
+| KC Name | Code | Have | +Anch | +Easy | +Med | +Hard | Total to add |
+|---------|------|------|-------|-------|------|-------|--------------|
+| Trừ hai phân số cùng mẫu | G6-MATH-TRU-HAI-PHAN | 1 | 1 | 3 | 1 | 3 | **8** |
+| Vẽ hình tam giác đều  | G6-MATH-VE-HINH-TAM | 1 | 1 | 3 | 1 | 3 | **8** |
+| Biểu diễn số nguyên trên trục số và so sánh hai số | G9-MATH-SO-SANH-HAI-1 | 1 | 1 | 3 | 1 | 3 | **8** |
+| Quy đồng mẫu các phân số | G6-MATH-QUY-DONG-PHAN | 2 | 0 | 3 | 0 | 3 | **6** |
+| Tìm BCNN | G6-MATH-TIM-BCNN | 2 | 0 | 3 | 0 | 3 | **6** |
+| Tìm một số biết giá trị phần trăm | G6-MATH-TIM-MOT-SO | 2 | 0 | 3 | 0 | 3 | **6** |
+| Ước lượng kết quả phép tính với số thập phân | G6-MATH-UOC-LUONG-KET | 2 | 0 | 3 | 0 | 3 | **6** |
+| Lập bảng thống kê từ dữ liệu thô | G6-MATH-LAP-BANG-THONG | 3 | 1 | 2 | 1 | 2 | **6** |
+| Nhân hai số nguyên khác dấu  | G6-MATH-NHAN-HAI-SO | 3 | 0 | 2 | 0 | 3 | **5** |
+| So sánh hai phân số khác mẫu bằng cách quy đồng mẫ | G6-MATH-SO-SANH-HAI-1 | 3 | 0 | 2 | 0 | 3 | **5** |
+| Trừ hai số nguyên | G6-MATH-TU-CHO-SO | 3 | 0 | 3 | 0 | 3 | **6** |
+| Cộng hai số nguyên khác dấu  | G9-MATH-CONG-HAI-SO | 3 | 0 | 3 | 0 | 3 | **6** |
+| Mô tả các yếu tố cơ bản , góc (độ), độ dài cạnh củ | G9-MATH-MO-TA-CAC | 3 | 0 | 2 | 0 | 3 | **5** |
+| Nhận biết góc - đỉnh, cạnh, ký hiệu | G9-MATH-NHAN-BIET-GOC | 3 | 0 | 2 | 0 | 3 | **5** |
+| Thực hiện phép chia hết hai số nguyên - xác định đ | G9-MATH-THUC-HIEN-PHEP | 3 | 0 | 2 | 0 | 3 | **5** |
+| Tìm và xác định trục đối xứng của vật thể | G9-MATH-TIM-VA-XAC | 3 | 0 | 2 | 0 | 3 | **5** |
+| Làm tròn số thập phân có dấu đến hàng cho trước | G6-MATH-LAM-TRON-SO | 4 | 1 | 1 | 1 | 2 | **5** |
+| Nhận biết điểm thuộc/không thuộc đường thẳng  | G6-MATH-NHAN-BIET-DIEM | 4 | 0 | 2 | 0 | 2 | **4** |
+| Nhận biết đoạn thẳng | G6-MATH-NHAN-BIET-DOAN | 4 | 0 | 2 | 0 | 2 | **4** |
+| Nhân hai số nguyên cùng dấu | G6-MATH-NHAN-HAI-SO-1 | 4 | 0 | 2 | 0 | 3 | **5** |
+| Nhận ra quy luật từ biểu đồ cột kép  | G6-MATH-NHAN-RA-QUY | 4 | 1 | 1 | 0 | 3 | **5** |
+| Xác định số đối của phân số | G6-MATH-SO-DOI-CUA | 4 | 0 | 2 | 0 | 3 | **5** |
+| So sánh hai số thập phân | G6-MATH-SO-SANH-HAI-2 | 4 | 0 | 2 | 0 | 3 | **5** |
+| Tia đối nhau | G6-MATH-TIA-DOI-NHAU | 4 | 0 | 3 | 0 | 3 | **6** |
+| Tìm ƯCLN | G6-MATH-TIM-UCLN | 4 | 0 | 2 | 0 | 3 | **5** |
+| Vẽ biểu đồ cột từ bảng thống kê | G6-MATH-VE-BIEU-DO | 4 | 0 | 1 | 0 | 3 | **4** |
+| Nhận biết số chính phương | G9-MATH-NHAN-BIET-SO | 4 | 0 | 1 | 0 | 3 | **4** |
+| Nhận Biết ước chung và ƯCLN | G9-MATH-NHAN-BIET-UOC | 4 | 0 | 1 | 0 | 3 | **4** |
+
+### MID — 5-9 items (closest to L1)
+
+| KC Name | Code | Have | +Anch | +Easy | +Med | +Hard | Total to add |
+|---------|------|------|-------|-------|------|-------|--------------|
+| Cộng độ dài đoạn thẳng  | G6-MATH-CONG-DO-DAI | 5 | 0 | 2 | 0 | 1 | **3** |
+| Điểm nằm giữa hai điểm  | G6-MATH-DIEM-NAM-GIUA | 5 | 1 | 2 | 0 | 1 | **4** |
+| Điểm trong của một góc  | G6-MATH-DIEM-TRONG-CUA | 5 | 1 | 1 | 1 | 1 | **4** |
+| Diện tích hình thoi | G6-MATH-DIEN-TICH-HINH | 5 | 1 | 1 | 1 | 1 | **4** |
+| Diện tích hình bình hành | G6-MATH-DIEN-TICH-HINH-1 | 5 | 1 | 2 | 0 | 1 | **4** |
+| Đọc và phân tích dữ liệu từ bảng thống kê  | G6-MATH-DOC-VA-PHAN | 5 | 0 | 1 | 0 | 2 | **3** |
+| Đường thẳng đi qua hai điểm phân biệt - tính duy n | G6-MATH-DUONG-THANG-DI | 5 | 0 | 2 | 0 | 2 | **4** |
+| Hai đường thẳng song song, cắt nhau, trùng nhau | G6-MATH-HAI-DUONG-THANG | 5 | 0 | 2 | 0 | 1 | **3** |
+| Mô tả các tính chất của lục giác đều  | G6-MATH-MO-TA-CAC-2 | 5 | 1 | 1 | 1 | 1 | **4** |
+| Mô tả các yếu tố cơ bản , góc (độ), độ dài cạnh củ | G6-MATH-MO-TA-CAC-3 | 5 | 0 | 1 | 0 | 2 | **3** |
+| Nhận biết hình có trục đối xứng | G6-MATH-NHAN-BIET-HINH-1 | 5 | 0 | 2 | 0 | 1 | **3** |
+| Nhận biết tam giác đều  | G6-MATH-NHAN-BIET-TAM | 5 | 0 | 1 | 0 | 2 | **3** |
+| Nhận biết trung điểm của đoạn thẳng  | G6-MATH-NHAN-BIET-TRUNG | 5 | 0 | 3 | 0 | 2 | **5** |
+| Nhận ra vấn đề, quy luật từ biểu đồ cột  | G6-MATH-NHAN-RA-VAN | 5 | 0 | 2 | 0 | 3 | **5** |
+| Rút gọn về phân số tối giản | G6-MATH-RUT-GON-VE | 5 | 0 | 0 | 0 | 3 | **3** |
+| So sánh độ dài đoạn thẳng | G6-MATH-SO-SANH-DO | 5 | 0 | 2 | 0 | 3 | **5** |
+| Áp dụng tính chất cơ bản của phân số bằng cách nhâ | G6-MATH-TINH-CHAT-CO | 5 | 0 | 2 | 0 | 3 | **5** |
+| Tính chu vi hình thoi | G6-MATH-TINH-CHU-VI-1 | 5 | 0 | 2 | 0 | 3 | **5** |
+| Xác định vị trí tâm đối xứng của hình phẳng cụ thể | G6-MATH-XAC-DINH-VI | 5 | 0 | 2 | 0 | 3 | **5** |
+| Nhận biết mở rộng mối quan hệ chia hết sang số ngu | G9-MATH-NHAN-BIET-MO | 5 | 0 | 1 | 0 | 3 | **4** |
+| Nhận biết và áp dụng tính chất phân phối: a×(b+c)  | G9-MATH-PHAN-PHOI-NHAN | 5 | 1 | 2 | 0 | 2 | **5** |
+| Tính tỉ số của hai số và viết dưới dạng tỉ số phần | G6-MATH-B31K2 | 6 | 0 | 1 | 0 | 1 | **2** |
+| Ba điểm thẳng hàng | G6-MATH-BA-DIEM-THANG | 6 | 0 | 1 | 0 | 1 | **2** |
+| Biểu diễn tập hợp - Chỉ ra tính chất đặc trưng | G6-MATH-BIEU-DIEN-TAP | 6 | 1 | 3 | 2 | 3 | **9** |
+| Nhận biết tập hợp rỗng và sử dụng ký hiệu ∅ | G6-MATH-CLAUDE-SUGGEST-TAP | 6 | 1 | 3 | 2 | 3 | **9** |
+| Cộng hai phân số cùng mẫu  | G6-MATH-CONG-HAI-PHAN | 6 | 0 | 1 | 0 | 1 | **2** |
+| Cộng hai phân số khác mẫu bằng cách quy đồng mẫu | G6-MATH-CONG-HAI-PHAN-1 | 6 | 0 | 2 | 0 | 1 | **3** |
+| Cộng hai số nguyên âm | G6-MATH-CONG-HAI-SO | 6 | 0 | 1 | 0 | 1 | **2** |
+| Cộng trừ số thập phân có dấu  | G6-MATH-CONG-TRU-SO | 6 | 0 | 1 | 0 | 1 | **2** |
+| Dấu hiệu chia hết cho 2  | G6-MATH-DAU-HIEU-CHIA | 6 | 1 | 3 | 2 | 3 | **9** |
+| Dấu hiệu chia hết cho 9  | G6-MATH-DAU-HIEU-CHIA-1 | 6 | 1 | 3 | 2 | 3 | **9** |
+| Nhận biết số đo góc và đo góc bằng thước đo góc | G6-MATH-DO-GOC-BANG | 6 | 0 | 1 | 0 | 1 | **2** |
+| Đọc và phân tích dữ liệu từ biểu đồ tranh  | G6-MATH-DOC-VA-PHAN-1 | 6 | 0 | 1 | 0 | 1 | **2** |
+| Đọc và phân tích dữ liệu từ biểu đồ cột kép  | G6-MATH-DOC-VA-PHAN-3 | 6 | 0 | 1 | 0 | 1 | **2** |
+| Góc bẹt | G6-MATH-GOC-BET | 6 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết và sử dụng đúng ký hiệu ≤ và ≥ trong so  | G6-MATH-KI-HIEU-NHO | 6 | 1 | 3 | 2 | 3 | **9** |
+| Lập biểu đồ tranh từ bảng thống kê | G6-MATH-LAP-BIEU-DO | 6 | 0 | 1 | 0 | 1 | **2** |
+| Liệt kê kết quả có thể của thí nghiệm ghép  | G6-MATH-LIET-KE-KET | 6 | 0 | 1 | 0 | 1 | **2** |
+| Liệt kê tất cả kết quả có thể của trò chơi, thí ng | G6-MATH-LIET-KE-TAT | 6 | 0 | 1 | 0 | 1 | **2** |
+| Mô tả các tính chất của tam giác đều | G6-MATH-MO-TA-CAC | 6 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết bội chung và BCNN | G6-MATH-NHAN-BIET-BOI | 6 | 0 | 2 | 0 | 1 | **3** |
+| Nhận biết điều kiện phép trừ thực hiện được trong  | G6-MATH-NHAN-BIET-DIEU | 6 | 1 | 2 | 0 | 3 | **6** |
+| Nhận biết dữ liệu, phân biệt số liệu và dữ liệu kh | G6-MATH-NHAN-BIET-DU | 6 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết hỗn số dương | G6-MATH-NHAN-BIET-HON | 6 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết ký hiệu chia hết, không chia hết | G6-MATH-NHAN-BIET-KY | 6 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết - Mở rộng ước và bội sang số nguyên âm | G6-MATH-NHAN-BIET-MO | 6 | 0 | 1 | 0 | 2 | **3** |
+| Nhận biết phần tử thuộc hoặc không thuộc tập hợp | G6-MATH-NHAN-BIET-PHAN | 6 | 1 | 3 | 2 | 3 | **9** |
+| Nhận biết số nguyên tố và hợp số | G6-MATH-NHAN-BIET-SO | 6 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết sự kiện xảy ra hay không dựa trên kết qu | G6-MATH-NHAN-BIET-SU | 6 | 0 | 1 | 0 | 1 | **2** |
+| Nhận xét xác suất thực nghiệm  | G6-MATH-NHAN-XET-XAC | 6 | 0 | 1 | 0 | 2 | **3** |
+| Phân biệt phép chia hết và phép chia có dư, tìm đú | G6-MATH-PHAN-BIET-PHEP | 6 | 1 | 1 | 0 | 1 | **3** |
+| Tìm giá trị phân số của một số | G6-MATH-TIM-GIA-TRI | 6 | 0 | 1 | 0 | 3 | **4** |
+| Tìm ước của một số  | G6-MATH-TIM-UOC-CUA | 6 | 0 | 1 | 0 | 1 | **2** |
+| Tính chất chia hết của một tổng TC1, TC2 | G6-MATH-TINH-CHAT-CHIA | 6 | 0 | 1 | 0 | 2 | **3** |
+| Tính chu vi hình bình hành | G6-MATH-TINH-CHU-VI | 6 | 0 | 1 | 0 | 3 | **4** |
+| Tính xác suất thực nghiệm k/n từ bảng số liệu cho  | G6-MATH-TINH-XAC-SUAT | 6 | 0 | 1 | 0 | 3 | **4** |
+| Vẽ hình bình hành | G6-MATH-VE-HINH-BINH | 6 | 0 | 2 | 0 | 3 | **5** |
+| Vẽ Hình vuông | G6-MATH-VE-HINH-VUONG | 6 | 0 | 2 | 0 | 3 | **5** |
+| Xác định ước và bội trong phép chia hết  | G6-MATH-XAC-DINH-UOC | 6 | 0 | 2 | 0 | 1 | **3** |
+| Xác định vị trí tâm đối xứng của các hình khác | G6-MATH-XAC-DINH-VI-1 | 6 | 0 | 1 | 0 | 1 | **2** |
+| Biểu diễn mỗi số tự nhiên thành tổng giá trị các c | G9-MATH-BIEU-DIEN-MOI | 6 | 1 | 3 | 2 | 3 | **9** |
+| Bỏ dấu ngoặc có dấu - đằng trước | G9-MATH-BO-DAU-NGOAC | 6 | 0 | 2 | 0 | 3 | **5** |
+| Chia luỹ thừa cùng cơ số áp dụng quy tắc | G9-MATH-CHIA-LUY-THUA | 6 | 1 | 3 | 0 | 0 | **4** |
+| Dấu hiệu chia hết cho 5 | G9-MATH-DAU-HIEU-CHIA | 6 | 1 | 3 | 2 | 3 | **9** |
+| Dấu hiệu chia hết cho 3 | G9-MATH-DAU-HIEU-CHIA-1 | 6 | 1 | 3 | 2 | 3 | **9** |
+| Nhận biết cấu trúc lũy thừa (cơ số, số mũ, đọc/viế | G9-MATH-NHAN-BIET-CAU | 6 | 1 | 1 | 0 | 1 | **3** |
+| Nhận biết giá trị các chữ số của một số tự nhiên v | G9-MATH-NHAN-BIET-GIA | 6 | 1 | 3 | 2 | 3 | **9** |
+| Nhân luỹ thừa cùng cơ số áp dụng quy tắc | G9-MATH-NHAN-LUY-THUA | 6 | 1 | 2 | 0 | 1 | **4** |
+| So sánh hai số tự nhiên và biểu diễn trên trục số  | G9-MATH-SO-SANH-HAI | 6 | 1 | 3 | 2 | 3 | **9** |
+| Áp dụng đúng thứ tự phép tính KHÔNG có ngoặc Thứ t | G6-MATH-AP-DUNG-DUNG | 7 | 0 | 1 | 0 | 0 | **1** |
+| Áp dụng đúng thứ tự phép tính CÓ ngoặc (bao gồm ng | G6-MATH-AP-DUNG-DUNG-1 | 7 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết góc đặc biệt  | G6-MATH-B37K2 | 7 | 0 | 1 | 0 | 0 | **1** |
+| Nhận biết hình vuông  | G6-MATH-NHAN-BIET-HINH | 7 | 0 | 0 | 0 | 1 | **1** |
+| Nhận biết hình có tâm đối xứng | G6-MATH-NHAN-BIET-HINH-2 | 7 | 0 | 1 | 0 | 1 | **2** |
+| Xác định số đối của một số nguyên | G6-MATH-NHAN-BIET-SO-1 | 7 | 0 | 1 | 0 | 0 | **1** |
+| Nhận biết tập hợp và liệt kê tập hợp | G6-MATH-NHAN-BIET-TAP | 7 | 1 | 3 | 2 | 3 | **9** |
+| Tìm bội của một số  | G6-MATH-TIM-BOI-CUA | 7 | 0 | 0 | 0 | 1 | **1** |
+| Tìm ước và bội số  | G6-MATH-TIM-UOC-VA | 7 | 0 | 0 | 0 | 3 | **3** |
+| Tính giá trị luỹ thừa | G6-MATH-TINH-GIA-TRI | 7 | 0 | 1 | 0 | 2 | **3** |
+| Vẽ biểu đồ cột kép từ bảng thống kê | G6-MATH-VE-BIEU-DO-1 | 7 | 0 | 0 | 0 | 3 | **3** |
+| Vẽ hình chữ nhật  | G6-MATH-VE-HINH-CHU | 7 | 0 | 2 | 0 | 3 | **5** |
+| Bỏ ngoặc lồng nhau  | G6-MATH-BO-NGOAC-LONG | 8 | 1 | 0 | 0 | 1 | **2** |
+| Chia hai phân số  | G6-MATH-CHIA-HAI-PHAN | 8 | 1 | 1 | 0 | 0 | **2** |
+| Kiểm tra hai phân số bằng nhau bằng điều kiện nhân | G6-MATH-NHAN-BIET-HAI | 8 | 0 | 1 | 0 | 0 | **1** |
+| Nhận biết và đọc/viết số thập phân âm | G6-MATH-NHAN-BIET-VA | 8 | 0 | 1 | 0 | 0 | **1** |
+| Phân số nghịch đảo  | G6-MATH-PHAN-SO-NGHICH | 8 | 0 | 0 | 0 | 2 | **2** |
+| Phân tích ra thừa số nguyên tố | G6-MATH-PHAN-TICH-RA | 8 | 0 | 1 | 0 | 1 | **2** |
+| So sánh hai phân số cùng mẫu  | G6-MATH-SO-SANH-HAI | 8 | 0 | 0 | 0 | 3 | **3** |
+| Tia | G6-MATH-TIA | 8 | 0 | 0 | 0 | 3 | **3** |
+| Tìm và xác định trục đối xứng của hình phẳng | G6-MATH-TIM-VA-XAC | 8 | 0 | 0 | 0 | 2 | **2** |
+| Tính độ dài qua trung điểm  | G6-MATH-TINH-DO-DAI | 8 | 0 | 0 | 0 | 2 | **2** |
+| Vẽ hình thoi | G6-MATH-VE-HINH-THOI | 8 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết bình phương, lập phương, | G9-MATH-NHAN-BIET-BINH | 8 | 0 | 1 | 0 | 1 | **2** |
+| Bỏ dấu ngoặc có dấu + đằng trước  | G6-MATH-BO-DAU-NGOAC | 9 | 0 | 0 | 0 | 0 | **0** |
+| Chia số thập phân có dấu | G6-MATH-CHIA-SO-THAP | 9 | 0 | 1 | 0 | 0 | **1** |
+| Đo độ dài đoạn thẳng | G6-MATH-DO-DAI-DOAN | 9 | 0 | 0 | 0 | 0 | **0** |
+| Đọc và phân tích dữ liệu từ biểu đồ cột  | G6-MATH-DOC-VA-PHAN-2 | 9 | 0 | 0 | 0 | 0 | **0** |
+| Mô tả các tính chất của hình vuông | G6-MATH-MO-TA-CAC-1 | 9 | 0 | 0 | 0 | 0 | **0** |
 
 ---
+## Grade 7 — 79 KCs need items
 
-## Kế hoạch hành động (Action Plan)
+**Total items to generate:** 435
+Breakdown: 23 anchors (b=0) + 130 easy (b=-1) + 23 medium (b=+0.8) + 199 hard (b=+1.5)
 
-### 🔴 Priority 1: KCs có edges nhưng KHÔNG có items (Assessment sẽ CRASH)
+### EMPTY — 0 items (dead nodes)
 
-Đây là các KC nằm trên đường traverse của KST. Nếu assessment đi qua sẽ trả về `item: null`.
+| KC Name | Code | Have | +Anch | +Easy | +Med | +Hard | Total to add |
+|---------|------|------|-------|-------|------|-------|--------------|
+| P(chắc chắn) = 1, P(không thể) = 0 — gán giá trị x | G7-MATH-B30K2 | 0 | 2 | 3 | 2 | 3 | **10** |
+| Chia đa thức cho đa thức, chia hết | G7-MATH-CHIA-DA-THUC | 0 | 2 | 3 | 2 | 3 | **10** |
+| Nhận biết đường vuông góc, đường xiên, khoảng cách | G7-MATH-NHAN-BIET-DUONG-1 | 0 | 2 | 3 | 2 | 3 | **10** |
+| So sánh hai số thực (căn bậc 2)  | G7-MATH-SO-SANH-HAI | 0 | 2 | 3 | 2 | 3 | **10** |
+| So sánh hai góc khi biết hai cạnh  | G7-MATH-SO-SANH-HAI-1 | 0 | 2 | 3 | 2 | 3 | **10** |
+| So sánh hai cạnh khi biết hai góc  | G7-MATH-SO-SANH-HAI-2 | 0 | 2 | 3 | 2 | 3 | **10** |
+| Thu gọn đa thức | G7-MATH-THU-GON-DA | 0 | 2 | 3 | 2 | 3 | **10** |
+| Trừ hai đa thức: bỏ ngoặc đổi dấu tất cả hạng tử c | G7-MATH-TRU-HAI-DA | 0 | 2 | 3 | 2 | 3 | **10** |
+| Vẽ tia phân giác bằng dụng cụ  | G7-MATH-VE-TIA-PHAN | 0 | 2 | 3 | 2 | 3 | **10** |
 
-| # | Code | Name | Block | Edges | Action |
-|---|------|------|-------|-------|--------|
-| 1 | G9-MATH-SO-SANH-HAI-1 | Biểu diễn số nguyên trên trục số và | B13K1 | 4 | Generate 6 MCQs |
-| 2 | G6-MATH-TU-CHO-SO | Trừ hai số nguyên | B14K1 | 2 | Generate 6 MCQs |
-| 3 | G9-MATH-CONG-HAI-SO | Cộng hai số nguyên khác dấu  | B14K1 | 3 | Generate 6 MCQs |
-| 4 | G9-MATH-BO-DAU-NGOAC | Bỏ dấu ngoặc có dấu - đằng trước | B15K1 | 3 | Generate 6 MCQs |
-| 5 | G6-MATH-TIM-UOC-VA | Tìm ước và bội số  | B17K1 | 4 | Generate 6 MCQs |
-| 6 | G9-MATH-NHAN-BIET-MO | Nhận biết mở rộng mối quan hệ chia  | B17K1 | 4 | Generate 6 MCQs |
-| 7 | G9-MATH-THUC-HIEN-PHEP | Thực hiện phép chia hết hai số nguy | B17K1 | 5 | Generate 6 MCQs |
-| 8 | G6-MATH-VE-HINH-VUONG | Vẽ Hình vuông | B18K1 | 1 | Generate 6 MCQs |
-| 9 | G6-MATH-VE-HINH-BINH | Vẽ hình bình hành | B19K1 | 1 | Generate 6 MCQs |
-| 10 | G6-MATH-VE-HINH-CHU | Vẽ hình chữ nhật  | B19K1 | 1 | Generate 6 MCQs |
-| 11 | G6-MATH-VE-HINH-THOI | Vẽ hình thoi | B19K1 | 1 | Generate 6 MCQs |
-| 12 | G9-MATH-TIM-VA-XAC | Tìm và xác định trục đối xứng của v | B21K1 | 1 | Generate 6 MCQs |
-| 13 | G6-MATH-NHAN-BIET-HINH-2 | Nhận biết hình có tâm đối xứng | B22K1 | 2 | Generate 6 MCQs |
-| 14 | G6-MATH-XAC-DINH-VI | Xác định vị trí tâm đối xứng của hì | B22K1 | 1 | Generate 6 MCQs |
-| 15 | G6-MATH-XAC-DINH-VI-1 | Xác định vị trí tâm đối xứng của cá | B22K1 | 1 | Generate 6 MCQs |
-| 16 | G6-MATH-TINH-CHAT-CO | Áp dụng tính chất cơ bản của phân s | B23K2 | 6 | Generate 6 MCQs |
-| 17 | G6-MAMATMATHMAT | Trừ hai phân số khác mẫu | B25K2 | 2 | Generate 6 MCQs |
-| 18 | G9-MATH-TIM-MOT-SO | Tìm một số biết giá trị phân số của | B27K2 | 2 | Generate 6 MCQs |
-| 19 | G6-MATH-UOC-LUONG-KET | Ước lượng kết quả phép tính với số  | B30K2 | 1 | Generate 6 MCQs |
-| 20 | G6-MATH-DO-DAI-DOAN | Đo độ dài đoạn thẳng | B32K2 | 1 | Generate 6 MCQs |
-| 21 | G6-MATH-DO-GOC-BANG | Đo góc bằng thước đo góc | B37K2 | 1 | Generate 6 MCQs |
-| 22 | G6-MATH-VE-BIEU-DO-1 | Vẽ biểu đồ cột kép từ bảng thống kê | B41K2 | 3 | Generate 6 MCQs |
+### LOW — 1-4 items
 
-> **Tổng: 22 KCs** — Phải xử lý trước khi chạy assessment.
+| KC Name | Code | Have | +Anch | +Easy | +Med | +Hard | Total to add |
+|---------|------|------|-------|-------|------|-------|--------------|
+| Khái niệm đẳng thức và tính chất | G7-MATH-KHAI-NIEM-DANG | 1 | 1 | 3 | 1 | 3 | **8** |
+| So sánh khoảng cách áp dụng đường xiên, đường vuôn | G7-MATH-SO-SANH-KHOANG | 1 | 1 | 3 | 1 | 3 | **8** |
+| Tính giá trị tuyệt đối của số thực  | G7-MATH-TINH-GIA-TRI | 1 | 1 | 3 | 1 | 3 | **8** |
+| Áp dụng định lí đồng quy 3 phân giác  | G7-MATH-AP-DUNG-DINH | 2 | 0 | 3 | 0 | 3 | **6** |
+| Áp dụng tính chất trọng tâm GA = 2/3·MA, GA = 2·GM | G7-MATH-AP-DUNG-TINH-4 | 2 | 0 | 3 | 0 | 3 | **6** |
+| Chia đa thức cho đa thức, chia có dư | G7-MATH-CHIA-DA-THUC-1 | 2 | 0 | 3 | 0 | 3 | **6** |
+| Chia hai đơn thức: tách hệ số chia hệ số, lũy thừa | G7-MATH-CHIA-HAI-DON | 2 | 0 | 3 | 0 | 3 | **6** |
+| Kỹ thuật từ ax = by = cz → lập dãy tỉ số: | G7-MATH-KY-THUAT-TU | 2 | 0 | 3 | 0 | 3 | **6** |
+| Nhận biết đơn thức một biến - xác định hệ số và bậ | G7-MATH-NHAN-BIET-DON | 2 | 0 | 3 | 0 | 3 | **6** |
+| Nhận biết và kiểm tra nghiệm của đa thức | G7-MATH-NHAN-BIET-VA | 2 | 0 | 3 | 0 | 3 | **6** |
+| Nhân đơn thức với đa thức | G7-MATH-NHAN-DON-THUC | 2 | 0 | 3 | 0 | 3 | **6** |
+| Sắp xếp đa thức theo lũy thừa giảm: | G7-MATH-SAP-XEP-DA | 2 | 0 | 3 | 0 | 3 | **6** |
+| Tính giá trị biểu thức đại số | G7-MATH-TINH-GIA-TRI-1 | 2 | 0 | 3 | 0 | 3 | **6** |
+| Tính số đo góc ngoài của tam giác  | G7-MATH-TINH-SO-DO-2 | 2 | 0 | 3 | 0 | 3 | **6** |
+| Tính xác suất trong không gian mẫu đồng khả năng | G7-MATH-TINH-XAC-SUAT | 2 | 0 | 3 | 0 | 3 | **6** |
+| Từ đẳng thức tích -> lập các tỉ lệ thức | G7-MATH-TU-DANG-THUC | 2 | 2 | 1 | 2 | 3 | **8** |
+| Giải bài toán tỉ lệ nghịch: nhận ra quan hệ → lập  | G7-MATH-GIAI-BAI-TOAN-1 | 3 | 0 | 2 | 0 | 3 | **5** |
+| Làm tròn số thập phân cnw cứ vào độ chính xác  | G7-MATH-LAM-TRON-SO | 3 | 0 | 3 | 0 | 3 | **6** |
+| Nhận biết biến cố chắc chắn biến cố không thể và b | G7-MATH-NHAN-BIET-BIEN | 3 | 0 | 2 | 0 | 3 | **5** |
+| Nhận biết biểu thức đại số | G7-MATH-NHAN-BIET-BIEU | 3 | 0 | 2 | 0 | 3 | **5** |
+| Nhận biết đa thức của một biến, xác định hạng tử | G7-MATH-NHAN-BIET-DA | 3 | 0 | 2 | 0 | 3 | **5** |
+| Nhận biết đường trung tuyến của tam giác | G7-MATH-NHAN-BIET-DUONG-2 | 3 | 0 | 2 | 0 | 3 | **5** |
+| Nhận biết đường cao của tam giác - xác định vị trí | G7-MATH-NHAN-BIET-DUONG-3 | 3 | 0 | 2 | 0 | 3 | **5** |
+| Nhận biết hai đại lượng tỉ lệ nghịch  | G7-MATH-NHAN-BIET-HAI-3 | 3 | 0 | 2 | 0 | 3 | **5** |
+| Từ một cặp góc so le trong bằng nhau, suy ra quan  | G7-MATH-TU-MOT-CAP | 3 | 0 | 2 | 0 | 3 | **5** |
+| Chứng minh hai tam giác vuông bằng nhau qua TH2 Cạ | G7-MATH-CHUNG-MINH-HAI-1 | 4 | 0 | 1 | 0 | 3 | **4** |
+| Chứng minh hai tam giác vuông bằng nhau qua TH3 cạ | G7-MATH-CHUNG-MINH-HAI-2 | 4 | 0 | 2 | 0 | 3 | **5** |
+| Giải bài toán tỉ lệ thuận: đọc ngữ cảnh nhận ra qu | G7-MATH-GIAI-BAI-TOAN | 4 | 0 | 1 | 0 | 3 | **4** |
+| Nhận biết hai góc kề bù  | G7-MATH-NHAN-BIET-HAI | 4 | 0 | 1 | 0 | 3 | **4** |
+| Nhân đa thức với đa thức | G7-MATH-NHAN-DA-THUC | 4 | 0 | 1 | 0 | 3 | **4** |
+| Tính chất điểm đồng quy ba đường trung trực | G7-MATH-TINH-CHAT-DIEM | 4 | 0 | 1 | 0 | 3 | **4** |
+| Xác định bậc, hệ số cao nhất, hệ số tự do | G7-MATH-XAC-DINH-BAC | 4 | 0 | 1 | 0 | 3 | **4** |
+| Nhận biết số hữu tỉ và viết dưới dạng phân số a/b  | G9-MATH-NHAN-BIET-SO-1 | 4 | 0 | 1 | 0 | 3 | **4** |
 
-### 🟠 Priority 2: KCs có items < 3 (IRT ZPD thiếu pool)
+### MID — 5-9 items (closest to L1)
 
-| # | Code | Name | Total | Cần thêm |
-|---|------|------|-------|---------|
-| 1 | G6-MATH-QUY-DONG-PHAN | Quy đồng mẫu các phân số | 1 | +2 items |
-| 2 | G6-MATH-TIM-BCNN | Tìm BCNN | 2 | +1 items |
-| 3 | G6-MATH-NHAN-HAI-SO | Nhân hai số nguyên khác dấu  | 2 | +1 items |
-| 4 | G6-MATH-VE-HINH-TAM | Vẽ hình tam giác đều  | 1 | +2 items |
-| 5 | G9-MATH-NHAN-BIET-PHAN | Nhận biết phân số có tử và mẫu là s | 1 | +2 items |
-| 6 | G6-MATH-SO-DOI-CUA | Xác định số đối của phân số | 2 | +1 items |
-| 7 | G6-MATH-TRU-HAI-PHAN | Trừ hai phân số cùng mẫu | 1 | +2 items |
-| 8 | G6-MATH-TIM-MOT-SO | Tìm một số biết giá trị phần trăm | 2 | +1 items |
-| 9 | G6-MATH-DUONG-THANG-DI | Đường thẳng đi qua hai điểm phân bi | 1 | +2 items |
-| 10 | G6-MATH-TIA | Tia | 1 | +2 items |
-| 11 | G6-MATH-TINH-GIA-TRI | Tính giá trị luỹ thừa | 1 | +2 items |
+| KC Name | Code | Have | +Anch | +Easy | +Med | +Hard | Total to add |
+|---------|------|------|-------|-------|------|-------|--------------|
+| Vẽ hai đường thẳng song song  | G7-MATH-VE-HAI-DUONG | 5 | 0 | 1 | 0 | 3 | **4** |
+| Nhận biết số thực và tập hợp R | G6-MATH-NHAN-BIET-SO-2 | 6 | 0 | 1 | 0 | 1 | **2** |
+| Áp dụng tính chất tích chéo: từ tỉ lệ thức -> đẳng | G7-MATH-AP-DUNG-TINH-2 | 6 | 0 | 1 | 0 | 3 | **4** |
+| Luỹ thừa của luỹ thừa  | G7-MATH-LUY-THUA-CUA-1 | 6 | 0 | 1 | 0 | 2 | **3** |
+| Nhận biết góc so le trong, góc đồng vị  | G7-MATH-NHAN-BIET-GOC | 6 | 0 | 1 | 0 | 2 | **3** |
+| Nhận biết tam giác cân  | G7-MATH-NHAN-BIET-TAM | 6 | 0 | 1 | 0 | 3 | **4** |
+| Nhận biết tia phân giác và tính số đo góc  | G7-MATH-NHAN-BIET-TIA | 6 | 0 | 1 | 0 | 1 | **2** |
+| Phân loại dữ liệu không phải số: sắp thứ tự được v | G7-MATH-PHAN-LOAI-DU-1 | 6 | 0 | 1 | 0 | 2 | **3** |
+| Tìm x,y khi biết tỉ lệ và tổng hiệu | G7-MATH-TIM-XY-KHI | 6 | 0 | 1 | 0 | 3 | **4** |
+| Tính căn bậc hai số học bằng cách phân tích thừa s | G7-MATH-TINH-CAN-BAC | 6 | 0 | 1 | 0 | 2 | **3** |
+| Tính lũy thừa bậc n của số hữu tỉ | G6-MATH-TINH-LUY-THUA | 7 | 0 | 0 | 0 | 3 | **3** |
+| Áp dụng hệ quả tính chất hai đường tăhnrg song son | G7-MATH-AP-DUNG-HE | 7 | 0 | 1 | 0 | 1 | **2** |
+| Áp dụng tính chất hai góc đáy bằng nhau  | G7-MATH-AP-DUNG-TINH | 7 | 0 | 1 | 0 | 3 | **4** |
+| Áp dụng tính chất dãy hai tỉ số bằng nhau | G7-MATH-AP-DUNG-TINH-3 | 7 | 0 | 0 | 0 | 3 | **3** |
+| Chứng minh tam giác cân bằng hai góc đáy bằng nhau | G7-MATH-CHUNG-MINH-TAM-1 | 7 | 0 | 1 | 0 | 1 | **2** |
+| Dấu hiệu nhận biết song song  | G7-MATH-DAU-HIEU-NHAN | 7 | 0 | 1 | 0 | 3 | **4** |
+| Đọc tỉ lệ và so sánh các phần từ biểu đồ quạt tròn | G7-MATH-DOC-TI-LE | 7 | 0 | 1 | 0 | 2 | **3** |
+| Nhận biết căn bậc 2 số học | G7-MATH-NHAN-BIET-CAN | 7 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết hai tam giác bằng nhau - xác định đỉnh,  | G7-MATH-NHAN-BIET-HAI-2 | 7 | 0 | 1 | 0 | 2 | **3** |
+| Nhận biết tính duy nhất của đường thẳng song song  | G7-MATH-NHAN-BIET-TINH | 7 | 0 | 1 | 0 | 1 | **2** |
+| Nhận xét xu hướng và so sánh tốc độ thay đổi  | G7-MATH-NHAN-XET-XU | 7 | 0 | 1 | 0 | 1 | **2** |
+| Sử dụng trường hợp bằng nhau g.c.g để chứng minh t | G7-MATH-SU-DUNG-TRUONG-2 | 7 | 0 | 1 | 0 | 3 | **4** |
+| Tính số đo góc từ tính chất hai đường thẳng song s | G7-MATH-TINH-SO-DO | 7 | 0 | 1 | 0 | 2 | **3** |
+| Áp dụng tính chất  trung trực  | G7-MATH-AP-DUNG-TINH-1 | 8 | 0 | 1 | 0 | 3 | **4** |
+| Nhận biết đường trung trực  | G7-MATH-NHAN-BIET-DUONG | 8 | 0 | 1 | 0 | 2 | **3** |
+| Nhận biết hai và tính số đo hai góc đối đỉnh  | G7-MATH-NHAN-BIET-HAI-1 | 8 | 0 | 1 | 0 | 1 | **2** |
+| Nhận biết số thập phân hữu hạn và vô hạn tuần hoàn | G7-MATH-NHAN-BIET-SO | 8 | 0 | 0 | 0 | 3 | **3** |
+| Nhận biết tỉ lệ thức | G7-MATH-NHAN-BIET-TI | 8 | 0 | 0 | 0 | 2 | **2** |
+| Rút ra nhận xét/quy luật từ biểu đồ quạt tròn | G7-MATH-RUT-RA-NHAN | 8 | 0 | 1 | 0 | 1 | **2** |
+| Sử dụng trường hợp bằng nhau c.c.c để chứng minh t | G7-MATH-SU-DUNG-TRUONG | 8 | 0 | 0 | 0 | 3 | **3** |
+| Tìm x trong tỉ lệ thức | G7-MATH-TIM-X-TRONG | 8 | 0 | 1 | 0 | 1 | **2** |
+| Tính số đo góc trong tam giác dựa vào định lí tổng | G7-MATH-TINH-SO-DO-1 | 8 | 0 | 1 | 0 | 1 | **2** |
+| Đọc biểu đồ nhiều đường | G7-MATH-DOC-BIEU-DO-1 | 9 | 0 | 0 | 0 | 1 | **1** |
+| Nhận biết dữ liệu có tính đại diện hay không  | G7-MATH-NHAN-BIET-DU | 9 | 0 | 1 | 0 | 1 | **2** |
+| Sử dụng trường hợp bằng nhau c.g.c để chứng minh t | G7-MATH-SU-DUNG-TRUONG-1 | 9 | 0 | 0 | 0 | 3 | **3** |
+| Vẽ/hoàn thiện biểu đồ quạt tròn từ tỉ lệ cho sẵn | G7-MATH-VEHOAN-THIEN-BIEU | 9 | 0 | 1 | 0 | 1 | **2** |
+| Viết biểu thức đại số biểu thị quan hệ từ ngữ cảnh | G7-MATH-VIET-BIEU-THUC | 9 | 0 | 0 | 0 | 2 | **2** |
 
-> **Tổng: 11 KCs**
+---
+## Grade 9 — 3 KCs need items
 
-### 🟡 Priority 3: KCs thiếu Hard items (phổ biến nhất)
+**Total items to generate:** 27
+Breakdown: 3 anchors (b=0) + 9 easy (b=-1) + 3 medium (b=+0.8) + 9 hard (b=+1.5)
 
-Không có hard items → IRT không thể estimate θ cao → strong student bị underestimate.
+### EMPTY — 0 items (dead nodes)
 
-| # | Code | Name | Current E/M/H | Action |
-|---|------|------|--------------|--------|
-| 1 | G6-MATH-RUT-GON-VE | Rút gọn về phân số tối giản | 2/2/0 | +1 hard (set irt_b=1.5) |
-| 2 | G6-MATH-TIM-UCLN | Tìm ƯCLN | 1/3/0 | +1 hard (set irt_b=1.5) |
-| 3 | G9-MATH-NHAN-BIET-UOC | Nhận Biết ước chung và ƯCLN | 2/1/0 | +1 hard (set irt_b=1.5) |
-| 4 | G6-MATH-NHAN-HAI-SO-1 | Nhân hai số nguyên cùng dấu | 1/2/0 | +1 hard (set irt_b=1.5) |
-| 5 | G9-MATH-MO-TA-CAC | Mô tả các yếu tố cơ bản , góc (độ), | 1/2/0 | +1 hard (set irt_b=1.5) |
-| 6 | G6-MATH-BIEU-DIEN-TAP | Biểu diễn tập hợp - Chỉ ra tính chấ | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 7 | G6-MATH-CLAUDE-SUGGEST-TAP | Nhận biết tập hợp rỗng và sử dụng k | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 8 | G6-MATH-NHAN-BIET-PHAN | Nhận biết phần tử thuộc hoặc không  | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 9 | G6-MATH-NHAN-BIET-TAP | Nhận biết tập hợp và liệt kê tập hợ | 0/7/0 | +1 hard (set irt_b=1.5) |
-| 10 | G6-MATH-TINH-CHU-VI | Tính chu vi hình bình hành | 1/4/0 | +1 hard (set irt_b=1.5) |
-| 11 | G6-MATH-TINH-CHU-VI-1 | Tính chu vi hình thoi | 1/4/0 | +1 hard (set irt_b=1.5) |
-| 12 | G6-MATH-QUY-DONG-MAU | Quy đồng mẫu các phân số có tử/mẫu  | 0/4/0 | +1 hard (set irt_b=1.5) |
-| 13 | G6-MATH-SO-SANH-HAI | So sánh hai phân số cùng mẫu  | 4/3/0 | +1 hard (set irt_b=1.5) |
-| 14 | G6-MATH-SO-SANH-HAI-1 | So sánh hai phân số khác mẫu bằng c | 1/2/0 | +1 hard (set irt_b=1.5) |
-| 15 | G6-MATH-TIM-GIA-TRI | Tìm giá trị phân số của một số | 2/3/0 | +1 hard (set irt_b=1.5) |
-| 16 | G6-MATH-SO-SANH-HAI-2 | So sánh hai số thập phân | 1/3/0 | +1 hard (set irt_b=1.5) |
-| 17 | G9-MATH-BIEU-DIEN-MOI | Biểu diễn mỗi số tự nhiên thành tổn | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 18 | G9-MATH-BIEU-DIEN-SO | Biểu diễn số tự nhiên nhỏ hơn <30 t | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 19 | G9-MATH-NHAN-BIET-GIA | Nhận biết giá trị các chữ số của mộ | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 20 | G6-MATH-TIM-GIA-TRI-1 | Tìm giá trị phần trăm của một số | 6/6/0 | +1 hard (set irt_b=1.5) |
-| 21 | G6-MATH-TIA-DOI-NHAU | Tia đối nhau | 0/4/0 | +1 hard (set irt_b=1.5) |
-| 22 | G6-MATH-SO-SANH-DO | So sánh độ dài đoạn thẳng | 1/4/0 | +1 hard (set irt_b=1.5) |
-| 23 | G9-MATH-NHAN-BIET-GOC | Nhận biết góc - đỉnh, cạnh, ký hiệu | 1/2/0 | +1 hard (set irt_b=1.5) |
-| 24 | G6-MATH-KI-HIEU-NHO | Nhận biết và sử dụng đúng ký hiệu ≤ | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 25 | G9-MATH-SO-SANH-HAI | So sánh hai số tự nhiên và biểu diễ | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 26 | G6-MATH-NHAN-RA-VAN | Nhận ra vấn đề, quy luật từ biểu đồ | 1/4/0 | +1 hard (set irt_b=1.5) |
-| 27 | G6-MATH-VE-BIEU-DO | Vẽ biểu đồ cột từ bảng thống kê | 2/2/0 | +1 hard (set irt_b=1.5) |
-| 28 | G6-MATH-TINH-XAC-SUAT | Tính xác suất thực nghiệm k/n từ bả | 2/4/0 | +1 hard (set irt_b=1.5) |
-| 29 | G6-MATH-NHAN-BIET-DIEU | Nhận biết điều kiện phép trừ thực h | 1/5/0 | +1 hard (set irt_b=1.5) |
-| 30 | G9-MATH-NHAN-BIET-SO | Nhận biết số chính phương | 2/2/0 | +1 hard (set irt_b=1.5) |
-| 31 | G6-MATH-DAU-HIEU-CHIA | Dấu hiệu chia hết cho 2  | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 32 | G6-MATH-DAU-HIEU-CHIA-1 | Dấu hiệu chia hết cho 9  | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 33 | G9-MATH-DAU-HIEU-CHIA | Dấu hiệu chia hết cho 5 | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 34 | G9-MATH-DAU-HIEU-CHIA-1 | Dấu hiệu chia hết cho 3 | 0/6/0 | +1 hard (set irt_b=1.5) |
-| 35 | G9-MATH-SO-LIEN-TRUOC | Số liền trước liền sau  | 0/6/0 | +1 hard (set irt_b=1.5) |
+| KC Name | Code | Have | +Anch | +Easy | +Med | +Hard | Total to add |
+|---------|------|------|-------|-------|------|-------|--------------|
+| Mô tả các yếu tố cơ bản , góc (độ), độ dài cạnh củ | G9-MATH-MO-TA-CAC-1 | 0 | 2 | 3 | 2 | 3 | **10** |
 
-> **Tổng: 35 KCs** — Có thể fix bằng cách chuyển 1 medium item thành hard (đổi irt_b=1.5) hoặc generate thêm.
+### LOW — 1-4 items
 
-### 🟡 Priority 4: KCs thiếu Easy items
-
-| # | Code | Name | Current E/M/H | Action |
-|---|------|------|--------------|--------|
-| 1 | G6-MATH-BIEU-DIEN-TAP | Biểu diễn tập hợp - Chỉ ra tính chấ | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 2 | G6-MATH-CLAUDE-SUGGEST-TAP | Nhận biết tập hợp rỗng và sử dụng k | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 3 | G6-MATH-NHAN-BIET-PHAN | Nhận biết phần tử thuộc hoặc không  | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 4 | G6-MATH-NHAN-BIET-TAP | Nhận biết tập hợp và liệt kê tập hợ | 0/7/0 | +1 easy (set irt_b=-1.0) |
-| 5 | G6-MATH-QUY-DONG-MAU | Quy đồng mẫu các phân số có tử/mẫu  | 0/4/0 | +1 easy (set irt_b=-1.0) |
-| 6 | G9-MATH-BIEU-DIEN-MOI | Biểu diễn mỗi số tự nhiên thành tổn | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 7 | G9-MATH-BIEU-DIEN-SO | Biểu diễn số tự nhiên nhỏ hơn <30 t | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 8 | G9-MATH-NHAN-BIET-GIA | Nhận biết giá trị các chữ số của mộ | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 9 | G6-MATH-TIA-DOI-NHAU | Tia đối nhau | 0/4/0 | +1 easy (set irt_b=-1.0) |
-| 10 | G6-MATH-NHAN-BIET-TRUNG | Nhận biết trung điểm của đoạn thẳng | 0/4/1 | +1 easy (set irt_b=-1.0) |
-| 11 | G6-MATH-KI-HIEU-NHO | Nhận biết và sử dụng đúng ký hiệu ≤ | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 12 | G9-MATH-SO-SANH-HAI | So sánh hai số tự nhiên và biểu diễ | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 13 | G9-MATH-CHIA-LUY-THUA | Chia luỹ thừa cùng cơ số áp dụng qu | 0/3/3 | +1 easy (set irt_b=-1.0) |
-| 14 | G6-MATH-DAU-HIEU-CHIA | Dấu hiệu chia hết cho 2  | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 15 | G6-MATH-DAU-HIEU-CHIA-1 | Dấu hiệu chia hết cho 9  | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 16 | G9-MATH-DAU-HIEU-CHIA | Dấu hiệu chia hết cho 5 | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 17 | G9-MATH-DAU-HIEU-CHIA-1 | Dấu hiệu chia hết cho 3 | 0/6/0 | +1 easy (set irt_b=-1.0) |
-| 18 | G9-MATH-SO-LIEN-TRUOC | Số liền trước liền sau  | 0/6/0 | +1 easy (set irt_b=-1.0) |
-
-> **Tổng: 18 KCs**
-
-### 🟡 Priority 5: KCs thiếu Anchor items
-
-Anchor items cần: `is_diagnostic_anchor=TRUE` + `irt_b` trong [-0.4, 0.4].
-
-| # | Code | Name | Total Items | Action |
-|---|------|------|------------|--------|
-| 1 | G6-MATH-BIEU-DIEN-TAP | Biểu diễn tập hợp - Chỉ ra tính chấ | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 2 | G6-MATH-CLAUDE-SUGGEST-TAP | Nhận biết tập hợp rỗng và sử dụng k | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 3 | G6-MATH-NHAN-BIET-PHAN | Nhận biết phần tử thuộc hoặc không  | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 4 | G6-MATH-NHAN-BIET-TAP | Nhận biết tập hợp và liệt kê tập hợ | 7 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 5 | G9-MATH-BIEU-DIEN-MOI | Biểu diễn mỗi số tự nhiên thành tổn | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 6 | G9-MATH-BIEU-DIEN-SO | Biểu diễn số tự nhiên nhỏ hơn <30 t | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 7 | G9-MATH-NHAN-BIET-GIA | Nhận biết giá trị các chữ số của mộ | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 8 | G6-MATH-KI-HIEU-NHO | Nhận biết và sử dụng đúng ký hiệu ≤ | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 9 | G9-MATH-SO-SANH-HAI | So sánh hai số tự nhiên và biểu diễ | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 10 | G6-MATH-NHAN-BIET-DIEU | Nhận biết điều kiện phép trừ thực h | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 11 | G6-MATH-PHAN-BIET-PHEP | Phân biệt phép chia hết và phép chi | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 12 | G9-MATH-PHAN-PHOI-NHAN | Nhận biết và áp dụng tính chất phân | 5 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 13 | G6-MATH-TINH-GIA-TRI | Tính giá trị luỹ thừa | 1 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 14 | G9-MATH-CHIA-LUY-THUA | Chia luỹ thừa cùng cơ số áp dụng qu | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 15 | G9-MATH-NHAN-BIET-CAU | Nhận biết cấu trúc lũy thừa (cơ số, | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 16 | G9-MATH-NHAN-LUY-THUA | Nhân luỹ thừa cùng cơ số áp dụng qu | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 17 | G6-MATH-DAU-HIEU-CHIA | Dấu hiệu chia hết cho 2  | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 18 | G6-MATH-DAU-HIEU-CHIA-1 | Dấu hiệu chia hết cho 9  | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 19 | G9-MATH-DAU-HIEU-CHIA | Dấu hiệu chia hết cho 5 | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 20 | G9-MATH-DAU-HIEU-CHIA-1 | Dấu hiệu chia hết cho 3 | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-| 21 | G9-MATH-SO-LIEN-TRUOC | Số liền trước liền sau  | 6 | Set 1 medium item → is_diagnostic_anchor=TRUE |
-
-> **Tổng: 21 KCs** — Fix nhanh: chỉ cần UPDATE 1 medium item.
-
-### ⚪ Priority 6: KCs Isolated (không có edges)
-
-Không ảnh hưởng assessment nhưng unreachable — KST không bao giờ navigate tới.
-
-| # | Code | Name | Block | Items | Action |
-|---|------|------|-------|-------|--------|
-| 1 | G6-MATH-TINH-CHAT-PHEP | Tính chất phép nhân | 16K1 | 0 | Connect to graph hoặc xóa |
-| 2 | G9-MATH-BIEU-DIEN-SO | Biểu diễn số tự nhiên nhỏ hơn <30 t | B2K1 | 6 | Connect to graph hoặc xóa |
-| 3 | G9-MATH-DOC-VA-VIET | Đọc và viết chữ số | B2K1 | 0 | Connect to graph hoặc xóa |
-| 4 | G6-MATH-SO-SANH-HAI-3 | So sánh hai góc  | B37K2 | 0 | Connect to graph hoặc xóa |
-| 5 | G6-MATH-CHON-PHUONG-PHAP | Chọn phương pháp thu thập dữ liệu  | B38K2 | 0 | Connect to graph hoặc xóa |
-| 6 | G6-MATH-NHAN-BIET-TINH | Nhận biết tính không đoán trước của | B42K2 | 0 | Connect to graph hoặc xóa |
-| 7 | G6-MATH-AP-DUNG-TINH | Nhận biết và xác định tính chất gia | B4K1 | 0 | Connect to graph hoặc xóa |
-| 8 | G6-MATH-AP-DUNG-TINH-1 | Nhận biết và áp dụng tính chất phân | B5K1 | 0 | Connect to graph hoặc xóa |
-| 9 | G9-MATH-1AP-DUNG-TINH | Nhận biết và xác định tính chất gia | B5K1 | 0 | Connect to graph hoặc xóa |
-| 10 | G6-MATH-CHIA-DAT-TINH | Chia đặt tính  | TIỂU HỌC | 0 | Connect to graph hoặc xóa |
-| 11 | G6-MATH-CONG-TRU-DAT | Cộng Trừ, đặt tính tiểu học  | TIỂU HỌC | 0 | Connect to graph hoặc xóa |
-| 12 | G6-MATH-NHAN-DAT-TINH | Nhân đặt tính  | TIỂU HỌC | 0 | Connect to graph hoặc xóa |
-| 13 | G9-MATH-SO-LIEN-TRUOC | Số liền trước liền sau  | TIỂU HỌC | 6 | Connect to graph hoặc xóa |
-
-> **Tổng: 13 KCs**
+| KC Name | Code | Have | +Anch | +Easy | +Med | +Hard | Total to add |
+|---------|------|------|-------|-------|------|-------|--------------|
+| Nhận biết hình lục giác đều  | G9-MATH-NHAN-BIET-HINH | 1 | 1 | 3 | 1 | 3 | **8** |
+| Nhận biết hai đại lượng tỉ lệ thuận — định nghĩa y | G9-MATH-NHAN-BIET-HAI | 2 | 0 | 3 | 0 | 3 | **6** |

@@ -35,9 +35,10 @@ class AssessmentSession:
     theta_se: float = 1.0               # standard error of θ
     streak_correct: int = 0
     streak_wrong: int = 0
-    n: int = 0                          # total items answered
+    n: int = 0                          # total items answered (global, for hard cap only)
     kc_n: int = 0                       # items answered in CURRENT KC (reset on KC switch)
-    responses: list[tuple] = field(default_factory=list)  # (correct, a, b, c)
+    responses: list[tuple] = field(default_factory=list)  # (correct, a, b, c) — global theta history
+    kc_responses: list[tuple] = field(default_factory=list)  # (correct, a, b, c) — PER-KC evidence (reset on switch)
     kc_results: dict[str, str] = field(default_factory=dict)  # kc_id: 'pass'|'fail'|'gap'
     known_kcs: set[str] = field(default_factory=set)
     is_done: bool = False
@@ -53,6 +54,7 @@ class AssessmentSession:
             "n": self.n,
             "kc_n": self.kc_n,
             "responses": self.responses,
+            "kc_responses": self.kc_responses,
             "kc_results": self.kc_results,
             "known_kcs": list(self.known_kcs),
             "is_done": self.is_done,
@@ -68,6 +70,7 @@ class AssessmentSession:
         s.n = d.get("n", 0)
         s.kc_n = d.get("kc_n", 0)
         s.responses = d.get("responses", [])
+        s.kc_responses = d.get("kc_responses", [])
         s.kc_results = d.get("kc_results", {})
         s.known_kcs = set(d.get("known_kcs", []))
         s.is_done = d.get("is_done", False)
@@ -100,8 +103,20 @@ class CATController:
 
     PASS_STREAK = 3    # 3 correct in a row → KC passed (L0 fallback)
     FAIL_STREAK = 3    # 3 wrong in a row → KC failed
-    SE_STOP = 0.30     # θ reliable enough to make pass/fail decision
-    MIN_ITEMS_FOR_STOP = 10
+
+    # SE_STOP = 0.30 is GRE/SAT-level (high-stakes, one-shot, irreversible).
+    # This system is low-stakes + correctable: L2 (BKT) self-corrects over sessions.
+    # 0.50 requires ~4-9 items/KC with a=1.0-1.5 → viable with current item pools.
+    # Reference: expert recommendation — match SE_STOP to actual risk profile.
+    SE_STOP = 0.50
+
+    # Safety floor: prevent IRT from stopping on statistically-tiny samples.
+    # With very few items (1-2), the MLE SE formula can return artificially small
+    # values due to statistical noise — not reflecting true measurement confidence.
+    # UNIT FIX (expert analysis): must use kc_n (per-KC counter), NOT n (global).
+    # Rationale: the PASS/FAIL decision is per-KC → all evidence gating it must
+    # also be counted per-KC. Using n conflates evidence from other KCs.
+    MIN_KC_ITEMS_FOR_IRT = 5   # renamed from MIN_ITEMS_FOR_STOP to make unit explicit
     MAX_ITEMS = 40
 
     def __init__(self, kg: KnowledgeGraph, use_irt: bool = True):
@@ -171,16 +186,22 @@ class CATController:
         irt_a = item.get("irt_a", 1.0)
         irt_b = item.get("irt_b", 0.0)
         irt_c = item.get("irt_c", 0.25)
-        s.responses.append((correct, irt_a, irt_b, irt_c))
+        response_tuple = (correct, irt_a, irt_b, irt_c)
+        s.responses.append(response_tuple)      # global: feeds global theta trajectory
+        s.kc_responses.append(response_tuple)  # per-KC: resets on KC switch
 
         # ── Layer 1: Update theta via MLE ─────────────────────────────────
+        # Use global responses for theta (more data = better global estimate).
+        # Per-KC responses used only for the SE gate below.
         if self.use_irt and len(s.responses) >= 2:
             s.theta, s.theta_se = IRT.update_theta(s.responses, init=s.theta)
 
         # ── Pass / Fail decision ──────────────────────────────────────────
 
-        # L1: SE-based early stop — theta reliable enough to decide
-        if self.use_irt and s.theta_se < self.SE_STOP and s.n >= self.MIN_ITEMS_FOR_STOP:
+        # L1: SE-based early stop — theta reliable enough to decide.
+        # UNIT FIX: gate on kc_n (per-KC items) not n (global session items).
+        # Both conditions now count in the same unit as the decision: per-KC.
+        if self.use_irt and s.theta_se < self.SE_STOP and s.kc_n >= self.MIN_KC_ITEMS_FOR_IRT:
             avg_b = self._avg_difficulty(s.kc, available_items)
             if s.theta > avg_b:
                 return self._pass_kc(s, available_items)
@@ -220,7 +241,8 @@ class CATController:
         next_kc = self.kg.navigate(s.kc, passed=True, known_kcs=s.known_kcs)
         if next_kc:
             s.kc = next_kc
-            s.kc_n = 0  # reset for new KC
+            s.kc_n = 0          # reset per-KC item counter
+            s.kc_responses = [] # reset per-KC evidence — new KC, fresh IRT gate
             item = self._pick_item(next_kc, seen_items=set(), available_items=available_items,
                                    theta=s.theta, kc_n=0)
             return {"status": "continue", "session": s.to_dict(), "item": item}
@@ -234,7 +256,8 @@ class CATController:
         next_kc = self.kg.navigate(s.kc, passed=False, known_kcs=s.known_kcs)
         if next_kc:
             s.kc = next_kc
-            s.kc_n = 0  # reset for new KC
+            s.kc_n = 0          # reset per-KC item counter
+            s.kc_responses = [] # reset per-KC evidence — new KC, fresh IRT gate
             item = self._pick_item(next_kc, seen_items=set(), available_items=available_items,
                                    theta=s.theta, kc_n=0)
             return {"status": "continue", "session": s.to_dict(), "item": item}
