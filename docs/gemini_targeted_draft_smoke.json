@@ -1,0 +1,319 @@
+{
+  "target_kc": {
+    "id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+    "code": "G6-MAMATMATHMAT",
+    "name": "Trừ hai phân số khác mẫu"
+  },
+  "target_pool": {
+    "total_items": 10,
+    "pending_drafts": 10,
+    "draft_only": true
+  },
+  "status": "continue",
+  "session": {
+    "student_id": "targeted_draft_gemini",
+    "kc": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+    "theta": -4.0,
+    "theta_se": 10.0,
+    "kc_theta": -4.0,
+    "kc_theta_se": 1.0,
+    "streak_correct": 0,
+    "streak_wrong": 0,
+    "n": 3,
+    "kc_n": 0,
+    "responses": [
+      [
+        false,
+        1.0,
+        0.0,
+        0.25
+      ],
+      [
+        false,
+        1.0,
+        0.0,
+        0.25
+      ],
+      [
+        false,
+        1.0,
+        -1.0,
+        0.25
+      ]
+    ],
+    "kc_responses": [],
+    "seen_item_ids": [
+      "draft:6db77809-5867-4901-8786-1b1a16b64572",
+      "draft:bb869e51-c0f8-447c-b3b4-156bf7483f1d",
+      "draft:fed77260-98fc-451a-bd30-8d930b3bb2f3"
+    ],
+    "kc_results": {
+      "82cf16c3-6304-4c48-b848-5e0bde0dee58": "fail"
+    },
+    "known_kcs": [],
+    "kc_states": {
+      "82cf16c3-6304-4c48-b848-5e0bde0dee58": "tested_gap"
+    },
+    "state_conflicts": [],
+    "frontier_history": [
+      {
+        "step": 1,
+        "selected_kc": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+        "reason": "max_expected_closure_gain",
+        "candidates": [
+          {
+            "kc_id": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+            "score": 5365,
+            "reason": "max_expected_closure_gain",
+            "closure_gain": 53,
+            "unknown_ancestors": 0,
+            "unknown_descendants": 52,
+            "item_count": 10,
+            "unseen_item_count": 10,
+            "anchor_count": 4,
+            "has_items": true
+          },
+          {
+            "kc_id": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+            "score": 3065,
+            "reason": "max_expected_closure_gain",
+            "closure_gain": 30,
+            "unknown_ancestors": 0,
+            "unknown_descendants": 29,
+            "item_count": 8,
+            "unseen_item_count": 8,
+            "anchor_count": 4,
+            "has_items": true
+          },
+          {
+            "kc_id": "f13f2f58-b3d6-4806-9a21-2f5a59622246",
+            "score": 2855,
+            "reason": "max_expected_closure_gain",
+            "closure_gain": 28,
+            "unknown_ancestors": 0,
+            "unknown_descendants": 27,
+            "item_count": 6,
+            "unseen_item_count": 6,
+            "anchor_count": 1,
+            "has_items": true
+          },
+          {
+            "kc_id": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+            "score": 2791,
+            "reason": "max_expected_closure_gain",
+            "closure_gain": 27,
+            "unknown_ancestors": 1,
+            "unknown_descendants": 25,
+            "item_count": 10,
+            "unseen_item_count": 10,
+            "anchor_count": 5,
+            "has_items": true
+          },
+          {
+            "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+            "score": 2760,
+            "reason": "max_expected_closure_gain",
+            "closure_gain": 27,
+            "unknown_ancestors": 0,
+            "unknown_descendants": 26,
+            "item_count": 10,
+            "unseen_item_count": 10,
+            "anchor_count": 2,
+            "has_items": true
+          }
+        ]
+      }
+    ],
+    "state_transitions": [
+      {
+        "step": 1,
+        "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+        "decision": "fail",
+        "changes": [
+          {
+            "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+            "from": "unknown",
+            "to": "tested_gap",
+            "reason": "tested_fail"
+          }
+        ],
+        "next_kc": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+        "state_counts": {
+          "tested_mastered": 0,
+          "tested_gap": 1,
+          "inferred_mastered": 0,
+          "inferred_gap": 0,
+          "unknown": 246
+        }
+      }
+    ],
+    "evidence_by_kc": {
+      "82cf16c3-6304-4c48-b848-5e0bde0dee58": [
+        {
+          "step": 1,
+          "item_id": "draft:6db77809-5867-4901-8786-1b1a16b64572",
+          "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+          "correct": false,
+          "irt_a": 1.0,
+          "irt_b": 0.0,
+          "irt_c": 0.25,
+          "agent_answer": "B",
+          "correct_answer": "A",
+          "thinking": "Em nhớ mang máng là khi thực hiện phép tính với phân số thì mình phải làm cả ở trên tử và dưới mẫu luôn cho nó giống nhau. Chắc là lấy tử trừ tử rồi mẫu cũng phải trừ cho mẫu luôn, giống như mấy bài tính toán bình thường ấy. Em sẽ chọn đáp án nào mà cả tử và mẫu đều có dấu trừ.",
+          "source": "pending_draft",
+          "draft_tag": "batch_import_70_115_20260622",
+          "kc_code": "G6-MAMATMATHMAT",
+          "kc_name": "Trừ hai phân số khác mẫu"
+        },
+        {
+          "step": 2,
+          "item_id": "draft:bb869e51-c0f8-447c-b3b4-156bf7483f1d",
+          "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+          "correct": false,
+          "irt_a": 1.0,
+          "irt_b": 0.0,
+          "irt_c": 0.25,
+          "agent_answer": "C",
+          "correct_answer": "A",
+          "thinking": "Quy đồng mẫu số xong thì em nghĩ chỉ cần lấy hai cái tử số ban đầu trừ cho nhau là được rồi. Em thấy p với q trừ nhau là đơn giản nhất, không cần phải nhân thêm số 3 hay số 2 vào làm gì cho rắc rối đâu.",
+          "source": "pending_draft",
+          "draft_tag": "batch_import_70_115_20260622",
+          "kc_code": "G6-MAMATMATHMAT",
+          "kc_name": "Trừ hai phân số khác mẫu"
+        },
+        {
+          "step": 3,
+          "item_id": "draft:fed77260-98fc-451a-bd30-8d930b3bb2f3",
+          "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+          "correct": false,
+          "irt_a": 1.0,
+          "irt_b": -1.0,
+          "irt_c": 0.25,
+          "agent_answer": "B",
+          "correct_answer": "A",
+          "thinking": "Em nghĩ là làm phép trừ thì cứ lấy số trên trừ số trên, số dưới trừ số dưới cho nhanh. Mấy cái quy đồng mẫu số em thấy khó hiểu quá, chắc là cứ trừ thẳng luôn 5 trừ 1 với 6 trừ 4 là xong thôi ạ.",
+          "source": "pending_draft",
+          "draft_tag": "batch_import_70_115_20260622",
+          "kc_code": "G6-MAMATMATHMAT",
+          "kc_name": "Trừ hai phân số khác mẫu"
+        }
+      ]
+    },
+    "is_done": false
+  },
+  "result": null,
+  "steps": [
+    {
+      "step": 1,
+      "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+      "kc_code": "G6-MAMATMATHMAT",
+      "kc_name": "Trừ hai phân số khác mẫu",
+      "item_id": "draft:6db77809-5867-4901-8786-1b1a16b64572",
+      "source": "pending_draft",
+      "draft_tag": "batch_import_70_115_20260622",
+      "question": "Sau khi quy đồng a/b và c/d thành A/m và C/m với m > 0, bước trừ đúng là gì?",
+      "answers": [
+        {
+          "label": "A",
+          "text": "A/m − C/m = (A − C)/m",
+          "is_correct": true
+        },
+        {
+          "label": "B",
+          "text": "A/m − C/m = (A − C)/(m − m)",
+          "is_correct": false
+        },
+        {
+          "label": "C",
+          "text": "A/m − C/m = (A + C)/m",
+          "is_correct": false
+        },
+        {
+          "label": "D",
+          "text": "A/m − C/m = A − C",
+          "is_correct": false
+        }
+      ],
+      "correct_answer": "A",
+      "agent_answer": "B",
+      "correct": false,
+      "thinking": "Em nhớ mang máng là khi thực hiện phép tính với phân số thì mình phải làm cả ở trên tử và dưới mẫu luôn cho nó giống nhau. Chắc là lấy tử trừ tử rồi mẫu cũng phải trừ cho mẫu luôn, giống như mấy bài tính toán bình thường ấy. Em sẽ chọn đáp án nào mà cả tử và mẫu đều có dấu trừ."
+    },
+    {
+      "step": 2,
+      "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+      "kc_code": "G6-MAMATMATHMAT",
+      "kc_name": "Trừ hai phân số khác mẫu",
+      "item_id": "draft:bb869e51-c0f8-447c-b3b4-156bf7483f1d",
+      "source": "pending_draft",
+      "draft_tag": "batch_import_70_115_20260622",
+      "question": "Hai phân số p/8 và q/12 được quy đồng về mẫu 24. Cấu trúc tử số của hiệu p/8 − q/12 là gì?",
+      "answers": [
+        {
+          "label": "A",
+          "text": "3p − 2q",
+          "is_correct": true
+        },
+        {
+          "label": "B",
+          "text": "2p − 3q",
+          "is_correct": false
+        },
+        {
+          "label": "C",
+          "text": "p − q",
+          "is_correct": false
+        },
+        {
+          "label": "D",
+          "text": "3p + 2q",
+          "is_correct": false
+        }
+      ],
+      "correct_answer": "A",
+      "agent_answer": "C",
+      "correct": false,
+      "thinking": "Quy đồng mẫu số xong thì em nghĩ chỉ cần lấy hai cái tử số ban đầu trừ cho nhau là được rồi. Em thấy p với q trừ nhau là đơn giản nhất, không cần phải nhân thêm số 3 hay số 2 vào làm gì cho rắc rối đâu."
+    },
+    {
+      "step": 3,
+      "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+      "kc_code": "G6-MAMATMATHMAT",
+      "kc_name": "Trừ hai phân số khác mẫu",
+      "item_id": "draft:fed77260-98fc-451a-bd30-8d930b3bb2f3",
+      "source": "pending_draft",
+      "draft_tag": "batch_import_70_115_20260622",
+      "question": "Trước khi trừ 5/6 − 1/4, bước trung gian nào phù hợp nhất?",
+      "answers": [
+        {
+          "label": "A",
+          "text": "Chọn một mẫu chung dương cho 6 và 4",
+          "is_correct": true
+        },
+        {
+          "label": "B",
+          "text": "Trừ ngay 5 − 1 và 6 − 4",
+          "is_correct": false
+        },
+        {
+          "label": "C",
+          "text": "Đổi phép trừ thành phép nhân hai phân số",
+          "is_correct": false
+        },
+        {
+          "label": "D",
+          "text": "Chỉ đổi mẫu 4 thành 6, giữ nguyên tử 1",
+          "is_correct": false
+        }
+      ],
+      "correct_answer": "A",
+      "agent_answer": "B",
+      "correct": false,
+      "thinking": "Em nghĩ là làm phép trừ thì cứ lấy số trên trừ số trên, số dưới trừ số dưới cho nhanh. Mấy cái quy đồng mẫu số em thấy khó hiểu quá, chắc là cứ trừ thẳng luôn 5 trừ 1 với 6 trừ 4 là xong thôi ạ."
+    }
+  ],
+  "cost": {
+    "api_calls": 3,
+    "total_cost_usd": 0.002171
+  }
+}

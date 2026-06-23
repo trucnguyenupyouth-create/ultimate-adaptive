@@ -33,6 +33,7 @@ from app.engines.assessment_sim import (
 )
 from app.engines.agent_student import get_agent_cost_summary
 from app.models.models import Item, KnowledgeComponent
+from app.services.assessment_run_store import get_run, import_run, list_runs
 from app.services.graph_service import get_graph
 
 router = APIRouter(prefix="/sandbox/assess", tags=["Assessment Simulation"])
@@ -81,6 +82,12 @@ class BatchRequest(BaseModel):
     personas: list[PersonaInput]
     trials_per_persona: int = 5
     max_items: int = 60
+
+
+class ImportRunRequest(BaseModel):
+    source_file: str | None = None
+    payload: dict | None = None
+    run_id: str | None = None
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -331,6 +338,36 @@ async def list_personas():
 async def get_cost():
     """Returns cumulative Gemini API cost from agent simulations."""
     return get_agent_cost_summary()
+
+
+@router.get("/runs", summary="List stored assessment runs")
+async def list_assessment_runs():
+    return {"runs": list_runs()}
+
+
+@router.get("/runs/{run_id}", summary="Get one stored assessment run")
+async def get_assessment_run(run_id: str):
+    try:
+        return get_run(run_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Assessment run not found")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.post("/runs/import", summary="Import an assessment run JSON into the run store")
+async def import_assessment_run(body: ImportRunRequest):
+    try:
+        metadata = import_run(
+            source_file=body.source_file,
+            payload=body.payload,
+            run_id=body.run_id,
+        )
+        return {"ok": True, "run": metadata}
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Source JSON not found")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 # ── Internal Helpers ──────────────────────────────────────────────────────────

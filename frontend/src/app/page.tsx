@@ -36,6 +36,7 @@ import {
   Link2,
   Eye,
   Sparkles,
+  Route,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -1192,6 +1193,22 @@ function GraphBuilderInner() {
         >
           <Sparkles size={13} />
           Question Gen
+        </Link>
+        <Link
+          href="/assessment-runs"
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "6px 12px", borderRadius: 6, fontSize: 13, fontWeight: 500,
+            border: "1px solid rgba(210,153,34,0.4)",
+            background: "rgba(210,153,34,0.08)",
+            color: "#d29922",
+            textDecoration: "none",
+            transition: "all 0.15s",
+          }}
+          title="Assessment Runs — Replay historical test flows"
+        >
+          <Route size={13} />
+          Assessment Runs
         </Link>
         <button
           className="btn btn-primary"

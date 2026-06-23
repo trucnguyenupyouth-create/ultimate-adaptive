@@ -18,6 +18,10 @@ export interface KCNodeData {
   isSelected?: boolean;
   block_id?: string | null;
   blockName?: string | null;
+  runState?: "tested_mastered" | "tested_gap" | "inferred_mastered" | "inferred_gap" | "unknown";
+  testedOrder?: number | null;
+  isCurrentStep?: boolean;
+  hideHandles?: boolean;
 }
 
 const GRADE_COLOR: Record<number, { bg: string; border: string; label: string }> = {
@@ -31,13 +35,29 @@ function KCNodeComponent({ data, selected }: NodeProps) {
   const d = data as unknown as KCNodeData;
   const colors = GRADE_COLOR[d.grade as keyof typeof GRADE_COLOR] ?? GRADE_COLOR[7];
   const isWarning = d.isLowItems;
-  const borderColor = selected
+  const stateTone = {
+    tested_mastered: { bg: "rgba(63,185,80,0.18)", border: "#3fb950", ring: "rgba(63,185,80,0.18)" },
+    inferred_mastered: { bg: "rgba(63,185,80,0.10)", border: "#7ee787", ring: "rgba(126,231,135,0.16)" },
+    tested_gap: { bg: "rgba(248,81,73,0.18)", border: "#f85149", ring: "rgba(248,81,73,0.18)" },
+    inferred_gap: { bg: "rgba(210,153,34,0.14)", border: "#d29922", ring: "rgba(210,153,34,0.18)" },
+    unknown: { bg: "#1b1f24", border: "var(--border)", ring: "rgba(139,148,158,0.12)" },
+  } as const;
+  const runTone = d.runState ? stateTone[d.runState] : null;
+  const borderColor = d.isCurrentStep
+    ? "#58a6ff"
+    : selected
     ? "var(--node-selected-border)"
+    : runTone
+    ? runTone.border
     : isWarning
     ? "var(--node-warning-border)"
     : colors.border;
-  const bgColor = selected
+  const bgColor = d.isCurrentStep
+    ? "rgba(88,166,255,0.14)"
+    : selected
     ? "var(--node-selected)"
+    : runTone
+    ? runTone.bg
     : isWarning
     ? "var(--node-warning)"
     : colors.bg;
@@ -50,8 +70,12 @@ function KCNodeComponent({ data, selected }: NodeProps) {
         borderRadius: 10,
         minWidth: 180,
         maxWidth: 220,
-        boxShadow: selected
+        boxShadow: d.isCurrentStep
+          ? `0 0 0 3px rgba(88,166,255,0.28)`
+          : selected
           ? `0 0 0 3px rgba(88,166,255,0.25)`
+          : runTone
+          ? `0 0 0 2px ${runTone.ring}`
           : "0 2px 8px rgba(0,0,0,0.4)",
         transition: "all 0.15s ease",
         animation: "fadeIn 0.2s ease",
@@ -59,18 +83,20 @@ function KCNodeComponent({ data, selected }: NodeProps) {
       }}
     >
       {/* Top handle — target (incoming edges) */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        style={{
-          background: borderColor,
-          border: "2px solid #0d1117",
-          width: 12,
-          height: 12,
-          top: -6,
-        }}
-        isConnectable={true}
-      />
+      {!d.hideHandles && (
+        <Handle
+          type="target"
+          position={Position.Top}
+          style={{
+            background: borderColor,
+            border: "2px solid #0d1117",
+            width: 12,
+            height: 12,
+            top: -6,
+          }}
+          isConnectable={true}
+        />
+      )}
 
       {/* Drag handle area — ONLY this region moves the node */}
       <div
@@ -119,6 +145,21 @@ function KCNodeComponent({ data, selected }: NodeProps) {
               title={`Block: ${d.blockName}`}
             >
               {d.blockName}
+            </span>
+          )}
+          {typeof d.testedOrder === "number" && (
+            <span
+              className="badge"
+              style={{
+                background: "rgba(88,166,255,0.16)",
+                color: "#79c0ff",
+                border: "1px solid rgba(88,166,255,0.3)",
+                fontSize: 10,
+                marginLeft: "auto",
+              }}
+              title={`KC được test thứ ${d.testedOrder}`}
+            >
+              #{d.testedOrder}
             </span>
           )}
         </div>
@@ -189,18 +230,20 @@ function KCNodeComponent({ data, selected }: NodeProps) {
       </div>
 
       {/* Bottom handle — source (outgoing edges) */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        style={{
-          background: borderColor,
-          border: "2px solid #0d1117",
-          width: 12,
-          height: 12,
-          bottom: -6,
-        }}
-        isConnectable={true}
-      />
+      {!d.hideHandles && (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          style={{
+            background: borderColor,
+            border: "2px solid #0d1117",
+            width: 12,
+            height: 12,
+            bottom: -6,
+          }}
+          isConnectable={true}
+        />
+      )}
     </div>
   );
 }

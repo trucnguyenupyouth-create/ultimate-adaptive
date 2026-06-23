@@ -1,0 +1,981 @@
+{
+  "status": "continue",
+  "items": 12,
+  "api_calls": 12,
+  "cost": 0.014551,
+  "source_counts": {
+    "active_item": 12
+  },
+  "kc_results": {
+    "66e748f8-6756-4f7a-8232-b6a4b7d7661f": "fundamental_gap",
+    "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9": "pass",
+    "1cacabc0-84c6-435e-aafb-62a50e4425af": "pass",
+    "05f26197-d571-4556-b0a4-6edbc70a1b4a": "pass"
+  },
+  "kc_states": {
+    "66e748f8-6756-4f7a-8232-b6a4b7d7661f": "tested_gap",
+    "a79b57c1-7aea-4de4-b670-fc8bf2c21734": "inferred_gap",
+    "9e9c5789-2dce-4f16-a695-632cb9301923": "inferred_gap",
+    "a1085fdd-43e4-4d7b-96b6-36e24fb51777": "inferred_gap",
+    "82cf16c3-6304-4c48-b848-5e0bde0dee58": "inferred_gap",
+    "1cd105ba-e188-40c5-badb-89b4a475df52": "inferred_gap",
+    "cabfac64-e7dd-4074-99fa-aa240ffa4a80": "inferred_gap",
+    "ff3da98d-995e-4c4c-8e3b-681851c95671": "inferred_gap",
+    "55db8d40-9a2a-431e-b698-008f60325395": "inferred_gap",
+    "38847efa-ffb3-4974-a545-7a0c34504fb6": "inferred_gap",
+    "9b541386-16c6-4ee5-9dc0-c6eb76f0e390": "inferred_gap",
+    "57767f23-fa58-4d24-a2c3-e2bc436786da": "inferred_gap",
+    "65b18e6f-7da5-45b8-a737-39b9bac1f722": "inferred_gap",
+    "32caa11b-ee1d-4208-99dd-a8b393b45dd4": "inferred_gap",
+    "64e80095-6942-4c30-84d4-a3aa7a90d5b0": "inferred_gap",
+    "cdb87133-898d-431e-9155-b17dacb8d6dd": "inferred_gap",
+    "375a0e3b-9199-4531-9230-6c8e885b9848": "inferred_gap",
+    "33b1d60d-acfc-4736-a239-6d12646115a8": "inferred_gap",
+    "fef10487-76c4-462e-94da-4ecde06a147f": "inferred_gap",
+    "9100557a-7ccf-430a-82ff-0cb2d9eb4b21": "inferred_gap",
+    "2c3fda5a-55af-42de-b11b-72617bc45836": "inferred_gap",
+    "d0d94d7e-8b74-4648-a31e-a722b86957d3": "inferred_gap",
+    "6e841f72-b15d-4d7f-a964-97176e76f22c": "inferred_gap",
+    "ba99a753-23ae-43b9-9355-3010ffeb014a": "inferred_gap",
+    "eecf4177-b5c2-48ea-ac8f-2f11c40c9956": "inferred_gap",
+    "6e6c4448-2c54-4921-b742-b881b8626aff": "inferred_gap",
+    "15f3f99d-da21-40b2-b1c9-76c5e2979757": "inferred_gap",
+    "f5911516-dc46-4adf-878c-edfe38a2980b": "inferred_gap",
+    "4a8a5463-5958-48b7-8e90-f536aa889645": "inferred_gap",
+    "1e15deb5-5b47-4a71-a5c3-a58858f93fd8": "inferred_gap",
+    "da118684-1954-4b4a-ae1e-4a51f3317430": "inferred_gap",
+    "b68ce985-f530-48eb-9151-e880cf5a61fb": "inferred_gap",
+    "bb078241-4173-4846-bda6-d1a48613dd40": "inferred_gap",
+    "959461db-e6ce-44b6-8c5f-25c65ac467e8": "inferred_gap",
+    "5d32c8a0-841b-47ef-b75e-9cc64f527aaa": "inferred_gap",
+    "b2dfdb0c-b3ef-47d6-bb61-a76999c50cef": "inferred_gap",
+    "3bf438fd-b505-41f5-9864-ce1c914cde8c": "inferred_gap",
+    "3e934c4e-d6b3-4383-9b11-30c38b71aea5": "inferred_gap",
+    "b40bd888-5268-476f-bdc6-a6116fef1b16": "inferred_gap",
+    "ab3650f9-b9db-458f-be79-83840d990c0a": "inferred_gap",
+    "4138513c-6cc2-41fe-bed2-2b2d4641fc28": "inferred_gap",
+    "e18dd0c5-7ea3-42e0-9121-3181b56bb553": "inferred_gap",
+    "c333baa7-07c9-435d-8b03-a664244d0f21": "inferred_gap",
+    "656a1d64-f530-4757-88d5-0a96a5397eb7": "inferred_gap",
+    "0164cf7c-e080-4ca0-909b-e292f65af633": "inferred_gap",
+    "93a0e693-56a1-4140-bbb5-6f27cd2c155b": "inferred_gap",
+    "f4b7b7ed-f404-480c-9074-4f59e6b92f88": "inferred_gap",
+    "c09312eb-28c9-4e8c-838f-5726b0b7d541": "inferred_gap",
+    "a4da21df-12a3-42f1-aef5-923f2960f3d6": "inferred_gap",
+    "7cbdb26d-d6a9-4038-81f2-cb7c697a0420": "inferred_gap",
+    "d20a3bed-c6ea-4166-992d-594eaebfec4b": "inferred_gap",
+    "111d3f6a-1d76-4929-bcb5-adc2b7bbe0d6": "inferred_gap",
+    "2ae1719f-bea4-49c8-9dbc-934e9c07be32": "inferred_gap",
+    "6c18010c-1818-45cb-9c06-7c4adde88e07": "inferred_gap",
+    "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9": "tested_mastered",
+    "1cacabc0-84c6-435e-aafb-62a50e4425af": "tested_mastered",
+    "05f26197-d571-4556-b0a4-6edbc70a1b4a": "tested_mastered"
+  },
+  "state_counts": {
+    "tested_mastered": 3,
+    "tested_gap": 1,
+    "inferred_mastered": 0,
+    "inferred_gap": 53,
+    "unknown": 190
+  },
+  "result": null,
+  "frontier_history": [
+    {
+      "step": 1,
+      "selected_kc": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+      "reason": "max_expected_closure_gain",
+      "candidates": [
+        {
+          "kc_id": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+          "score": 5465,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 54,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 53,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 4,
+          "has_items": true
+        },
+        {
+          "kc_id": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+          "score": 3065,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 30,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 29,
+          "item_count": 8,
+          "unseen_item_count": 8,
+          "anchor_count": 4,
+          "has_items": true
+        },
+        {
+          "kc_id": "f13f2f58-b3d6-4806-9a21-2f5a59622246",
+          "score": 2955,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 29,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 28,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+          "score": 2891,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 28,
+          "unknown_ancestors": 1,
+          "unknown_descendants": 26,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 5,
+          "has_items": true
+        },
+        {
+          "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+          "score": 2760,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 27,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 26,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "selected_kc": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+      "reason": "max_expected_closure_gain",
+      "candidates": [
+        {
+          "kc_id": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+          "score": 3065,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 30,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 29,
+          "item_count": 8,
+          "unseen_item_count": 8,
+          "anchor_count": 4,
+          "has_items": true
+        },
+        {
+          "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+          "score": 2760,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 27,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 26,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+          "score": 2381,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 23,
+          "unknown_ancestors": 1,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "6556c96b-e3be-4d67-8875-69b3b678b2a5",
+          "score": 2381,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 23,
+          "unknown_ancestors": 1,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "2ceee5b6-021d-46db-b5df-08030916bf4b",
+          "score": 2355,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 23,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 22,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "selected_kc": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+      "reason": "max_expected_closure_gain",
+      "candidates": [
+        {
+          "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+          "score": 2760,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 27,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 26,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "6556c96b-e3be-4d67-8875-69b3b678b2a5",
+          "score": 2391,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 22,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+          "score": 2381,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 23,
+          "unknown_ancestors": 1,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "2ceee5b6-021d-46db-b5df-08030916bf4b",
+          "score": 2355,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 23,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 22,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "f13f2f58-b3d6-4806-9a21-2f5a59622246",
+          "score": 2015,
+          "reason": "near_known_gap_boundary",
+          "closure_gain": 19,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 18,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "selected_kc": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+      "reason": "all_direct_prerequisites_mastered",
+      "candidates": [
+        {
+          "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+          "score": 2391,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 22,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "6556c96b-e3be-4d67-8875-69b3b678b2a5",
+          "score": 2391,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 22,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "2ceee5b6-021d-46db-b5df-08030916bf4b",
+          "score": 2355,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 23,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 22,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "f13f2f58-b3d6-4806-9a21-2f5a59622246",
+          "score": 2015,
+          "reason": "near_known_gap_boundary",
+          "closure_gain": 19,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 18,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+          "score": 1797,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 17,
+          "unknown_ancestors": 2,
+          "unknown_descendants": 14,
+          "item_count": 5,
+          "unseen_item_count": 5,
+          "anchor_count": 1,
+          "has_items": true
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "selected_kc": "6556c96b-e3be-4d67-8875-69b3b678b2a5",
+      "reason": "all_direct_prerequisites_mastered",
+      "candidates": [
+        {
+          "kc_id": "6556c96b-e3be-4d67-8875-69b3b678b2a5",
+          "score": 2391,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 22,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "2ceee5b6-021d-46db-b5df-08030916bf4b",
+          "score": 2355,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 23,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 22,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "f13f2f58-b3d6-4806-9a21-2f5a59622246",
+          "score": 2015,
+          "reason": "near_known_gap_boundary",
+          "closure_gain": 19,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 18,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "b6076d9c-df71-4a84-8980-b462caca92b9",
+          "score": 1800,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 16,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 15,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+          "score": 1697,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 16,
+          "unknown_ancestors": 1,
+          "unknown_descendants": 14,
+          "item_count": 5,
+          "unseen_item_count": 5,
+          "anchor_count": 1,
+          "has_items": true
+        }
+      ]
+    }
+  ],
+  "state_transitions": [
+    {
+      "step": 1,
+      "kc_id": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+      "decision": "fundamental_gap",
+      "changes": [
+        {
+          "kc_id": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+          "from": "unknown",
+          "to": "tested_gap",
+          "reason": "tested_fail"
+        },
+        {
+          "kc_id": "a79b57c1-7aea-4de4-b670-fc8bf2c21734",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "9e9c5789-2dce-4f16-a695-632cb9301923",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "a1085fdd-43e4-4d7b-96b6-36e24fb51777",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "1cd105ba-e188-40c5-badb-89b4a475df52",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "cabfac64-e7dd-4074-99fa-aa240ffa4a80",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "ff3da98d-995e-4c4c-8e3b-681851c95671",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "55db8d40-9a2a-431e-b698-008f60325395",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "38847efa-ffb3-4974-a545-7a0c34504fb6",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "9b541386-16c6-4ee5-9dc0-c6eb76f0e390",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "57767f23-fa58-4d24-a2c3-e2bc436786da",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "65b18e6f-7da5-45b8-a737-39b9bac1f722",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "32caa11b-ee1d-4208-99dd-a8b393b45dd4",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "64e80095-6942-4c30-84d4-a3aa7a90d5b0",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "cdb87133-898d-431e-9155-b17dacb8d6dd",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "375a0e3b-9199-4531-9230-6c8e885b9848",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "33b1d60d-acfc-4736-a239-6d12646115a8",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "fef10487-76c4-462e-94da-4ecde06a147f",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "9100557a-7ccf-430a-82ff-0cb2d9eb4b21",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "2c3fda5a-55af-42de-b11b-72617bc45836",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "d0d94d7e-8b74-4648-a31e-a722b86957d3",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "6e841f72-b15d-4d7f-a964-97176e76f22c",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "ba99a753-23ae-43b9-9355-3010ffeb014a",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "eecf4177-b5c2-48ea-ac8f-2f11c40c9956",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "6e6c4448-2c54-4921-b742-b881b8626aff",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "15f3f99d-da21-40b2-b1c9-76c5e2979757",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "f5911516-dc46-4adf-878c-edfe38a2980b",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "4a8a5463-5958-48b7-8e90-f536aa889645",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "1e15deb5-5b47-4a71-a5c3-a58858f93fd8",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "da118684-1954-4b4a-ae1e-4a51f3317430",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "bb078241-4173-4846-bda6-d1a48613dd40",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "959461db-e6ce-44b6-8c5f-25c65ac467e8",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "5d32c8a0-841b-47ef-b75e-9cc64f527aaa",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "b2dfdb0c-b3ef-47d6-bb61-a76999c50cef",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "3bf438fd-b505-41f5-9864-ce1c914cde8c",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "3e934c4e-d6b3-4383-9b11-30c38b71aea5",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "b40bd888-5268-476f-bdc6-a6116fef1b16",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "ab3650f9-b9db-458f-be79-83840d990c0a",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "4138513c-6cc2-41fe-bed2-2b2d4641fc28",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "e18dd0c5-7ea3-42e0-9121-3181b56bb553",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "c333baa7-07c9-435d-8b03-a664244d0f21",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "656a1d64-f530-4757-88d5-0a96a5397eb7",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "0164cf7c-e080-4ca0-909b-e292f65af633",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "93a0e693-56a1-4140-bbb5-6f27cd2c155b",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "f4b7b7ed-f404-480c-9074-4f59e6b92f88",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "c09312eb-28c9-4e8c-838f-5726b0b7d541",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "a4da21df-12a3-42f1-aef5-923f2960f3d6",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "7cbdb26d-d6a9-4038-81f2-cb7c697a0420",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "d20a3bed-c6ea-4166-992d-594eaebfec4b",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "111d3f6a-1d76-4929-bcb5-adc2b7bbe0d6",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "2ae1719f-bea4-49c8-9dbc-934e9c07be32",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        },
+        {
+          "kc_id": "6c18010c-1818-45cb-9c06-7c4adde88e07",
+          "from": "unknown",
+          "to": "inferred_gap",
+          "reason": "descendant_of_failed:66e748f8-6756-4f7a-8232-b6a4b7d7661f"
+        }
+      ],
+      "next_kc": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+      "state_counts": {
+        "tested_mastered": 0,
+        "tested_gap": 1,
+        "inferred_mastered": 0,
+        "inferred_gap": 53,
+        "unknown": 193
+      }
+    },
+    {
+      "step": 2,
+      "kc_id": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+      "decision": "pass",
+      "changes": [
+        {
+          "kc_id": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+          "from": "unknown",
+          "to": "tested_mastered",
+          "reason": "tested_pass"
+        }
+      ],
+      "next_kc": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+      "state_counts": {
+        "tested_mastered": 1,
+        "tested_gap": 1,
+        "inferred_mastered": 0,
+        "inferred_gap": 53,
+        "unknown": 192
+      }
+    },
+    {
+      "step": 3,
+      "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+      "decision": "pass",
+      "changes": [
+        {
+          "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+          "from": "unknown",
+          "to": "tested_mastered",
+          "reason": "tested_pass"
+        }
+      ],
+      "next_kc": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+      "state_counts": {
+        "tested_mastered": 2,
+        "tested_gap": 1,
+        "inferred_mastered": 0,
+        "inferred_gap": 53,
+        "unknown": 191
+      }
+    },
+    {
+      "step": 4,
+      "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+      "decision": "pass",
+      "changes": [
+        {
+          "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+          "from": "unknown",
+          "to": "tested_mastered",
+          "reason": "tested_pass"
+        }
+      ],
+      "next_kc": "6556c96b-e3be-4d67-8875-69b3b678b2a5",
+      "state_counts": {
+        "tested_mastered": 3,
+        "tested_gap": 1,
+        "inferred_mastered": 0,
+        "inferred_gap": 53,
+        "unknown": 190
+      }
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "kc_id": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+      "kc_code": "G6-MATH-NHAN-BIET-DOC",
+      "kc_name": "Nhận biết, đọc và viết số nguyên âm",
+      "item_id": "57d15a74-0775-4e04-a2d9-5ce850c8e6a1",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "A",
+      "correct_answer": "B",
+      "correct": false,
+      "thinking": "Số nguyên âm nghe lạ quá, hình như em chưa học tới bài này hoặc em quên mất tiêu rồi. Em thấy số 5 là số bình thường mình hay dùng nhất từ hồi lớp 1 đến giờ, chắc nó là số nguyên âm thôi. Mấy cái có dấu gạch ngang với dấu cộng đằng trước nhìn cứ kỳ kỳ sao ấy."
+    },
+    {
+      "step": 2,
+      "kc_id": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+      "kc_code": "G6-MATH-NHAN-BIET-DOC",
+      "kc_name": "Nhận biết, đọc và viết số nguyên âm",
+      "item_id": "4f4693d6-12f8-41d5-ad8b-a80193210b6f",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "D",
+      "correct_answer": "B",
+      "correct": false,
+      "thinking": "Tập hợp Z là cái gì nhỉ, hình như là số nguyên mà cô mới nhắc qua. Em nhớ mang máng là có mấy số có dấu trừ đằng trước gọi là số âm, với cả số 0 nữa là hết rồi. Chắc là chỉ có hai loại đó thôi nên em chọn câu D cho chắc."
+    },
+    {
+      "step": 3,
+      "kc_id": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+      "kc_code": "G6-MATH-NHAN-BIET-DOC",
+      "kc_name": "Nhận biết, đọc và viết số nguyên âm",
+      "item_id": "7c3cad10-2057-43eb-9f2a-e8e5820a0292",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "C",
+      "correct_answer": "B",
+      "correct": false,
+      "thinking": "Số nguyên âm là mấy số có dấu gạch ngang đúng không ta? Em thấy có -8, -3, -1 là 3 số rồi, nhưng mà hình như số 0 cũng là số âm luôn vì nó không phải số dương. Vậy là em đếm được 4 số tất cả, chắc là đáp án C rồi."
+    },
+    {
+      "step": 4,
+      "kc_id": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+      "kc_code": "G6-MATH-TIA",
+      "kc_name": "Tia",
+      "item_id": "bdfdb678-3ec7-4bbe-960a-fac56cf204ca",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "B",
+      "correct_answer": "B",
+      "correct": true,
+      "thinking": "Câu này dễ nè, em học rồi. Điểm M nằm trên đường thẳng d thì mình dùng ký hiệu thuộc là chữ e viết hoa tròn tròn (∈). Em nhớ cô dặn là điểm thuộc đường thẳng chứ không phải đường thẳng thuộc điểm nên em chọn B."
+    },
+    {
+      "step": 5,
+      "kc_id": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+      "kc_code": "G6-MATH-TIA",
+      "kc_name": "Tia",
+      "item_id": "ed43395f-42c1-42bd-8a47-a6a95d8adf2f",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "B",
+      "correct_answer": "B",
+      "correct": true,
+      "thinking": "Tia Am thì cái chữ viết hoa đứng đầu luôn luôn là cái gốc, còn chữ m thường là cái hướng nó đi tới mãi mãi. Em nhớ bài này cô dạy kỹ lắm, vẽ cái hình có một đầu bị chặn lại là gốc A. Vậy đáp án đúng phải là chữ A."
+    },
+    {
+      "step": 6,
+      "kc_id": "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9",
+      "kc_code": "G6-MATH-TIA",
+      "kc_name": "Tia",
+      "item_id": "ae950539-12d9-41ef-a5e5-4fb56d9e0398",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "B",
+      "correct_answer": "B",
+      "correct": true,
+      "thinking": "Câu này em nhớ rồi, qua hai điểm thì mình chỉ đặt thước kẻ được đúng một đường thẳng đi qua cả hai thôi. Nếu vẽ đường khác thì nó cũng đè lên đường cũ hà. Vậy là chỉ có duy nhất một đường thôi."
+    },
+    {
+      "step": 7,
+      "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+      "kc_code": "G6-MATH-DIEM-DUONG-THANG",
+      "kc_name": "Điểm, đường thẳng ",
+      "item_id": "ff5480c1-7461-4688-b05b-6612a0983189",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "B",
+      "correct_answer": "B",
+      "correct": true,
+      "thinking": "Câu này cũng giống câu hồi nãy em làm nè, chỉ là đổi tên điểm P, Q thành A, B thôi. Em nhớ chắc chắn là qua hai điểm thì mình chỉ vẽ được duy nhất một đường thẳng thôi. Em chọn đáp án B vì nó đúng quy tắc em học."
+    },
+    {
+      "step": 8,
+      "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+      "kc_code": "G6-MATH-DIEM-DUONG-THANG",
+      "kc_name": "Điểm, đường thẳng ",
+      "item_id": "39607270-d685-4cdc-b5fd-3d6ad8911cc3",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "B",
+      "correct_answer": "B",
+      "correct": true,
+      "thinking": "Em nhớ cô dạy là điểm thì mình viết bằng chữ in hoa như A, B, C, còn đường thẳng thì mình hay dùng chữ cái viết thường như a, b, x, y để đặt tên. Mấy cái số hay ký hiệu lạ kia thì em chưa thấy bao giờ trong bài học về đường thẳng cả. Em chọn câu B là đúng nhất."
+    },
+    {
+      "step": 9,
+      "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+      "kc_code": "G6-MATH-DIEM-DUONG-THANG",
+      "kc_name": "Điểm, đường thẳng ",
+      "item_id": "9cd9f901-6317-4e96-afc0-b9bde054e7d4",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "C",
+      "correct_answer": "C",
+      "correct": true,
+      "thinking": "Điểm P không nằm trên đường thẳng m thì tức là đường thẳng đó nó chạy qua chỗ khác chứ không dính vào P. Em thấy câu A, B với D đều nói là nó dính nhau, chỉ có câu C là nói \"không chứa\" là đúng với cái hình em tưởng tượng. Em chọn C."
+    },
+    {
+      "step": 10,
+      "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+      "kc_code": "G6-MATH-NHAN-BIET-DIEM",
+      "kc_name": "Nhận biết điểm thuộc/không thuộc đường thẳng ",
+      "item_id": "e380b9b9-6df7-404b-87b2-816f6f8d89c8",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "A",
+      "correct_answer": "A",
+      "correct": true,
+      "thinking": "Câu này em làm được nè, điểm nằm trên đường thẳng thì mình dùng ký hiệu thuộc (∈). Em nhớ là phải viết điểm trước rồi mới tới đường thẳng sau. Vậy nên M ∈ d là cách viết đúng nhất mà cô giáo đã dạy trên lớp."
+    },
+    {
+      "step": 11,
+      "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+      "kc_code": "G6-MATH-NHAN-BIET-DIEM",
+      "kc_name": "Nhận biết điểm thuộc/không thuộc đường thẳng ",
+      "item_id": "30b7a475-3f12-4fee-8d34-8148690fec70",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "A",
+      "correct_answer": "A",
+      "correct": true,
+      "thinking": "Đường thẳng a đi qua điểm P thì tức là điểm P nó nằm trên cái đường đó rồi. Em nhớ cô dạy là mình dùng từ \"thuộc\" để nói về việc một điểm nằm trên đường thẳng. Vậy nên câu A \"Điểm P thuộc đường thẳng a\" là đúng nhất."
+    },
+    {
+      "step": 12,
+      "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+      "kc_code": "G6-MATH-NHAN-BIET-DIEM",
+      "kc_name": "Nhận biết điểm thuộc/không thuộc đường thẳng ",
+      "item_id": "829931b7-29a7-498e-ae19-8f6bb983a79b",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "A",
+      "correct_answer": "A",
+      "correct": true,
+      "thinking": "Cái này em học từ hồi đầu năm lúc học về tập hợp rồi, cô bảo dấu gạch chéo qua chữ E là \"không thuộc\". Điểm A không nằm trên đường thẳng d thì mình dùng ký hiệu đó thôi. Em chắc chắn là câu A đúng."
+    }
+  ]
+}

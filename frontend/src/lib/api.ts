@@ -135,6 +135,90 @@ export interface GraphData {
   notes: GraphNote[];
 }
 
+export type AssessmentRunNodeState =
+  | "tested_mastered"
+  | "tested_gap"
+  | "inferred_mastered"
+  | "inferred_gap"
+  | "unknown";
+
+export interface AssessmentRunSummary {
+  run_id: string;
+  title: string;
+  created_at?: string;
+  status?: string;
+  steps: number;
+  tested_kcs: number;
+  pending_draft_steps: number;
+  cost?: Record<string, any>;
+  source_file: string;
+}
+
+export interface AssessmentRunStep {
+  step: number;
+  kc_id: string;
+  kc_code?: string;
+  kc_name?: string;
+  item_id?: string;
+  source?: string;
+  draft_tag?: string | null;
+  difficulty_label?: string | null;
+  irt_b?: number;
+  is_diagnostic_anchor?: boolean;
+  question?: string;
+  answers?: Array<{ label?: string; text?: string; is_correct?: boolean }>;
+  correct_answer?: string;
+  agent_answer?: string;
+  agent_correct?: boolean;
+  correct?: boolean;
+  agent_thinking?: string;
+  thinking?: string;
+  persona_knows_kc?: boolean;
+}
+
+export interface AssessmentRunKCGroup {
+  kc_id: string;
+  kc_code?: string;
+  kc_name?: string;
+  persona_knows_kc?: boolean;
+  steps: AssessmentRunStep[];
+  n_items: number;
+  n_correct: number;
+  first_step: number;
+  last_step: number;
+}
+
+export interface AssessmentRunOverlay {
+  node_states: Record<string, AssessmentRunNodeState>;
+  tested_order: Record<string, number>;
+  steps_by_kc: AssessmentRunKCGroup[];
+  edge_path: Array<{
+    source: string;
+    target: string;
+    source_code?: string;
+    target_code?: string;
+  }>;
+  state_counts?: Record<string, number>;
+  state_transitions?: Array<Record<string, any>>;
+  frontier_history?: Array<Record<string, any>>;
+}
+
+export interface AssessmentRunDetail {
+  metadata: AssessmentRunSummary;
+  overlay: AssessmentRunOverlay;
+  session?: Record<string, any>;
+  result?: Record<string, any>;
+  steps?: AssessmentRunStep[];
+  kc_results_named?: Array<{
+    kc_id: string;
+    code?: string;
+    name?: string;
+    outcome?: string;
+    persona_knows_kc?: boolean;
+  }>;
+  [key: string]: any;
+}
+
 export interface ItemCount {
   kc_id: string;
   total: number;
@@ -309,6 +393,19 @@ export const graphApi = {
   deleteNote: (id: string) =>
     request<{ ok: boolean }>(`/graph/note/${id}`, {
       method: "DELETE",
+    }),
+};
+
+export const assessmentRunApi = {
+  listRuns: () => request<{ runs: AssessmentRunSummary[] }>("/sandbox/assess/runs"),
+
+  getRun: (runId: string) =>
+    request<AssessmentRunDetail>(`/sandbox/assess/runs/${runId}`),
+
+  importRun: (payload: { source_file?: string; payload?: Record<string, any>; run_id?: string }) =>
+    request<{ ok: boolean; run: AssessmentRunSummary }>("/sandbox/assess/runs/import", {
+      method: "POST",
+      body: JSON.stringify(payload),
     }),
 };
 
