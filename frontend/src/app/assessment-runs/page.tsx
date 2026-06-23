@@ -146,7 +146,7 @@ function toRunEdges(
       width: 12,
       height: 12,
     },
-  }) satisfies Edge[]);
+  }) satisfies Edge);
 
   return [...realEdges, ...temporalEdges];
 }
@@ -221,11 +221,12 @@ function RunViewerPage() {
 
   useEffect(() => {
     if (!selectedRunId) return;
+    const runId = selectedRunId;
     let cancelled = false;
     async function loadDetail() {
       try {
         setDetailLoading(true);
-        const detail = await assessmentRunApi.getRun(selectedRunId);
+        const detail = await assessmentRunApi.getRun(runId);
         if (cancelled) return;
         setRunDetail(detail);
         const groupCount = detail.overlay?.steps_by_kc?.length || 0;
@@ -382,7 +383,7 @@ function RunViewerPage() {
             <MiniMap
               position="bottom-right"
               nodeColor={(node) => {
-                const data = node.data as KCNodeData;
+                const data = node.data as unknown as KCNodeData;
                 return STATE_COLORS[data.runState || "unknown"];
               }}
               maskColor="rgba(13,17,23,0.72)"
