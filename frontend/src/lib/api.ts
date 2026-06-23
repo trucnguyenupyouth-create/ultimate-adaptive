@@ -188,6 +188,48 @@ export interface AssessmentRunKCGroup {
   last_step: number;
 }
 
+export interface AssessmentRunFlowStep {
+  order: number;
+  kc_id: string;
+  kc_code?: string;
+  kc_name?: string;
+  outcome?: string;
+  decision?: string;
+  n_items: number;
+  n_correct: number;
+  first_step?: number;
+  last_step?: number;
+  persona_knows_kc?: boolean;
+  next_kc?: string;
+  frontier_reason?: string;
+  closure_gain?: number;
+  unknown_ancestors?: number;
+  unknown_descendants?: number;
+  item_count?: number;
+  unseen_item_count?: number;
+  anchor_count?: number;
+}
+
+export interface AssessmentRunNodeExplanation {
+  kc_id: string;
+  state: AssessmentRunNodeState;
+  state_label: string;
+  tested_order?: number | null;
+  transition_step?: number | null;
+  reason_code?: string | null;
+  reason_text: string;
+  inferred_from_kc_id?: string | null;
+  outcome?: string | null;
+  evidence_summary: {
+    n_items: number;
+    n_correct: number;
+    n_wrong: number;
+    first_step?: number | null;
+    last_step?: number | null;
+    persona_knows_kc?: boolean | null;
+  };
+}
+
 export interface AssessmentRunOverlay {
   node_states: Record<string, AssessmentRunNodeState>;
   tested_order: Record<string, number>;
@@ -198,6 +240,14 @@ export interface AssessmentRunOverlay {
     source_code?: string;
     target_code?: string;
   }>;
+  run_path_edges?: Array<{
+    source: string;
+    target: string;
+    source_code?: string;
+    target_code?: string;
+  }>;
+  flow_steps?: AssessmentRunFlowStep[];
+  node_explanations?: Record<string, AssessmentRunNodeExplanation>;
   state_counts?: Record<string, number>;
   state_transitions?: Array<Record<string, any>>;
   frontier_history?: Array<Record<string, any>>;

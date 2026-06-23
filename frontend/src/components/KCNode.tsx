@@ -19,9 +19,11 @@ export interface KCNodeData {
   block_id?: string | null;
   blockName?: string | null;
   runState?: "tested_mastered" | "tested_gap" | "inferred_mastered" | "inferred_gap" | "unknown";
+  runStateLabel?: string;
   testedOrder?: number | null;
   isCurrentStep?: boolean;
   hideHandles?: boolean;
+  dimmed?: boolean;
 }
 
 const GRADE_COLOR: Record<number, { bg: string; border: string; label: string }> = {
@@ -43,18 +45,14 @@ function KCNodeComponent({ data, selected }: NodeProps) {
     unknown: { bg: "#1b1f24", border: "var(--border)", ring: "rgba(139,148,158,0.12)" },
   } as const;
   const runTone = d.runState ? stateTone[d.runState] : null;
-  const borderColor = d.isCurrentStep
-    ? "#58a6ff"
-    : selected
+  const borderColor = selected
     ? "var(--node-selected-border)"
     : runTone
     ? runTone.border
     : isWarning
     ? "var(--node-warning-border)"
     : colors.border;
-  const bgColor = d.isCurrentStep
-    ? "rgba(88,166,255,0.14)"
-    : selected
+  const bgColor = selected
     ? "var(--node-selected)"
     : runTone
     ? runTone.bg
@@ -80,6 +78,7 @@ function KCNodeComponent({ data, selected }: NodeProps) {
         transition: "all 0.15s ease",
         animation: "fadeIn 0.2s ease",
         userSelect: "none",
+        opacity: d.dimmed ? 0.28 : 1,
       }}
     >
       {/* Top handle — target (incoming edges) */}
@@ -154,8 +153,10 @@ function KCNodeComponent({ data, selected }: NodeProps) {
                 background: "rgba(88,166,255,0.16)",
                 color: "#79c0ff",
                 border: "1px solid rgba(88,166,255,0.3)",
-                fontSize: 10,
+                fontSize: 12,
                 marginLeft: "auto",
+                minWidth: 28,
+                justifyContent: "center",
               }}
               title={`KC được test thứ ${d.testedOrder}`}
             >
@@ -196,6 +197,22 @@ function KCNodeComponent({ data, selected }: NodeProps) {
         >
           {d.name}
         </div>
+        {d.runStateLabel && (
+          <div
+            className="badge"
+            style={{
+              display: "inline-flex",
+              background: `${borderColor}1f`,
+              color: borderColor,
+              border: `1px solid ${borderColor}55`,
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: 0,
+            }}
+          >
+            {d.runStateLabel}
+          </div>
+        )}
       </div>
 
       {/* Item count health bar — NOT a drag handle so clicks work */}

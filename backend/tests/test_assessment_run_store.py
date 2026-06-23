@@ -71,6 +71,9 @@ def test_get_run_derives_overlay_from_new_shape(temp_store):
     assert run["overlay"]["node_states"]["kc-3"] == "inferred_gap"
     assert run["overlay"]["tested_order"] == {"kc-1": 1, "kc-2": 2}
     assert len(run["overlay"]["steps_by_kc"]) == 2
+    assert run["overlay"]["flow_steps"][0]["order"] == 1
+    assert run["overlay"]["flow_steps"][0]["kc_id"] == "kc-1"
+    assert run["overlay"]["node_explanations"]["kc-1"]["state_label"] == "TESTED PASS"
 
 
 def test_get_run_derives_overlay_from_legacy_shape(temp_store):
@@ -93,3 +96,34 @@ def test_get_run_derives_overlay_from_legacy_shape(temp_store):
     assert run["overlay"]["node_states"]["kc-1"] == "tested_mastered"
     assert run["overlay"]["node_states"]["kc-2"] == "tested_gap"
     assert run["metadata"]["pending_draft_steps"] == 1
+
+
+def test_node_explanations_capture_inference_reason(temp_store):
+    _, run_store_dir = temp_store
+    payload = {
+        "steps": [
+            {"step": 1, "kc_id": "root", "kc_code": "ROOT", "kc_name": "Root", "correct": False},
+        ],
+        "session": {
+            "kc_results": {"root": "fail"},
+            "kc_states": {"root": "tested_gap", "child": "inferred_gap"},
+            "state_transitions": [
+                {
+                    "step": 1,
+                    "kc_id": "root",
+                    "decision": "fundamental_gap",
+                    "changes": [
+                        {"kc_id": "root", "from": "unknown", "to": "tested_gap", "reason": "tested_fail"},
+                        {"kc_id": "child", "from": "unknown", "to": "inferred_gap", "reason": "descendant_of_failed:root"},
+                    ],
+                }
+            ],
+        },
+    }
+    _write_json(run_store_dir / "inference.json", payload)
+
+    run = store.get_run("inference")
+    child = run["overlay"]["node_explanations"]["child"]
+    assert child["state_label"] == "INFERRED GAP"
+    assert child["inferred_from_kc_id"] == "root"
+    assert "root" in child["reason_text"]

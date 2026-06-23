@@ -168,12 +168,22 @@ def _derive_overlay(run: dict[str, Any]) -> dict[str, Any]:
 
     state_transitions = (run.get("session") or {}).get("state_transitions") or run.get("state_transitions") or []
     frontier_history = (run.get("session") or {}).get("frontier_history") or run.get("frontier_history") or []
+    flow_steps = _build_flow_steps(steps_by_kc, kc_results, state_transitions, frontier_history)
+    node_explanations = _build_node_explanations(
+        node_states=node_states,
+        steps_by_kc=steps_by_kc,
+        kc_results=kc_results,
+        state_transitions=state_transitions,
+    )
 
     return {
         "node_states": node_states,
         "tested_order": tested_order,
         "steps_by_kc": steps_by_kc,
         "edge_path": edge_path,
+        "run_path_edges": edge_path,
+        "flow_steps": flow_steps,
+        "node_explanations": node_explanations,
         "state_counts": state_counts,
         "state_transitions": state_transitions,
         "frontier_history": frontier_history,
@@ -248,3 +258,214 @@ def _group_steps_by_kc(steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
         group["first_step"] = group["steps"][0]["step"]
         group["last_step"] = group["steps"][-1]["step"]
     return grouped
+
+
+def _build_flow_steps(
+    steps_by_kc: list[dict[str, Any]],
+    kc_results: dict[str, str],
+    state_transitions: list[dict[str, Any]],
+    frontier_history: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    transitions_by_kc = {
+        transition.get("kc_id"): transition
+        for transition in state_transitions
+        if transition.get("kc_id")
+    }
+    frontier_by_selected = {
+        frontier.get("selected_kc"): frontier
+        for frontier in frontier_history
+        if frontier.get("selected_kc")
+    }
+
+    flow_steps: list[dict[str, Any]] = []
+    for index, group in enumerate(steps_by_kc):
+        kc_id = group["kc_id"]
+        transition = transitions_by_kc.get(kc_id) or {}
+        frontier = frontier_by_selected.get(kc_id) or (
+            frontier_history[index] if index < len(frontier_history) else {}
+        )
+        selected_candidate = _selected_frontier_candidate(frontier, kc_id)
+        flow_steps.append({
+            "order": index + 1,
+            "kc_id": kc_id,
+            "kc_code": group.get("kc_code"),
+            "kc_name": group.get("kc_name"),
+            "outcome": kc_results.get(kc_id) or _outcome_from_counts(group),
+            "decision": transition.get("decision") or kc_results.get(kc_id),
+            "n_items": group.get("n_items", 0),
+            "n_correct": group.get("n_correct", 0),
+            "first_step": group.get("first_step"),
+            "last_step": group.get("last_step"),
+            "persona_knows_kc": group.get("persona_knows_kc"),
+            "next_kc": transition.get("next_kc"),
+            "frontier_reason": frontier.get("reason"),
+            "closure_gain": selected_candidate.get("closure_gain"),
+            "unknown_ancestors": selected_candidate.get("unknown_ancestors"),
+            "unknown_descendants": selected_candidate.get("unknown_descendants"),
+            "item_count": selected_candidate.get("item_count"),
+            "unseen_item_count": selected_candidate.get("unseen_item_count"),
+            "anchor_count": selected_candidate.get("anchor_count"),
+        })
+    return flow_steps
+
+
+def _build_node_explanations(
+    *,
+    node_states: dict[str, str],
+    steps_by_kc: list[dict[str, Any]],
+    kc_results: dict[str, str],
+    state_transitions: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    groups_by_kc = {group["kc_id"]: group for group in steps_by_kc}
+    order_by_kc = {group["kc_id"]: index + 1 for index, group in enumerate(steps_by_kc)}
+    explanations: dict[str, dict[str, Any]] = {}
+
+    for transition in state_transitions:
+        transition_step = transition.get("step")
+        source_kc_id = transition.get("kc_id")
+        for change in transition.get("changes") or []:
+            kc_id = change.get("kc_id")
+            if not kc_id:
+                continue
+            explanations[kc_id] = _explanation_for_change(
+                kc_id=kc_id,
+                state=change.get("to") or node_states.get(kc_id) or STATE_UNKNOWN,
+                reason_code=change.get("reason"),
+                transition_step=transition_step,
+                source_kc_id=source_kc_id,
+                group=groups_by_kc.get(kc_id),
+                tested_order=order_by_kc.get(kc_id),
+                outcome=kc_results.get(kc_id),
+            )
+
+    for kc_id, state in node_states.items():
+        explanations.setdefault(
+            kc_id,
+            _explanation_for_change(
+                kc_id=kc_id,
+                state=state,
+                reason_code=_fallback_reason_code(state),
+                transition_step=None,
+                source_kc_id=None,
+                group=groups_by_kc.get(kc_id),
+                tested_order=order_by_kc.get(kc_id),
+                outcome=kc_results.get(kc_id),
+            ),
+        )
+    return explanations
+
+
+def _explanation_for_change(
+    *,
+    kc_id: str,
+    state: str,
+    reason_code: str | None,
+    transition_step: int | None,
+    source_kc_id: str | None,
+    group: dict[str, Any] | None,
+    tested_order: int | None,
+    outcome: str | None,
+) -> dict[str, Any]:
+    inferred_from = _inferred_source_from_reason(reason_code) or (
+        source_kc_id if state in {STATE_INFERRED_GAP, STATE_INFERRED_MASTERED} else None
+    )
+    n_items = group.get("n_items", 0) if group else 0
+    n_correct = group.get("n_correct", 0) if group else 0
+    return {
+        "kc_id": kc_id,
+        "state": state,
+        "state_label": _state_label(state),
+        "tested_order": tested_order,
+        "transition_step": transition_step,
+        "reason_code": reason_code,
+        "reason_text": _reason_text(
+            state=state,
+            reason_code=reason_code,
+            inferred_from_kc_id=inferred_from,
+            n_items=n_items,
+            n_correct=n_correct,
+        ),
+        "inferred_from_kc_id": inferred_from,
+        "outcome": outcome,
+        "evidence_summary": {
+            "n_items": n_items,
+            "n_correct": n_correct,
+            "n_wrong": max(n_items - n_correct, 0),
+            "first_step": group.get("first_step") if group else None,
+            "last_step": group.get("last_step") if group else None,
+            "persona_knows_kc": group.get("persona_knows_kc") if group else None,
+        },
+    }
+
+
+def _selected_frontier_candidate(frontier: dict[str, Any], kc_id: str) -> dict[str, Any]:
+    for candidate in frontier.get("candidates") or []:
+        if candidate.get("kc_id") == kc_id:
+            return candidate
+    return {}
+
+
+def _outcome_from_counts(group: dict[str, Any]) -> str | None:
+    n_items = group.get("n_items", 0)
+    n_correct = group.get("n_correct", 0)
+    if not n_items:
+        return None
+    if n_correct == n_items:
+        return "pass"
+    if n_correct == 0:
+        return "fail"
+    return "mixed"
+
+
+def _fallback_reason_code(state: str) -> str:
+    if state == STATE_TESTED_MASTERED:
+        return "tested_pass"
+    if state == STATE_TESTED_GAP:
+        return "tested_fail"
+    if state == STATE_INFERRED_MASTERED:
+        return "inferred_mastered"
+    if state == STATE_INFERRED_GAP:
+        return "inferred_gap"
+    return "unknown"
+
+
+def _inferred_source_from_reason(reason_code: str | None) -> str | None:
+    if not reason_code or ":" not in reason_code:
+        return None
+    return reason_code.split(":", 1)[1] or None
+
+
+def _state_label(state: str) -> str:
+    return {
+        STATE_TESTED_MASTERED: "TESTED PASS",
+        STATE_TESTED_GAP: "TESTED GAP",
+        STATE_INFERRED_MASTERED: "INFERRED PASS",
+        STATE_INFERRED_GAP: "INFERRED GAP",
+        STATE_UNKNOWN: "UNKNOWN",
+    }.get(state, state.upper())
+
+
+def _reason_text(
+    *,
+    state: str,
+    reason_code: str | None,
+    inferred_from_kc_id: str | None,
+    n_items: int,
+    n_correct: int,
+) -> str:
+    n_wrong = max(n_items - n_correct, 0)
+    if state == STATE_TESTED_MASTERED:
+        return f"Node này được test trực tiếp và pass do {n_correct}/{n_items} câu đúng."
+    if state == STATE_TESTED_GAP:
+        return f"Node này được test trực tiếp và fail do {n_wrong}/{n_items} câu sai."
+    if state == STATE_INFERRED_GAP:
+        if inferred_from_kc_id:
+            return f"Suy ra gap vì node prerequisite/root {inferred_from_kc_id} đã fail; node này là descendant trong graph."
+        return "Suy ra gap từ rule inference của assessment graph."
+    if state == STATE_INFERRED_MASTERED:
+        if inferred_from_kc_id:
+            return f"Suy ra mastered vì node descendant/harder {inferred_from_kc_id} đã pass; node này là ancestor trong graph."
+        return "Suy ra mastered từ rule inference của assessment graph."
+    if reason_code:
+        return f"State hiện tại được ghi nhận bởi reason: {reason_code}."
+    return "Node này chưa có đủ evidence trong run."
