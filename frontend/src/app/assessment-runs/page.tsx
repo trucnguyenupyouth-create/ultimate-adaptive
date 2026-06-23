@@ -244,6 +244,64 @@ function toRunEdges({
   return [...realEdges, ...runEdges, ...inferenceEdge];
 }
 
+function buildCompleteNodeExplanations({
+  graph,
+  finalNodeStates,
+  provided,
+  groups,
+  flowSteps,
+}: {
+  graph: GraphData;
+  finalNodeStates: Record<string, AssessmentRunNodeState>;
+  provided: Record<string, AssessmentRunNodeExplanation>;
+  groups: AssessmentRunKCGroup[];
+  flowSteps: AssessmentRunFlowStep[];
+}): Record<string, AssessmentRunNodeExplanation> {
+  const complete: Record<string, AssessmentRunNodeExplanation> = { ...provided };
+  const groupByKc = new Map(groups.map((group) => [group.kc_id, group]));
+  const flowByKc = new Map(flowSteps.map((step) => [step.kc_id, step]));
+
+  for (const node of graph.nodes || []) {
+    if (complete[node.id]) continue;
+    const state = finalNodeStates[node.id] || "unknown";
+    const group = groupByKc.get(node.id);
+    const flow = flowByKc.get(node.id);
+    const nItems = group?.n_items || flow?.n_items || 0;
+    const nCorrect = group?.n_correct || flow?.n_correct || 0;
+    complete[node.id] = {
+      kc_id: node.id,
+      state,
+      state_label: STATE_META[state].label,
+      tested_order: flow?.order ?? null,
+      transition_step: null,
+      reason_code: state === "unknown" ? "not_reached_or_not_resolved" : "derived_from_final_state",
+      reason_text: state === "unknown"
+        ? "Node này chưa được test trực tiếp và cũng chưa được suy luận bởi graph inference trong run này, nên vẫn ở trạng thái unknown."
+        : fallbackReasonText(state, nItems, nCorrect),
+      inferred_from_kc_id: null,
+      outcome: flow?.outcome || null,
+      evidence_summary: {
+        n_items: nItems,
+        n_correct: nCorrect,
+        n_wrong: Math.max(nItems - nCorrect, 0),
+        first_step: group?.first_step ?? null,
+        last_step: group?.last_step ?? null,
+        persona_knows_kc: group?.persona_knows_kc ?? null,
+      },
+    };
+  }
+  return complete;
+}
+
+function fallbackReasonText(state: AssessmentRunNodeState, nItems: number, nCorrect: number) {
+  const nWrong = Math.max(nItems - nCorrect, 0);
+  if (state === "tested_mastered") return `Node này được test trực tiếp và pass do ${nCorrect}/${nItems} câu đúng.`;
+  if (state === "tested_gap") return `Node này được test trực tiếp và fail do ${nWrong}/${nItems} câu sai.`;
+  if (state === "inferred_mastered") return "Suy ra mastered từ rule inference của assessment graph.";
+  if (state === "inferred_gap") return "Suy ra gap từ rule inference của assessment graph.";
+  return "Node này chưa có đủ evidence trong run.";
+}
+
 function RunViewerPage() {
   const [graph, setGraph] = useState<GraphData | null>(null);
   const [runs, setRuns] = useState<AssessmentRunSummary[]>([]);
@@ -333,8 +391,7 @@ function RunViewerPage() {
 
   const selectedGroup = selectedGroupIndex >= 0 ? groups[selectedGroupIndex] : null;
   const selectedKcId = selectedNodeId || selectedGroup?.kc_id || null;
-  const explanations = runDetail?.overlay?.node_explanations || {};
-  const selectedExplanation = selectedKcId ? explanations[selectedKcId] : null;
+  const finalNodeStates = runDetail?.overlay?.node_states || {};
   const selectedGraphNode = selectedKcId ? graphNodeById.get(selectedKcId) : null;
   const selectedGroupForNode = selectedKcId ? groups.find((group) => group.kc_id === selectedKcId) || null : null;
   const selectedFlowStep = selectedKcId ? flowSteps.find((step) => step.kc_id === selectedKcId) || null : null;
@@ -343,6 +400,18 @@ function RunViewerPage() {
     if (!runDetail) return {};
     return applyTransitions(runDetail, selectedGroupIndex);
   }, [runDetail, selectedGroupIndex]);
+
+  const explanations = useMemo(() => {
+    if (!graph) return runDetail?.overlay?.node_explanations || {};
+    return buildCompleteNodeExplanations({
+      graph,
+      finalNodeStates,
+      provided: runDetail?.overlay?.node_explanations || {},
+      groups,
+      flowSteps,
+    });
+  }, [finalNodeStates, flowSteps, graph, groups, runDetail]);
+  const selectedExplanation = selectedKcId ? explanations[selectedKcId] : null;
 
   const stateCounts = useMemo(() => {
     const counts = { ...DEFAULT_COUNTS };
@@ -791,11 +860,16 @@ function NodeInspector({
           <div style={cardStyle(meta.color)}>
             <SectionTitle icon={<Info size={14} color={meta.color} />} label="Why This State?" />
             <div style={{ marginTop: 8, fontSize: 13, color: "#e6edf3", lineHeight: 1.55 }}>
-              {explanation?.reason_text || "Node này chưa có đủ evidence trong run."}
+              {formatReasonText(explanation, sourceNode)}
             </div>
             {explanation?.reason_code && (
               <div style={{ marginTop: 8, fontSize: 11, color: "#8b949e", fontFamily: "monospace" }}>
                 reason: {explanation.reason_code}
+              </div>
+            )}
+            {explanation?.transition_step && (
+              <div style={{ marginTop: 6, fontSize: 12, color: "#8b949e" }}>
+                State này được tạo ở transition #{explanation.transition_step}.
               </div>
             )}
             {sourceNode && explanation?.inferred_from_kc_id && (
@@ -944,6 +1018,30 @@ function outcomeState(step: AssessmentRunFlowStep): AssessmentRunNodeState {
   if (step.n_items > 0 && step.n_correct === step.n_items) return "tested_mastered";
   if (step.n_items > 0 && step.n_correct === 0) return "tested_gap";
   return "unknown";
+}
+
+function formatReasonText(explanation: AssessmentRunNodeExplanation | null, sourceNode?: KCNode | null) {
+  if (!explanation) return "Node này chưa có đủ evidence trong run.";
+  const summary = explanation.evidence_summary;
+  if (explanation.state === "tested_mastered") {
+    return `Node này được test trực tiếp và pass do ${summary.n_correct}/${summary.n_items} câu đúng.`;
+  }
+  if (explanation.state === "tested_gap") {
+    return `Node này được test trực tiếp và fail do ${summary.n_wrong}/${summary.n_items} câu sai.`;
+  }
+  if (explanation.state === "inferred_gap") {
+    const source = sourceNode
+      ? `${sourceNode.code} - ${sourceNode.name}`
+      : explanation.inferred_from_kc_id || "một prerequisite/root node";
+    return `Suy ra gap vì ${source} đã fail; theo graph, node đang chọn là descendant của node đó.`;
+  }
+  if (explanation.state === "inferred_mastered") {
+    const source = sourceNode
+      ? `${sourceNode.code} - ${sourceNode.name}`
+      : explanation.inferred_from_kc_id || "một descendant/harder node";
+    return `Suy ra mastered vì ${source} đã pass; theo graph, node đang chọn là ancestor/prerequisite của node đó.`;
+  }
+  return "Node này chưa được test trực tiếp và cũng chưa được suy luận bởi graph inference trong run này, nên vẫn ở trạng thái unknown.";
 }
 
 function valueOrDash(value: unknown) {

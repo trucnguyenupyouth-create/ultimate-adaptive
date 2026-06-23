@@ -174,6 +174,7 @@ def _derive_overlay(run: dict[str, Any]) -> dict[str, Any]:
         steps_by_kc=steps_by_kc,
         kc_results=kc_results,
         state_transitions=state_transitions,
+        unknown_kcs=(run.get("result") or {}).get("unknown") or [],
     )
 
     return {
@@ -315,6 +316,7 @@ def _build_node_explanations(
     steps_by_kc: list[dict[str, Any]],
     kc_results: dict[str, str],
     state_transitions: list[dict[str, Any]],
+    unknown_kcs: list[str],
 ) -> dict[str, dict[str, Any]]:
     groups_by_kc = {group["kc_id"]: group for group in steps_by_kc}
     order_by_kc = {group["kc_id"]: index + 1 for index, group in enumerate(steps_by_kc)}
@@ -352,6 +354,21 @@ def _build_node_explanations(
                 outcome=kc_results.get(kc_id),
             ),
         )
+    for kc_id in unknown_kcs:
+        if isinstance(kc_id, str):
+            explanations.setdefault(
+                kc_id,
+                _explanation_for_change(
+                    kc_id=kc_id,
+                    state=STATE_UNKNOWN,
+                    reason_code="not_reached_or_not_resolved",
+                    transition_step=None,
+                    source_kc_id=None,
+                    group=groups_by_kc.get(kc_id),
+                    tested_order=order_by_kc.get(kc_id),
+                    outcome=kc_results.get(kc_id),
+                ),
+            )
     return explanations
 
 
@@ -466,6 +483,8 @@ def _reason_text(
         if inferred_from_kc_id:
             return f"Suy ra mastered vì node descendant/harder {inferred_from_kc_id} đã pass; node này là ancestor trong graph."
         return "Suy ra mastered từ rule inference của assessment graph."
+    if state == STATE_UNKNOWN:
+        return "Node này chưa được test trực tiếp và cũng chưa được suy luận bởi graph inference trong run này, nên vẫn ở trạng thái unknown."
     if reason_code:
         return f"State hiện tại được ghi nhận bởi reason: {reason_code}."
     return "Node này chưa có đủ evidence trong run."

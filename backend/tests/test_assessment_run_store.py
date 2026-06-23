@@ -119,6 +119,7 @@ def test_node_explanations_capture_inference_reason(temp_store):
                 }
             ],
         },
+        "result": {"unknown": ["untouched"]},
     }
     _write_json(run_store_dir / "inference.json", payload)
 
@@ -127,3 +128,4 @@ def test_node_explanations_capture_inference_reason(temp_store):
     assert child["state_label"] == "INFERRED GAP"
     assert child["inferred_from_kc_id"] == "root"
     assert "root" in child["reason_text"]
+    assert run["overlay"]["node_explanations"]["untouched"]["state_label"] == "UNKNOWN"
