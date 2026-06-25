@@ -383,6 +383,33 @@ class ItemDraft(Base):
     )
 
 
+class AssessmentV2ItemReview(Base):
+    """Persistent academic review state for Assessment V2 open diagnostic items."""
+    __tablename__ = "assessment_v2_item_reviews"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    review_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    item_payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+
+    review_decision: Mapped[str] = mapped_column(String(20), nullable=False, default="needs_review")
+    flagged_for_review: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    review_comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    review_history: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMPTZ, nullable=True)
+    created_at: Mapped[datetime] = now_col()
+    updated_at: Mapped[datetime] = now_col()
+
+    __table_args__ = (
+        CheckConstraint(
+            "review_decision IN ('needs_review', 'accepted', 'rejected', 'revise')",
+            name="assessment_v2_item_reviews_decision_check",
+        ),
+        Index("idx_assessment_v2_item_reviews_decision", "review_decision"),
+        Index("idx_assessment_v2_item_reviews_flagged", "flagged_for_review"),
+    )
+
+
 class ItemImage(Base):
     """Image attachment for a question — belongs to either an Item or an ItemDraft."""
     __tablename__ = "item_images"

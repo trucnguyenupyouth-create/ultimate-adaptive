@@ -240,18 +240,22 @@ async def get_cost():
 
 
 @router.get("/v2-review/items", summary="List Assessment V2 open diagnostic review items")
-async def list_v2_review_items():
+async def list_v2_review_items(db: AsyncSession = Depends(get_db)):
     """
-    Return file-backed Assessment V2 review items plus persisted academic review state.
+    Return DB-backed Assessment V2 review items plus persisted academic review state.
 
     This is separate from ItemDraft approval: accepting/rejecting here does not
     import anything into the production item bank.
     """
-    return v2_review.list_review_items()
+    return await v2_review.list_review_items_db(db)
 
 
 @router.patch("/v2-review/items/{review_id}", summary="Update Assessment V2 item review state")
-async def update_v2_review_item(review_id: str, body: V2ReviewPatchRequest):
+async def update_v2_review_item(
+    review_id: str,
+    body: V2ReviewPatchRequest,
+    db: AsyncSession = Depends(get_db),
+):
     """
     Persist academic review state for one V2 item.
 
@@ -261,7 +265,7 @@ async def update_v2_review_item(review_id: str, body: V2ReviewPatchRequest):
       - add/update reviewer comment
     """
     try:
-        return v2_review.update_review_item(review_id, body.model_dump(exclude_unset=True))
+        return await v2_review.update_review_item_db(db, review_id, body.model_dump(exclude_unset=True))
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except ValueError as e:

@@ -68,3 +68,67 @@ def test_review_store_rejects_invalid_decision(tmp_path, monkeypatch):
         assert "Invalid review_decision" in str(exc)
     else:
         raise AssertionError("Expected invalid decision to raise ValueError")
+
+
+def test_review_store_flags_mcq_disguised_and_suggests_replacement(tmp_path, monkeypatch):
+    path = tmp_path / "review_items.json"
+    path.write_text(
+        json.dumps(
+            {
+                "items": [
+                    {
+                        "review_id": "v2-001",
+                        "cluster": "Fractions",
+                        "question": "Trong các cách viết sau: 3/4, 5/0, -2/7, 0/9. Cách viết nào KHÔNG phải là phân số hợp lệ? Nêu lí do ngắn gọn.",
+                        "answer_type": "short_text",
+                        "accepted_answers": ["5/0 vì mẫu số bằng 0"],
+                        "requires_kcs": ["kc-a"],
+                        "common_wrong_patterns": [],
+                    }
+                ],
+                "gap_records": [],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(store, "STORE_PATH", path)
+
+    listed = store.list_review_items()
+    item = listed["items"][0]
+    assert "mcq_disguised" in item["risk_tags"]
+    assert "fragile_text_grader" in item["risk_tags"]
+    assert item["recommended_review_action"] == "replace_required"
+    assert item["grader_readiness"] == "blocked"
+    assert item["suggested_replacement"]["answer_type"] == "integer"
+
+
+def test_review_store_identifies_widget_checker_items(tmp_path, monkeypatch):
+    path = tmp_path / "review_items.json"
+    path.write_text(
+        json.dumps(
+            {
+                "items": [
+                    {
+                        "review_id": "v2-015",
+                        "cluster": "Expressions",
+                        "question": "Viết kết quả dưới dạng một lũy thừa: 5⁴ · 5",
+                        "answer_type": "short_text",
+                        "accepted_answers": ["5^5", "5 mũ 5"],
+                        "requires_kcs": ["kc-a"],
+                        "common_wrong_patterns": [],
+                    }
+                ],
+                "gap_records": [],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(store, "STORE_PATH", path)
+
+    item = store.list_review_items()["items"][0]
+    assert "expression_parser_widget" in item["risk_tags"]
+    assert "needs_widget_checker" in item["risk_tags"]
+    assert item["recommended_review_action"] == "needs_widget_checker"
+    assert item["required_checker"] == "power_widget"
