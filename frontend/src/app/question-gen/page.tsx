@@ -286,6 +286,15 @@ const CSS = `
   .v2-comment { width: 100%; min-height: 72px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 10px; font-family: inherit; font-size: 12px; line-height: 1.5; resize: vertical; outline: none; }
   .v2-comment:focus { border-color: var(--accent); }
   .v2-row-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .v2-risk-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .v2-risk-tag { background: #3b1d0a; border: 1px solid #b45309; color: #fdba74; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+  .v2-risk-tag.ready { background: #052e16; border-color: #15803d; color: #86efac; }
+  .v2-action-required { background: #1e1b4b; border: 1px solid #6366f1; color: #c7d2fe; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.5; }
+  .v2-replacement { background: #101827; border: 1px solid #334155; border-radius: 8px; padding: 9px 10px; font-size: 12px; line-height: 1.55; color: var(--text-muted); }
+  .v2-replacement strong { color: var(--text); }
+  .v2-save-state { font-size: 11px; color: var(--text-muted); }
+  .v2-save-state.saved { color: var(--green); }
+  .v2-save-state.failed { color: var(--red); }
   @media (max-width: 1250px) { .v2-scroll { grid-template-columns: 1fr; } .v2-side { position: static; } }
 `;
 
@@ -696,9 +705,37 @@ const QuestionCard = React.memo(function QuestionCard({
 });
 
 type V2LocalStatus = "needs_review" | "revise" | "accepted" | "rejected";
+type V2RiskFilter = "all" | "mcq_disguised" | "binary_disguised" | "needs_widget_checker" | "fragile_text_grader" | "ready_for_algorithm";
+
+const RISK_FILTER_LABELS: Record<V2RiskFilter, string> = {
+  all: "All risk states",
+  mcq_disguised: "MCQ disguised",
+  binary_disguised: "Binary",
+  needs_widget_checker: "Needs parser/widget",
+  fragile_text_grader: "Fragile text grader",
+  ready_for_algorithm: "Ready for algorithm",
+};
+
+const ACTION_LABELS: Record<string, string> = {
+  replace_required: "Replace required",
+  needs_widget_checker: "Needs widget/checker",
+  human_review_only: "Human review only",
+  review_risk: "Review risk",
+  ready_for_algorithm: "Ready for algorithm",
+};
 
 function itemReviewWarnings(item: V2ReviewItem): string[] {
   const warnings: string[] = [];
+  for (const tag of item.risk_tags ?? []) {
+    if (tag === "mcq_disguised") warnings.push("MCQ trá hình: đáp án/không gian lựa chọn nằm ngay trong đề, guessing vẫn cao.");
+    else if (tag === "binary_disguised") warnings.push("Binary item: học sinh có thể đoán Có/Không với xác suất cao.");
+    else if (tag === "ordered_list_widget") warnings.push("Cần ordered-list widget, không nên chấm bằng string tự do.");
+    else if (tag === "expression_parser_widget") warnings.push("Cần parser/widget cho biểu thức, không nên chấm bằng exact text.");
+    else if (tag === "fragile_text_grader") warnings.push("Accepted answers dài/đa dạng, heuristic string match dễ false negative.");
+    else if (tag === "reasoning_hard_to_auto_grade") warnings.push("Reasoning tự do khó auto-grade chắc; chỉ dùng khi có rubric/NLP/manual review.");
+    else if (tag === "needs_widget_checker") warnings.push("Bị chặn khỏi algorithm-ready cho đến khi có widget/checker phù hợp.");
+    else warnings.push(tag);
+  }
   if (!item.academic_reviewed) warnings.push("Chưa academic review.");
   if (item.inference_strength === "weak") warnings.push("Đang để weak inference; cần reviewer quyết định có nâng lên medium/strong không.");
   if (item.answer_type === "short_text") warnings.push("short_text cần rubric hoặc redesign thành structured input để auto-grade chắc hơn.");
@@ -718,6 +755,7 @@ function AssessmentV2ReviewPanel() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [saveStatusById, setSaveStatusById] = useState<Record<string, "saved" | "failed">>({});
 
   const loadReviewItems = useCallback(async () => {
     setLoading(true);
@@ -743,6 +781,7 @@ function AssessmentV2ReviewPanel() {
     [items]
   );
   const [cluster, setCluster] = useState("all");
+  const [riskFilter, setRiskFilter] = useState<V2RiskFilter>("all");
   const [query, setQuery] = useState("");
 
   const stats = React.useMemo(() => {
@@ -752,22 +791,35 @@ function AssessmentV2ReviewPanel() {
     const patterns = items.reduce((sum, item) => sum + (item.common_wrong_patterns?.length ?? 0), 0);
     const codexAdded = items.filter((item) => item.codex_review_status === "provisionally_accepted_for_algorithm_test_only").length;
     const flagged = items.filter((item) => item.flagged_for_review).length;
-    return { shortText, missingRequires, anchors, patterns, codexAdded, flagged };
+    const blocked = items.filter((item) => item.grader_readiness !== "ready").length;
+    const ready = items.filter((item) => item.grader_readiness === "ready").length;
+    return { shortText, missingRequires, anchors, patterns, codexAdded, flagged, blocked, ready };
   }, [items]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((item) => {
       if (cluster !== "all" && item.cluster !== cluster) return false;
+      if (riskFilter === "ready_for_algorithm" && item.grader_readiness !== "ready") return false;
+      if (riskFilter !== "all" && riskFilter !== "ready_for_algorithm") {
+        const tags = item.risk_tags ?? [];
+        if (riskFilter === "needs_widget_checker") {
+          if (!tags.includes("needs_widget_checker") && item.recommended_review_action !== "needs_widget_checker") return false;
+        } else if (!tags.includes(riskFilter)) {
+          return false;
+        }
+      }
       if (!q) return true;
       return (
         item.question.toLowerCase().includes(q) ||
         item.kc_id.toLowerCase().includes(q) ||
         item.answer_type.toLowerCase().includes(q) ||
-        item.cluster.toLowerCase().includes(q)
+        item.cluster.toLowerCase().includes(q) ||
+        (item.risk_tags ?? []).some((tag) => tag.toLowerCase().includes(q)) ||
+        (item.recommended_review_action ?? "").toLowerCase().includes(q)
       );
     });
-  }, [cluster, query, items]);
+  }, [cluster, riskFilter, query, items]);
 
   const statusCounts = React.useMemo(() => {
     const counts: Record<V2LocalStatus, number> = { needs_review: 0, revise: 0, accepted: 0, rejected: 0 };
@@ -783,12 +835,26 @@ function AssessmentV2ReviewPanel() {
   ) => {
     setSavingId(item.review_id);
     setError(null);
+    setSaveStatusById((prev) => {
+      const next = { ...prev };
+      delete next[item.review_id];
+      return next;
+    });
     try {
       const updated = await updateV2ReviewItem(item.review_id, patch);
       setItems((prev) => prev.map((row) => row.review_id === updated.review_id ? updated : row));
       setCommentDrafts((prev) => ({ ...prev, [updated.review_id]: updated.review_comment ?? "" }));
+      setSaveStatusById((prev) => ({ ...prev, [updated.review_id]: "saved" }));
+      window.setTimeout(() => {
+        setSaveStatusById((prev) => {
+          const next = { ...prev };
+          delete next[item.review_id];
+          return next;
+        });
+      }, 3000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Không lưu được review state");
+      setSaveStatusById((prev) => ({ ...prev, [item.review_id]: "failed" }));
     } finally {
       setSavingId(null);
     }
@@ -811,6 +877,8 @@ function AssessmentV2ReviewPanel() {
           <span className="v2-chip"><strong>{stats.missingRequires}</strong> missing requires_kcs</span>
           <span className="v2-chip"><strong>{stats.codexAdded}</strong> Codex-added</span>
           <span className="v2-chip"><strong>{stats.flagged}</strong> flagged</span>
+          <span className="v2-chip"><strong>{stats.blocked}</strong> blocked</span>
+          <span className="v2-chip"><strong>{stats.ready}</strong> ready</span>
           <span className="v2-chip"><strong>{gapRecords.length}</strong> gap records</span>
         </div>
       </div>
@@ -820,9 +888,14 @@ function AssessmentV2ReviewPanel() {
           <option value="all">All clusters</option>
           {clusters.map((name) => <option key={name} value={name}>{name}</option>)}
         </select>
+        <select className="v2-select" value={riskFilter} onChange={(event) => setRiskFilter(event.target.value as V2RiskFilter)}>
+          {(Object.keys(RISK_FILTER_LABELS) as V2RiskFilter[]).map((key) => (
+            <option key={key} value={key}>{RISK_FILTER_LABELS[key]}</option>
+          ))}
+        </select>
         <input
           className="v2-input"
-          placeholder="Search item, KC id, answer type..."
+          placeholder="Search item, KC id, answer type, risk tag..."
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
@@ -858,11 +931,50 @@ function AssessmentV2ReviewPanel() {
                   {item.codex_review_status === "provisionally_accepted_for_algorithm_test_only" && (
                     <span className="badge badge-blue">Codex added</span>
                   )}
+                  <span className={`v2-risk-tag${item.grader_readiness === "ready" ? " ready" : ""}`}>
+                    {item.grader_readiness === "ready" ? "algorithm ready" : "blocked"}
+                  </span>
+                  {item.recommended_review_action && (
+                    <span className="v2-risk-tag">
+                      {ACTION_LABELS[item.recommended_review_action] ?? item.recommended_review_action}
+                    </span>
+                  )}
                   {!item.academic_reviewed && <span className="badge badge-yellow">needs academic review</span>}
                   {item.flagged_for_review && <span className="badge badge-flag">flagged</span>}
                 </div>
                 <div className="v2-card-body">
                   <div className="v2-question">{item.question}</div>
+
+                  <div className="v2-risk-row">
+                    {(item.risk_tags?.length ? item.risk_tags : ["no_structural_risk_detected"]).map((tag) => (
+                      <span className={`v2-risk-tag${tag === "no_structural_risk_detected" ? " ready" : ""}`} key={`${item.review_id}-${tag}`}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {item.recommended_review_action && item.recommended_review_action !== "ready_for_algorithm" && (
+                    <div className="v2-action-required">
+                      <strong>Recommended action:</strong> {ACTION_LABELS[item.recommended_review_action] ?? item.recommended_review_action}
+                      {item.required_checker ? ` · Required checker: ${item.required_checker}` : ""}
+                    </div>
+                  )}
+
+                  {item.suggested_replacement && (
+                    <div className="v2-replacement">
+                      <strong>Suggested replacement:</strong> {item.suggested_replacement.question}
+                      <br />
+                      <strong>Answer type:</strong> {item.suggested_replacement.answer_type ?? "unspecified"}
+                      {" · "}
+                      <strong>Accepted:</strong> {(item.suggested_replacement.accepted_answers ?? []).join("; ") || "unspecified"}
+                      {item.suggested_replacement.reason && (
+                        <>
+                          <br />
+                          <strong>Why:</strong> {item.suggested_replacement.reason}
+                        </>
+                      )}
+                    </div>
+                  )}
 
                   <div className="v2-status-row">
                     {(["needs_review", "revise", "accepted", "rejected"] as V2LocalStatus[]).map((state) => (
@@ -888,6 +1000,28 @@ function AssessmentV2ReviewPanel() {
                     >
                       {item.flagged_for_review ? "Unflag" : "Flag"}
                     </button>
+                    <button
+                      className="v2-status-button"
+                      disabled={savingId === item.review_id}
+                      onClick={() => persistItem(item, {
+                        review_decision: "revise",
+                        flagged_for_review: true,
+                        note: "Reviewer marked item as replace required / not open-ended enough",
+                      })}
+                    >
+                      Mark replace required
+                    </button>
+                    <button
+                      className="v2-status-button"
+                      disabled={savingId === item.review_id}
+                      onClick={() => persistItem(item, {
+                        review_decision: "revise",
+                        flagged_for_review: true,
+                        note: "Reviewer marked item as needing widget/checker before algorithm use",
+                      })}
+                    >
+                      Mark needs checker
+                    </button>
                   </div>
 
                   <div className="v2-row-actions">
@@ -907,6 +1041,11 @@ function AssessmentV2ReviewPanel() {
                     >
                       {savingId === item.review_id ? "Saving..." : "Save comment"}
                     </button>
+                    {saveStatusById[item.review_id] && (
+                      <span className={`v2-save-state ${saveStatusById[item.review_id]}`}>
+                        {saveStatusById[item.review_id] === "saved" ? "Saved" : "Save failed"}
+                      </span>
+                    )}
                     {item.reviewed_at && (
                       <span style={{ color: "var(--text-muted)", fontSize: 11 }}>
                         saved {new Date(item.reviewed_at).toLocaleString()}
@@ -991,6 +1130,17 @@ function AssessmentV2ReviewPanel() {
               <li><strong>{statusCounts.accepted}</strong> accepted and persisted.</li>
               <li><strong>{statusCounts.rejected}</strong> rejected and persisted.</li>
               <li><strong>{stats.flagged}</strong> flagged and persisted.</li>
+              <li><strong>{stats.blocked}</strong> blocked from algorithm until redesign/checker.</li>
+              <li><strong>{stats.ready}</strong> structurally ready for deterministic testing.</li>
+            </ul>
+          </div>
+          <div className="v2-panel">
+            <h3>Risk Filters</h3>
+            <ul>
+              <li><strong>{items.filter((item) => item.risk_tags?.includes("mcq_disguised")).length}</strong> MCQ disguised.</li>
+              <li><strong>{items.filter((item) => item.risk_tags?.includes("binary_disguised")).length}</strong> binary answer risk.</li>
+              <li><strong>{items.filter((item) => item.risk_tags?.includes("needs_widget_checker") || item.recommended_review_action === "needs_widget_checker").length}</strong> need parser/widget.</li>
+              <li><strong>{items.filter((item) => item.risk_tags?.includes("fragile_text_grader")).length}</strong> fragile text grader.</li>
             </ul>
           </div>
           <div className="v2-panel">

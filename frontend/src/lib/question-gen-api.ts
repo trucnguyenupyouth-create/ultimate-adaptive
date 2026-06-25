@@ -139,6 +139,16 @@ export interface V2ReviewItem {
   flags?: string[];
   codex_review_status?: string;
   action_notes?: V2ActionNote[];
+  risk_tags?: string[];
+  recommended_review_action?: "replace_required" | "needs_widget_checker" | "human_review_only" | "review_risk" | "ready_for_algorithm" | string;
+  grader_readiness?: "ready" | "blocked" | string;
+  required_checker?: string;
+  suggested_replacement?: {
+    question?: string;
+    answer_type?: string;
+    accepted_answers?: string[];
+    reason?: string;
+  };
   review_decision?: "needs_review" | "accepted" | "rejected" | "revise";
   flagged_for_review?: boolean;
   review_comment?: string;
@@ -156,6 +166,9 @@ export interface V2ReviewSummary {
   codex_added: number;
   short_text: number;
   missing_requires: number;
+  risk_counts?: Record<string, number>;
+  action_counts?: Record<string, number>;
+  ready_for_algorithm?: number;
 }
 
 export interface V2ReviewResponse {
