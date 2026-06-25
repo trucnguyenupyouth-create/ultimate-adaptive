@@ -22,6 +22,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.services import assessment_v2_review_service as v2_review
 from app.services import question_gen_service as qg
 from app.services.question_gen_service import get_cost_summary
 
@@ -75,6 +76,13 @@ class CreateDraftRequest(BaseModel):
     difficulty_label: str          # "easy" | "medium" | "hard"
     is_diagnostic_anchor: bool = False
     kst_irt_tag: Optional[str] = None
+
+
+class V2ReviewPatchRequest(BaseModel):
+    review_decision: Optional[str] = None  # needs_review | accepted | rejected | revise
+    flagged_for_review: Optional[bool] = None
+    review_comment: Optional[str] = None
+    note: Optional[str] = None
 
 
 # ── Background Job Runner ─────────────────────────────────────────────────────
@@ -229,6 +237,35 @@ async def get_cost():
     Resets to zero on server restart (in-memory ledger).
     """
     return get_cost_summary()
+
+
+@router.get("/v2-review/items", summary="List Assessment V2 open diagnostic review items")
+async def list_v2_review_items():
+    """
+    Return file-backed Assessment V2 review items plus persisted academic review state.
+
+    This is separate from ItemDraft approval: accepting/rejecting here does not
+    import anything into the production item bank.
+    """
+    return v2_review.list_review_items()
+
+
+@router.patch("/v2-review/items/{review_id}", summary="Update Assessment V2 item review state")
+async def update_v2_review_item(review_id: str, body: V2ReviewPatchRequest):
+    """
+    Persist academic review state for one V2 item.
+
+    Supported actions:
+      - accept/reject/revise via review_decision
+      - flag/unflag via flagged_for_review
+      - add/update reviewer comment
+    """
+    try:
+        return v2_review.update_review_item(review_id, body.model_dump(exclude_unset=True))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 @router.get("/kcs", summary="List KCs with edges (candidates for generation)")

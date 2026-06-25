@@ -8,12 +8,14 @@ import {
   exportFlaggedDrafts,
   flagDraft,
   getDrafts,
+  getV2ReviewItems,
   getSgkContent,
   getStatus,
   rejectDraft,
   revertDraft,
   runGeneration,
   updateDraft,
+  updateV2ReviewItem,
 } from "@/lib/question-gen-api";
 import type {
   CostSummary,
@@ -23,15 +25,11 @@ import type {
   MCQContent,
   SgkResponse,
   StatusResponse,
+  V2ReviewItem,
 } from "@/lib/question-gen-api";
 import { itemApi } from "@/lib/api";
 import type { Item } from "@/lib/api";
 import ImageManager from "@/components/ImageManager";
-import {
-  assessmentV2GapRecords,
-  assessmentV2ReviewItems,
-  type V2ReviewItem,
-} from "./assessment-v2-review-data";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Styles (inline CSS-in-JS to keep single file — no Tailwind dependency)
@@ -285,6 +283,9 @@ const CSS = `
   .v2-status-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
   .v2-status-button { background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-size: 11px; padding: 5px 8px; border-radius: 999px; }
   .v2-status-button.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .v2-comment { width: 100%; min-height: 72px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 10px; font-family: inherit; font-size: 12px; line-height: 1.5; resize: vertical; outline: none; }
+  .v2-comment:focus { border-color: var(--accent); }
+  .v2-row-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   @media (max-width: 1250px) { .v2-scroll { grid-template-columns: 1fr; } .v2-side { position: static; } }
 `;
 
@@ -694,7 +695,7 @@ const QuestionCard = React.memo(function QuestionCard({
   );
 });
 
-type V2LocalStatus = "needs_review" | "revise" | "approved" | "reject";
+type V2LocalStatus = "needs_review" | "revise" | "accepted" | "rejected";
 
 function itemReviewWarnings(item: V2ReviewItem): string[] {
   const warnings: string[] = [];
@@ -711,26 +712,52 @@ function itemReviewWarnings(item: V2ReviewItem): string[] {
 }
 
 function AssessmentV2ReviewPanel() {
+  const [items, setItems] = useState<V2ReviewItem[]>([]);
+  const [gapRecords, setGapRecords] = useState<Array<Record<string, unknown> & { cluster: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+
+  const loadReviewItems = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getV2ReviewItems();
+      setItems(res.items);
+      setGapRecords(res.gap_records);
+      setCommentDrafts(Object.fromEntries(res.items.map((item) => [item.review_id, item.review_comment ?? ""])));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không tải được V2 review items");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReviewItems();
+  }, [loadReviewItems]);
+
   const clusters = React.useMemo(
-    () => Array.from(new Set(assessmentV2ReviewItems.map((item) => item.cluster))),
-    []
+    () => Array.from(new Set(items.map((item) => item.cluster))),
+    [items]
   );
   const [cluster, setCluster] = useState("all");
   const [query, setQuery] = useState("");
-  const [statusById, setStatusById] = useState<Record<string, V2LocalStatus>>({});
 
   const stats = React.useMemo(() => {
-    const shortText = assessmentV2ReviewItems.filter((item) => item.answer_type === "short_text").length;
-    const missingRequires = assessmentV2ReviewItems.filter((item) => !item.requires_kcs?.length).length;
-    const anchors = assessmentV2ReviewItems.filter((item) => item.is_diagnostic_anchor).length;
-    const patterns = assessmentV2ReviewItems.reduce((sum, item) => sum + (item.common_wrong_patterns?.length ?? 0), 0);
-    const codexAdded = assessmentV2ReviewItems.filter((item) => item.codex_review_status === "provisionally_accepted_for_algorithm_test_only").length;
-    return { shortText, missingRequires, anchors, patterns, codexAdded };
-  }, []);
+    const shortText = items.filter((item) => item.answer_type === "short_text").length;
+    const missingRequires = items.filter((item) => !item.requires_kcs?.length).length;
+    const anchors = items.filter((item) => item.is_diagnostic_anchor).length;
+    const patterns = items.reduce((sum, item) => sum + (item.common_wrong_patterns?.length ?? 0), 0);
+    const codexAdded = items.filter((item) => item.codex_review_status === "provisionally_accepted_for_algorithm_test_only").length;
+    const flagged = items.filter((item) => item.flagged_for_review).length;
+    return { shortText, missingRequires, anchors, patterns, codexAdded, flagged };
+  }, [items]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    return assessmentV2ReviewItems.filter((item) => {
+    return items.filter((item) => {
       if (cluster !== "all" && item.cluster !== cluster) return false;
       if (!q) return true;
       return (
@@ -740,15 +767,32 @@ function AssessmentV2ReviewPanel() {
         item.cluster.toLowerCase().includes(q)
       );
     });
-  }, [cluster, query]);
+  }, [cluster, query, items]);
 
   const statusCounts = React.useMemo(() => {
-    const counts: Record<V2LocalStatus, number> = { needs_review: 0, revise: 0, approved: 0, reject: 0 };
-    assessmentV2ReviewItems.forEach((item) => {
-      counts[statusById[item.review_id] ?? "needs_review"] += 1;
+    const counts: Record<V2LocalStatus, number> = { needs_review: 0, revise: 0, accepted: 0, rejected: 0 };
+    items.forEach((item) => {
+      counts[item.review_decision ?? "needs_review"] += 1;
     });
     return counts;
-  }, [statusById]);
+  }, [items]);
+
+  const persistItem = useCallback(async (
+    item: V2ReviewItem,
+    patch: Parameters<typeof updateV2ReviewItem>[1],
+  ) => {
+    setSavingId(item.review_id);
+    setError(null);
+    try {
+      const updated = await updateV2ReviewItem(item.review_id, patch);
+      setItems((prev) => prev.map((row) => row.review_id === updated.review_id ? updated : row));
+      setCommentDrafts((prev) => ({ ...prev, [updated.review_id]: updated.review_comment ?? "" }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không lưu được review state");
+    } finally {
+      setSavingId(null);
+    }
+  }, []);
 
   return (
     <div className="v2-review">
@@ -761,12 +805,13 @@ function AssessmentV2ReviewPanel() {
           </p>
         </div>
         <div className="v2-summary">
-          <span className="v2-chip"><strong>{assessmentV2ReviewItems.length}</strong> items</span>
+          <span className="v2-chip"><strong>{items.length}</strong> items</span>
           <span className="v2-chip"><strong>{stats.anchors}</strong> anchors</span>
           <span className="v2-chip"><strong>{stats.shortText}</strong> short_text</span>
           <span className="v2-chip"><strong>{stats.missingRequires}</strong> missing requires_kcs</span>
           <span className="v2-chip"><strong>{stats.codexAdded}</strong> Codex-added</span>
-          <span className="v2-chip"><strong>{assessmentV2GapRecords.length}</strong> gap records</span>
+          <span className="v2-chip"><strong>{stats.flagged}</strong> flagged</span>
+          <span className="v2-chip"><strong>{gapRecords.length}</strong> gap records</span>
         </div>
       </div>
 
@@ -782,15 +827,25 @@ function AssessmentV2ReviewPanel() {
           onChange={(event) => setQuery(event.target.value)}
         />
         <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
-          Showing {filtered.length}/{assessmentV2ReviewItems.length}
+          Showing {filtered.length}/{items.length}
         </span>
+        <button className="btn-ghost btn-sm" onClick={loadReviewItems} disabled={loading}>
+          {loading ? "Loading..." : "Reload saved reviews"}
+        </button>
+        {error && <span style={{ color: "var(--red)", fontSize: 12 }}>{error}</span>}
       </div>
 
       <div className="v2-scroll">
         <div className="v2-list">
+          {loading && (
+            <div className="empty">
+              <div className="spinner" />
+              <span>Đang tải V2 review items...</span>
+            </div>
+          )}
           {filtered.map((item) => {
             const warnings = itemReviewWarnings(item);
-            const localStatus = statusById[item.review_id] ?? "needs_review";
+            const localStatus = item.review_decision ?? "needs_review";
             return (
               <div key={item.review_id} className={`v2-card${warnings.length ? " needs-review" : ""}`}>
                 <div className="v2-card-header">
@@ -804,20 +859,59 @@ function AssessmentV2ReviewPanel() {
                     <span className="badge badge-blue">Codex added</span>
                   )}
                   {!item.academic_reviewed && <span className="badge badge-yellow">needs academic review</span>}
+                  {item.flagged_for_review && <span className="badge badge-flag">flagged</span>}
                 </div>
                 <div className="v2-card-body">
                   <div className="v2-question">{item.question}</div>
 
                   <div className="v2-status-row">
-                    {(["needs_review", "revise", "approved", "reject"] as V2LocalStatus[]).map((state) => (
+                    {(["needs_review", "revise", "accepted", "rejected"] as V2LocalStatus[]).map((state) => (
                       <button
                         key={state}
                         className={`v2-status-button${localStatus === state ? " active" : ""}`}
-                        onClick={() => setStatusById((prev) => ({ ...prev, [item.review_id]: state }))}
+                        disabled={savingId === item.review_id}
+                        onClick={() => persistItem(item, {
+                          review_decision: state,
+                          note: `Reviewer set decision to ${state}`,
+                        })}
                       >
-                        {state === "needs_review" ? "Needs review" : state === "revise" ? "Revise" : state === "approved" ? "Academic OK" : "Reject"}
+                        {state === "needs_review" ? "Needs review" : state === "revise" ? "Revise" : state === "accepted" ? "Accept" : "Reject"}
                       </button>
                     ))}
+                    <button
+                      className={`v2-status-button${item.flagged_for_review ? " active" : ""}`}
+                      disabled={savingId === item.review_id}
+                      onClick={() => persistItem(item, {
+                        flagged_for_review: !item.flagged_for_review,
+                        note: item.flagged_for_review ? "Reviewer removed flag" : "Reviewer flagged item",
+                      })}
+                    >
+                      {item.flagged_for_review ? "Unflag" : "Flag"}
+                    </button>
+                  </div>
+
+                  <div className="v2-row-actions">
+                    <textarea
+                      className="v2-comment"
+                      placeholder="Reviewer comment: what to fix, why accepted/rejected, inference concerns..."
+                      value={commentDrafts[item.review_id] ?? ""}
+                      onChange={(event) => setCommentDrafts((prev) => ({ ...prev, [item.review_id]: event.target.value }))}
+                    />
+                    <button
+                      className="btn-primary btn-sm"
+                      disabled={savingId === item.review_id}
+                      onClick={() => persistItem(item, {
+                        review_comment: commentDrafts[item.review_id] ?? "",
+                        note: "Reviewer saved comment",
+                      })}
+                    >
+                      {savingId === item.review_id ? "Saving..." : "Save comment"}
+                    </button>
+                    {item.reviewed_at && (
+                      <span style={{ color: "var(--text-muted)", fontSize: 11 }}>
+                        saved {new Date(item.reviewed_at).toLocaleString()}
+                      </span>
+                    )}
                   </div>
 
                   <div className="v2-meta-grid">
@@ -877,6 +971,11 @@ function AssessmentV2ReviewPanel() {
                       ))}
                     </div>
                   )}
+                  {item.review_history && item.review_history.length > 0 && (
+                    <div style={{ color: "var(--text-muted)", fontSize: 11 }}>
+                      Persisted review updates: {item.review_history.length}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -888,9 +987,10 @@ function AssessmentV2ReviewPanel() {
             <h3>Todo Review</h3>
             <ul>
               <li><strong>{statusCounts.needs_review}</strong> items still need first-pass academic review.</li>
-              <li><strong>{statusCounts.revise}</strong> marked revise locally in this browser session.</li>
-              <li><strong>{statusCounts.approved}</strong> marked academic OK locally.</li>
-              <li><strong>{statusCounts.reject}</strong> marked reject locally.</li>
+              <li><strong>{statusCounts.revise}</strong> marked revise and persisted.</li>
+              <li><strong>{statusCounts.accepted}</strong> accepted and persisted.</li>
+              <li><strong>{statusCounts.rejected}</strong> rejected and persisted.</li>
+              <li><strong>{stats.flagged}</strong> flagged and persisted.</li>
             </ul>
           </div>
           <div className="v2-panel">
@@ -906,9 +1006,9 @@ function AssessmentV2ReviewPanel() {
           <div className="v2-panel">
             <h3>Gap Records</h3>
             <ul>
-              {assessmentV2GapRecords.length === 0 ? (
+              {gapRecords.length === 0 ? (
                 <li>No gap records parsed.</li>
-              ) : assessmentV2GapRecords.map((gap, index) => (
+              ) : gapRecords.map((gap, index) => (
                 <li key={index}>
                   <strong>{String(gap.cluster)}</strong>: {String(gap.reason ?? gap.note ?? gap.gap ?? "needs item authoring")}
                 </li>

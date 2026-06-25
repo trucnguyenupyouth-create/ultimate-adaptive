@@ -100,6 +100,70 @@ export interface StatusResponse {
   cost: CostSummary;
 }
 
+export interface V2CommonWrongPattern {
+  pattern: string;
+  mode?: string;
+  diagnosis: string;
+  diagnoses_kcs?: string[];
+}
+
+export interface V2ActionNote {
+  action: string;
+  note: string;
+  concern?: string;
+}
+
+export interface V2ReviewHistoryEntry {
+  at: string;
+  action: string;
+  before?: Record<string, unknown>;
+  after?: Record<string, unknown>;
+  note?: string | null;
+}
+
+export interface V2ReviewItem {
+  review_id: string;
+  cluster: string;
+  kc_id: string;
+  question: string;
+  answer_type: string;
+  accepted_answers: string[];
+  tolerance: number | null;
+  difficulty_label: string;
+  is_diagnostic_anchor: boolean;
+  requires_kcs: string[];
+  diagnoses_kcs: string[];
+  inference_strength: string;
+  academic_reviewed: boolean;
+  common_wrong_patterns: V2CommonWrongPattern[];
+  flags?: string[];
+  codex_review_status?: string;
+  action_notes?: V2ActionNote[];
+  review_decision?: "needs_review" | "accepted" | "rejected" | "revise";
+  flagged_for_review?: boolean;
+  review_comment?: string;
+  reviewed_at?: string | null;
+  review_history?: V2ReviewHistoryEntry[];
+}
+
+export interface V2ReviewSummary {
+  total: number;
+  gap_records: number;
+  decisions: Record<string, number>;
+  clusters: Record<string, number>;
+  answer_types: Record<string, number>;
+  flagged: number;
+  codex_added: number;
+  short_text: number;
+  missing_requires: number;
+}
+
+export interface V2ReviewResponse {
+  items: V2ReviewItem[];
+  gap_records: Array<Record<string, unknown> & { cluster: string }>;
+  summary: V2ReviewSummary;
+}
+
 export interface KCNode {
   id: string;
   code: string;
@@ -242,6 +306,25 @@ export async function getCost(): Promise<CostSummary> {
   return apiFetch("/question-gen/cost");
 }
 
+export async function getV2ReviewItems(): Promise<V2ReviewResponse> {
+  return apiFetch("/question-gen/v2-review/items");
+}
+
+export async function updateV2ReviewItem(
+  reviewId: string,
+  patch: {
+    review_decision?: "needs_review" | "accepted" | "rejected" | "revise";
+    flagged_for_review?: boolean;
+    review_comment?: string;
+    note?: string;
+  }
+): Promise<V2ReviewItem> {
+  return apiFetch(`/question-gen/v2-review/items/${reviewId}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+}
+
 // ─── SGK Content ─────────────────────────────────────────────────────────────
 
 export interface SgkResponse {
@@ -301,4 +384,3 @@ export async function exportFlaggedDrafts(): Promise<string> {
 
   return filename;
 }
-
