@@ -27,6 +27,11 @@ import type {
 import { itemApi } from "@/lib/api";
 import type { Item } from "@/lib/api";
 import ImageManager from "@/components/ImageManager";
+import {
+  assessmentV2GapRecords,
+  assessmentV2ReviewItems,
+  type V2ReviewItem,
+} from "./assessment-v2-review-data";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Styles (inline CSS-in-JS to keep single file — no Tailwind dependency)
@@ -241,6 +246,46 @@ const CSS = `
 
   /* No KC selected */
   .no-kc { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; color: var(--text-muted); }
+
+  /* Assessment V2 review */
+  .v2-review { display: flex; flex-direction: column; overflow: hidden; height: 100%; background: var(--bg); }
+  .v2-review-header { padding: 18px 24px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+  .v2-review-title { display: flex; flex-direction: column; gap: 6px; min-width: 280px; }
+  .v2-review-title h2 { font-size: 18px; color: var(--accent-light); margin: 0; }
+  .v2-review-title p { color: var(--text-muted); font-size: 13px; line-height: 1.5; max-width: 780px; }
+  .v2-summary { display: flex; gap: 8px; flex-wrap: wrap; }
+  .v2-chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 12px; display: inline-flex; gap: 6px; align-items: center; }
+  .v2-chip strong { font-size: 15px; color: var(--text); }
+  .v2-controls { padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .v2-select, .v2-input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 13px; outline: none; }
+  .v2-input { min-width: 260px; }
+  .v2-scroll { overflow: auto; flex: 1; padding: 20px 24px 32px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+  .v2-list { display: flex; flex-direction: column; gap: 12px; }
+  .v2-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .v2-card.needs-review { border-color: #7c5f1f; }
+  .v2-card-header { padding: 12px 14px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .v2-card-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .v2-question { font-size: 14px; line-height: 1.6; color: var(--text); }
+  .v2-meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .v2-meta { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; color: var(--text-muted); }
+  .v2-meta strong { color: var(--text); display: block; margin-top: 2px; word-break: break-word; }
+  .v2-kc-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .v2-kc-pill { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; padding: 3px 7px; }
+  .v2-warning { background: #2a1a08; border: 1px solid #a16207; color: #fbbf24; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.5; }
+  .v2-patterns { display: flex; flex-direction: column; gap: 6px; }
+  .v2-pattern { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.5; }
+  .v2-actions { display: flex; flex-direction: column; gap: 6px; }
+  .v2-action-note { background: #111827; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
+  .v2-action-note strong { color: #93c5fd; }
+  .v2-side { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 0; }
+  .v2-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .v2-panel h3 { font-size: 13px; color: var(--accent-light); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .v2-panel ul { padding-left: 18px; color: var(--text-muted); font-size: 12px; line-height: 1.7; }
+  .v2-panel li strong { color: var(--text); }
+  .v2-status-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+  .v2-status-button { background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-size: 11px; padding: 5px 8px; border-radius: 999px; }
+  .v2-status-button.active { background: var(--accent); border-color: var(--accent); color: white; }
+  @media (max-width: 1250px) { .v2-scroll { grid-template-columns: 1fr; } .v2-side { position: static; } }
 `;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -649,6 +694,241 @@ const QuestionCard = React.memo(function QuestionCard({
   );
 });
 
+type V2LocalStatus = "needs_review" | "revise" | "approved" | "reject";
+
+function itemReviewWarnings(item: V2ReviewItem): string[] {
+  const warnings: string[] = [];
+  if (!item.academic_reviewed) warnings.push("Chưa academic review.");
+  if (item.inference_strength === "weak") warnings.push("Đang để weak inference; cần reviewer quyết định có nâng lên medium/strong không.");
+  if (item.answer_type === "short_text") warnings.push("short_text cần rubric hoặc redesign thành structured input để auto-grade chắc hơn.");
+  if (!item.requires_kcs?.length) warnings.push("requires_kcs đang trống; cần xác nhận có thật sự là root/atomic item không.");
+  if (!item.common_wrong_patterns?.length) warnings.push("Thiếu common_wrong_patterns để diagnose misconception.");
+  if (item.codex_review_status === "provisionally_accepted_for_algorithm_test_only") {
+    warnings.push("Codex chỉ accept tạm cho algorithm fixture; chưa phải academic approval.");
+  }
+  for (const flag of item.flags ?? []) warnings.push(flag);
+  return warnings;
+}
+
+function AssessmentV2ReviewPanel() {
+  const clusters = React.useMemo(
+    () => Array.from(new Set(assessmentV2ReviewItems.map((item) => item.cluster))),
+    []
+  );
+  const [cluster, setCluster] = useState("all");
+  const [query, setQuery] = useState("");
+  const [statusById, setStatusById] = useState<Record<string, V2LocalStatus>>({});
+
+  const stats = React.useMemo(() => {
+    const shortText = assessmentV2ReviewItems.filter((item) => item.answer_type === "short_text").length;
+    const missingRequires = assessmentV2ReviewItems.filter((item) => !item.requires_kcs?.length).length;
+    const anchors = assessmentV2ReviewItems.filter((item) => item.is_diagnostic_anchor).length;
+    const patterns = assessmentV2ReviewItems.reduce((sum, item) => sum + (item.common_wrong_patterns?.length ?? 0), 0);
+    const codexAdded = assessmentV2ReviewItems.filter((item) => item.codex_review_status === "provisionally_accepted_for_algorithm_test_only").length;
+    return { shortText, missingRequires, anchors, patterns, codexAdded };
+  }, []);
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return assessmentV2ReviewItems.filter((item) => {
+      if (cluster !== "all" && item.cluster !== cluster) return false;
+      if (!q) return true;
+      return (
+        item.question.toLowerCase().includes(q) ||
+        item.kc_id.toLowerCase().includes(q) ||
+        item.answer_type.toLowerCase().includes(q) ||
+        item.cluster.toLowerCase().includes(q)
+      );
+    });
+  }, [cluster, query]);
+
+  const statusCounts = React.useMemo(() => {
+    const counts: Record<V2LocalStatus, number> = { needs_review: 0, revise: 0, approved: 0, reject: 0 };
+    assessmentV2ReviewItems.forEach((item) => {
+      counts[statusById[item.review_id] ?? "needs_review"] += 1;
+    });
+    return counts;
+  }, [statusById]);
+
+  return (
+    <div className="v2-review">
+      <div className="v2-review-header">
+        <div className="v2-review-title">
+          <h2>Assessment V2 Open Diagnostic Review</h2>
+          <p>
+            60 local open-ended review items for Grade 6 algebra/non-geometry: 29 AI drafts plus 31 Codex-added
+            pilot fixtures. Đây là khu vực review học thuật, chưa import vào Item Bank và không dùng để approve production.
+          </p>
+        </div>
+        <div className="v2-summary">
+          <span className="v2-chip"><strong>{assessmentV2ReviewItems.length}</strong> items</span>
+          <span className="v2-chip"><strong>{stats.anchors}</strong> anchors</span>
+          <span className="v2-chip"><strong>{stats.shortText}</strong> short_text</span>
+          <span className="v2-chip"><strong>{stats.missingRequires}</strong> missing requires_kcs</span>
+          <span className="v2-chip"><strong>{stats.codexAdded}</strong> Codex-added</span>
+          <span className="v2-chip"><strong>{assessmentV2GapRecords.length}</strong> gap records</span>
+        </div>
+      </div>
+
+      <div className="v2-controls">
+        <select className="v2-select" value={cluster} onChange={(event) => setCluster(event.target.value)}>
+          <option value="all">All clusters</option>
+          {clusters.map((name) => <option key={name} value={name}>{name}</option>)}
+        </select>
+        <input
+          className="v2-input"
+          placeholder="Search item, KC id, answer type..."
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
+          Showing {filtered.length}/{assessmentV2ReviewItems.length}
+        </span>
+      </div>
+
+      <div className="v2-scroll">
+        <div className="v2-list">
+          {filtered.map((item) => {
+            const warnings = itemReviewWarnings(item);
+            const localStatus = statusById[item.review_id] ?? "needs_review";
+            return (
+              <div key={item.review_id} className={`v2-card${warnings.length ? " needs-review" : ""}`}>
+                <div className="v2-card-header">
+                  <span className="badge badge-purple">{item.review_id}</span>
+                  <span className="badge badge-blue">{item.cluster}</span>
+                  <span className="diff-pill diff-medium">{item.answer_type}</span>
+                  <span className="anchor-pill">{item.difficulty_label}</span>
+                  {item.is_diagnostic_anchor && <span className="badge badge-green">anchor</span>}
+                  <span className="badge badge-gray">{item.inference_strength} inference</span>
+                  {item.codex_review_status === "provisionally_accepted_for_algorithm_test_only" && (
+                    <span className="badge badge-blue">Codex added</span>
+                  )}
+                  {!item.academic_reviewed && <span className="badge badge-yellow">needs academic review</span>}
+                </div>
+                <div className="v2-card-body">
+                  <div className="v2-question">{item.question}</div>
+
+                  <div className="v2-status-row">
+                    {(["needs_review", "revise", "approved", "reject"] as V2LocalStatus[]).map((state) => (
+                      <button
+                        key={state}
+                        className={`v2-status-button${localStatus === state ? " active" : ""}`}
+                        onClick={() => setStatusById((prev) => ({ ...prev, [item.review_id]: state }))}
+                      >
+                        {state === "needs_review" ? "Needs review" : state === "revise" ? "Revise" : state === "approved" ? "Academic OK" : "Reject"}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="v2-meta-grid">
+                    <div className="v2-meta">
+                      Accepted answers
+                      <strong>{item.accepted_answers.join("; ") || "missing"}</strong>
+                    </div>
+                    <div className="v2-meta">
+                      Diagnoses KCs
+                      <strong>{item.diagnoses_kcs.length}</strong>
+                    </div>
+                    <div className="v2-meta">
+                      Requires KCs
+                      <strong>{item.requires_kcs.length}</strong>
+                    </div>
+                    <div className="v2-meta">
+                      Wrong patterns
+                      <strong>{item.common_wrong_patterns.length}</strong>
+                    </div>
+                  </div>
+
+                  {item.requires_kcs.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 5 }}>requires_kcs</div>
+                      <div className="v2-kc-list">
+                        {item.requires_kcs.map((kc) => <span className="v2-kc-pill" key={kc}>{kc}</span>)}
+                      </div>
+                    </div>
+                  )}
+
+                  {warnings.length > 0 && (
+                    <div className="v2-warning">
+                      <strong>Review needed:</strong>
+                      <ul style={{ paddingLeft: 18, marginTop: 4 }}>
+                        {warnings.map((warning, index) => <li key={index}>{warning}</li>)}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="v2-patterns">
+                    {item.common_wrong_patterns.slice(0, 3).map((pattern, index) => (
+                      <div className="v2-pattern" key={`${item.review_id}-pattern-${index}`}>
+                        <strong>{pattern.pattern}</strong> · {pattern.diagnosis}
+                      </div>
+                    ))}
+                  </div>
+
+                  {item.action_notes && item.action_notes.length > 0 && (
+                    <div className="v2-actions">
+                      {item.action_notes.map((action, index) => (
+                        <div className="v2-action-note" key={`${item.review_id}-action-${index}`}>
+                          <strong>{action.action}</strong>: {action.note}
+                          {action.concern && (
+                            <div style={{ marginTop: 3, color: "#fbbf24" }}>Concern: {action.concern}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <aside className="v2-side">
+          <div className="v2-panel">
+            <h3>Todo Review</h3>
+            <ul>
+              <li><strong>{statusCounts.needs_review}</strong> items still need first-pass academic review.</li>
+              <li><strong>{statusCounts.revise}</strong> marked revise locally in this browser session.</li>
+              <li><strong>{statusCounts.approved}</strong> marked academic OK locally.</li>
+              <li><strong>{statusCounts.reject}</strong> marked reject locally.</li>
+            </ul>
+          </div>
+          <div className="v2-panel">
+            <h3>Required Decisions</h3>
+            <ul>
+              <li>Confirm primary KC and algebra/non-geometry scope.</li>
+              <li>Fill or verify `requires_kcs` for every bridge item.</li>
+              <li>Downgrade ambiguous wrong answers to weak inference.</li>
+              <li>Redesign `short_text` items into structured input where possible.</li>
+              <li>Only set strong inference after academic review.</li>
+            </ul>
+          </div>
+          <div className="v2-panel">
+            <h3>Gap Records</h3>
+            <ul>
+              {assessmentV2GapRecords.length === 0 ? (
+                <li>No gap records parsed.</li>
+              ) : assessmentV2GapRecords.map((gap, index) => (
+                <li key={index}>
+                  <strong>{String(gap.cluster)}</strong>: {String(gap.reason ?? gap.note ?? gap.gap ?? "needs item authoring")}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="v2-panel">
+            <h3>Next Step After Approval</h3>
+            <ul>
+              <li>Convert accepted items into reviewed V2 JSON fixtures.</li>
+              <li>Run deterministic heuristic tests before AI simulation.</li>
+              <li>Use student open-ended UI only after grading schema is stable.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -693,6 +973,7 @@ export default function QuestionGenPage() {
   const { toasts, show } = useToast();
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [selectedKcId, setSelectedKcId] = useState<string | null>(null);
+  const [reviewMode, setReviewMode] = useState<"mcq" | "v2">("mcq");
   const [drafts, setDrafts] = useState<ItemDraft[]>([]);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [generating, setGenerating] = useState(false);
@@ -1142,57 +1423,71 @@ export default function QuestionGenPage() {
 
           {/* Action buttons */}
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-            {/* Hide Flagged toggle */}
             <button
-              className="btn-ghost"
-              onClick={() => setHideFlagged((v) => !v)}
-              title={hideFlagged ? "Đang ẩn câu hỏi flagged (v1 xấu). Nhấn để hiện lại." : "Đang hiện tất cả câu hỏi. Nhấn để ẩn flagged."}
-              style={{
-                display: "flex", alignItems: "center", gap: 6, fontSize: 13,
-                padding: "6px 14px", border: `1px solid ${hideFlagged ? "var(--accent)" : "var(--border)"}`,
-                borderRadius: 8, color: hideFlagged ? "var(--accent-light)" : "var(--text-muted)",
-                background: hideFlagged ? "rgba(124,106,247,0.1)" : "transparent",
-              }}
+              className={reviewMode === "v2" ? "btn-primary" : "btn-ghost"}
+              onClick={() => setReviewMode((mode) => mode === "v2" ? "mcq" : "v2")}
+              title="Mở khu vực review Assessment V2 open-ended items"
             >
-              {hideFlagged ? "👁️ Ẩn flagged" : "👁️ Hiện flagged"}
+              {reviewMode === "v2" ? "V2 Review" : "Assessment V2 Review"}
             </button>
+
+            {/* Hide Flagged toggle */}
+            {reviewMode === "mcq" && (
+              <button
+                className="btn-ghost"
+                onClick={() => setHideFlagged((v) => !v)}
+                title={hideFlagged ? "Đang ẩn câu hỏi flagged (v1 xấu). Nhấn để hiện lại." : "Đang hiện tất cả câu hỏi. Nhấn để ẩn flagged."}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6, fontSize: 13,
+                  padding: "6px 14px", border: `1px solid ${hideFlagged ? "var(--accent)" : "var(--border)"}`,
+                  borderRadius: 8, color: hideFlagged ? "var(--accent-light)" : "var(--text-muted)",
+                  background: hideFlagged ? "rgba(124,106,247,0.1)" : "transparent",
+                }}
+              >
+                {hideFlagged ? "👁️ Ẩn flagged" : "👁️ Hiện flagged"}
+              </button>
+            )}
 
             {/* Export flagged */}
-            <button
-              className="btn-ghost"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 13,
-                padding: "6px 14px",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                opacity: (totals.flagged ?? 0) === 0 ? 0.45 : 1,
-              }}
-              disabled={exporting || (totals.flagged ?? 0) === 0}
-              onClick={handleExportFlagged}
-              title={(totals.flagged ?? 0) === 0 ? "Chưa có câu nào được flag" : `Export ${totals.flagged} câu được flag thành file .md`}
-            >
-              {exporting ? (
-                <><div className="spinner" style={{ width: 13, height: 13, borderWidth: 2 }} /> Đang xuất...</>
-              ) : (
-                <>📥 Export Flagged {(totals.flagged ?? 0) > 0 && <span style={{ background: "#f59e0b22", color: "#f59e0b", borderRadius: 4, padding: "1px 6px", fontSize: 11, fontWeight: 700 }}>{totals.flagged}</span>}</>
-              )}
-            </button>
+            {reviewMode === "mcq" && (
+              <button
+                className="btn-ghost"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 13,
+                  padding: "6px 14px",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  opacity: (totals.flagged ?? 0) === 0 ? 0.45 : 1,
+                }}
+                disabled={exporting || (totals.flagged ?? 0) === 0}
+                onClick={handleExportFlagged}
+                title={(totals.flagged ?? 0) === 0 ? "Chưa có câu nào được flag" : `Export ${totals.flagged} câu được flag thành file .md`}
+              >
+                {exporting ? (
+                  <><div className="spinner" style={{ width: 13, height: 13, borderWidth: 2 }} /> Đang xuất...</>
+                ) : (
+                  <>📥 Export Flagged {(totals.flagged ?? 0) > 0 && <span style={{ background: "#f59e0b22", color: "#f59e0b", borderRadius: 4, padding: "1px 6px", fontSize: 11, fontWeight: 700 }}>{totals.flagged}</span>}</>
+                )}
+              </button>
+            )}
 
             {/* Generate */}
-            <button
-              className="btn-primary"
-              disabled={generating || job?.running}
-              onClick={handleRunGeneration}
-            >
-              {generating || job?.running ? (
-                <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Đang chạy...</>
-              ) : (
-                "🚀 Bắt đầu Generate"
-              )}
-            </button>
+            {reviewMode === "mcq" && (
+              <button
+                className="btn-primary"
+                disabled={generating || job?.running}
+                onClick={handleRunGeneration}
+              >
+                {generating || job?.running ? (
+                  <><div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Đang chạy...</>
+                ) : (
+                  "🚀 Bắt đầu Generate"
+                )}
+              </button>
+            )}
           </div>
         </header>
 
@@ -1333,7 +1628,9 @@ export default function QuestionGenPage() {
 
           {/* Content */}
           <main className="content">
-            {!selectedKcId ? (
+            {reviewMode === "v2" ? (
+              <AssessmentV2ReviewPanel />
+            ) : !selectedKcId ? (
               <div className="no-kc">
                 <div style={{ fontSize: 48 }}>📋</div>
                 <div style={{ fontWeight: 600 }}>Chọn một Knowledge Component</div>
