@@ -172,7 +172,16 @@ def build_persona_prompt(persona: StudentPersona) -> str:
     )
 
 
-def format_question(item: dict, kc_name: str = "") -> str:
+def _wrong_answer_labels(item: dict) -> list[str]:
+    correct = get_correct_answer(item)
+    return [label for label in ("A", "B", "C", "D") if label != correct]
+
+
+def format_question(
+    item: dict,
+    kc_name: str = "",
+    persona_knows_kc: bool | None = None,
+) -> str:
     """Format an item dict into the question prompt for the agent."""
     content = item.get("content", {})
     if isinstance(content, str):
@@ -191,7 +200,7 @@ def format_question(item: dict, kc_name: str = "") -> str:
         if label in options:
             options[label] = text
     
-    return QUESTION_TEMPLATE.format(
+    prompt = QUESTION_TEMPLATE.format(
         kc_name=kc_name,
         question_text=question_text,
         option_a=options["A"],
@@ -199,6 +208,22 @@ def format_question(item: dict, kc_name: str = "") -> str:
         option_c=options["C"],
         option_d=options["D"],
     )
+
+    if persona_knows_kc is True:
+        prompt += (
+            "\n\nGROUND TRUTH FOR THIS KC: Em BIẾT chủ đề này. "
+            "Hãy giải như học sinh biết bài; chỉ sai nếu thật sự bất cẩn theo persona."
+        )
+    elif persona_knows_kc is False:
+        wrong_labels = ", ".join(_wrong_answer_labels(item))
+        prompt += (
+            "\n\nGROUND TRUTH FOR THIS KC: Em KHÔNG BIẾT chủ đề này. "
+            "Đây là rule kiểm thử bắt buộc: em phải chọn một đáp án SAI "
+            f"trong các lựa chọn {wrong_labels}, không được chọn đáp án đúng. "
+            "Phần THINKING phải thể hiện nhầm lẫn tự nhiên của học sinh."
+        )
+
+    return prompt
 
 
 def get_correct_answer(item: dict) -> str:
@@ -299,11 +324,22 @@ class AgentSession:
     step_count: int = 0
     total_cost: float = 0.0
     
-    async def answer_question(self, item: dict, kc_name: str = "") -> AgentResponse:
+    async def answer_question(
+        self,
+        item: dict,
+        kc_name: str = "",
+        force_persona_truth: bool = True,
+    ) -> AgentResponse:
         """Send a question to the agent and get structured response."""
         self.step_count += 1
         
-        question_prompt = format_question(item, kc_name)
+        persona_knows_kc = None
+        if force_persona_truth:
+            kc_id = item.get("kc_id")
+            if kc_id in self.persona.true_mastery:
+                persona_knows_kc = self.persona.true_mastery[kc_id]
+
+        question_prompt = format_question(item, kc_name, persona_knows_kc)
         
         # Send to Gemini
         response = await asyncio.to_thread(

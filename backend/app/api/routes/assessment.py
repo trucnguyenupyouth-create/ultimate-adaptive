@@ -51,6 +51,7 @@ async def _load_items_for_graph(db: AsyncSession, kg) -> dict[str, list[dict]]:
             "irt_a": item.irt_a,
             "irt_b": item.irt_b,
             "irt_c": item.irt_c,
+            "difficulty_label": item.difficulty_label,
             "is_diagnostic_anchor": item.is_diagnostic_anchor,
         })
     return grouped
@@ -85,7 +86,7 @@ async def _persist_assessment_result(
     """
     Persist assessment results to DB when session completes:
       1. Upsert student_irt (theta + SE)
-      2. Mark passed KCs as mastered in student_kc
+      2. Persist classified KC states in student_kc
       3. Log all responses to responses table (immutable)
     """
     student_id_str = session["student_id"]
@@ -111,9 +112,17 @@ async def _persist_assessment_result(
             updated_at=now,
         ))
 
-    # 2. Upsert student_kc for passed KCs
-    kc_results: dict = session.get("kc_results", {})
-    for kc_id_str, outcome in kc_results.items():
+    # 2. Upsert student_kc for tested + inferred states.
+    # Fallback to legacy kc_results for old sessions still in Redis.
+    kc_states: dict = session.get("kc_states") or session.get("kc_results", {})
+    for kc_id_str, outcome in kc_states.items():
+        if outcome in ("pass", "tested_mastered", "inferred_mastered"):
+            is_mastered = True
+        elif outcome in ("fail", "fundamental_gap", "tested_gap", "inferred_gap"):
+            is_mastered = False
+        else:
+            continue
+
         kc_id = uuid.UUID(kc_id_str)
         existing_kc = await db.execute(
             select(StudentKC).where(
@@ -122,7 +131,6 @@ async def _persist_assessment_result(
             )
         )
         kc_row = existing_kc.scalar_one_or_none()
-        is_mastered = outcome == "pass"
 
         if kc_row:
             kc_row.is_mastered = is_mastered
@@ -238,6 +246,8 @@ async def respond(
         "irt_a": item_obj.irt_a,
         "irt_b": item_obj.irt_b,
         "irt_c": item_obj.irt_c,
+        "difficulty_label": item_obj.difficulty_label,
+        "is_diagnostic_anchor": item_obj.is_diagnostic_anchor,
     }
 
     # Append to item log before processing

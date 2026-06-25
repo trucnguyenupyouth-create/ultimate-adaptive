@@ -1,0 +1,564 @@
+{
+  "generated_at": "2026-06-22T17:59:44.768289+00:00",
+  "draft_tags": [
+    "batch_import_20260622",
+    "batch_import_70_115_20260622"
+  ],
+  "counts": {
+    "active_items": 1292,
+    "active_kcs": 220,
+    "pending_drafts_injected": 356,
+    "pending_draft_kcs": 69,
+    "merged_items": 1648,
+    "merged_kcs": 224
+  },
+  "drafts_by_tag": {
+    "batch_import_20260622": 316,
+    "batch_import_70_115_20260622": 40
+  },
+  "validation": {
+    "complete_beginner": {
+      "trials": 5,
+      "total_draft_items_used": 0,
+      "avg_items": 19.4,
+      "avg_kcs_visited": 3.6,
+      "sample": {
+        "status": "completed",
+        "seed": 1,
+        "total_items": 14,
+        "kcs_visited": 4,
+        "assessed_theta": -4.0,
+        "source_counts": {
+          "active_item": 14
+        },
+        "used_pending_drafts": 0,
+        "mastered_count": 0,
+        "gap_count": 4,
+        "steps": [
+          {
+            "step": 1,
+            "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+            "item_id": "c6fabbb9-7818-427c-b446-d5a2971f8522",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 2,
+            "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+            "item_id": "8c936224-c569-490b-91c6-3641fc5ac966",
+            "source": "active_item",
+            "irt_b": -1.0,
+            "anchor": false,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 3,
+            "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+            "item_id": "c6fabbb9-7818-427c-b446-d5a2971f8522",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 4,
+            "kc_id": "b6076d9c-df71-4a84-8980-b462caca92b9",
+            "item_id": "7118c6e8-8d01-4502-8059-1e3228ab7777",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 5,
+            "kc_id": "b6076d9c-df71-4a84-8980-b462caca92b9",
+            "item_id": "2f7cbadb-59d7-429f-914b-328b32cd9e7f",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 6,
+            "kc_id": "b6076d9c-df71-4a84-8980-b462caca92b9",
+            "item_id": "7118c6e8-8d01-4502-8059-1e3228ab7777",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 7,
+            "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+            "item_id": "30b7a475-3f12-4fee-8d34-8148690fec70",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 8,
+            "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+            "item_id": "e380b9b9-6df7-404b-87b2-816f6f8d89c8",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 9,
+            "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+            "item_id": "30b7a475-3f12-4fee-8d34-8148690fec70",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 10,
+            "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+            "item_id": "e180cf0a-e85a-43cb-91f3-4b5c3446bd76",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 11,
+            "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+            "item_id": "ff5480c1-7461-4688-b05b-6612a0983189",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 12,
+            "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+            "item_id": "e180cf0a-e85a-43cb-91f3-4b5c3446bd76",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 13,
+            "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+            "item_id": "ff5480c1-7461-4688-b05b-6612a0983189",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 14,
+            "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+            "item_id": "e180cf0a-e85a-43cb-91f3-4b5c3446bd76",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          }
+        ]
+      }
+    },
+    "expert": {
+      "trials": 5,
+      "total_draft_items_used": 0,
+      "avg_items": 13.2,
+      "avg_kcs_visited": 4.0,
+      "sample": {
+        "status": "completed",
+        "seed": 1,
+        "total_items": 15,
+        "kcs_visited": 4,
+        "assessed_theta": 1.33,
+        "source_counts": {
+          "active_item": 15
+        },
+        "used_pending_drafts": 0,
+        "mastered_count": 4,
+        "gap_count": 0,
+        "steps": [
+          {
+            "step": 1,
+            "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+            "item_id": "c6fabbb9-7818-427c-b446-d5a2971f8522",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 2,
+            "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+            "item_id": "8c936224-c569-490b-91c6-3641fc5ac966",
+            "source": "active_item",
+            "irt_b": -1.0,
+            "anchor": false,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 3,
+            "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+            "item_id": "c6fabbb9-7818-427c-b446-d5a2971f8522",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 4,
+            "kc_id": "d576d596-8eee-40b7-ba22-52d3b1fe1c96",
+            "item_id": "258bbfd0-dac9-462a-a592-034b60583a32",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 5,
+            "kc_id": "d576d596-8eee-40b7-ba22-52d3b1fe1c96",
+            "item_id": "f933e33d-adf3-40ab-9182-5b49f2b0dae9",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 6,
+            "kc_id": "d576d596-8eee-40b7-ba22-52d3b1fe1c96",
+            "item_id": "258bbfd0-dac9-462a-a592-034b60583a32",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 7,
+            "kc_id": "5a4bbd95-5a87-45cf-89cf-709261a4d0bb",
+            "item_id": "c8e45b61-7d8b-47d5-a400-f71ea6c406b0",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 8,
+            "kc_id": "5a4bbd95-5a87-45cf-89cf-709261a4d0bb",
+            "item_id": "6e91fe77-5e55-4f48-98de-cc99cd409029",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 9,
+            "kc_id": "5a4bbd95-5a87-45cf-89cf-709261a4d0bb",
+            "item_id": "c8e45b61-7d8b-47d5-a400-f71ea6c406b0",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 10,
+            "kc_id": "d1c11b45-de83-479d-a2c5-1fabd61231db",
+            "item_id": "9344c0e3-c126-4d9e-9678-ccdc65d523e5",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 11,
+            "kc_id": "d1c11b45-de83-479d-a2c5-1fabd61231db",
+            "item_id": "15efd01f-8792-4dcc-a8ef-560b5c9fe248",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 12,
+            "kc_id": "d1c11b45-de83-479d-a2c5-1fabd61231db",
+            "item_id": "9344c0e3-c126-4d9e-9678-ccdc65d523e5",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 13,
+            "kc_id": "d1c11b45-de83-479d-a2c5-1fabd61231db",
+            "item_id": "15efd01f-8792-4dcc-a8ef-560b5c9fe248",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 14,
+            "kc_id": "d1c11b45-de83-479d-a2c5-1fabd61231db",
+            "item_id": "9344c0e3-c126-4d9e-9678-ccdc65d523e5",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 15,
+            "kc_id": "d1c11b45-de83-479d-a2c5-1fabd61231db",
+            "item_id": "15efd01f-8792-4dcc-a8ef-560b5c9fe248",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          }
+        ]
+      }
+    },
+    "chapter1_only": {
+      "trials": 5,
+      "total_draft_items_used": 0,
+      "avg_items": 9.8,
+      "avg_kcs_visited": 2.0,
+      "sample": {
+        "status": "completed",
+        "seed": 1,
+        "total_items": 6,
+        "kcs_visited": 2,
+        "assessed_theta": -0.53,
+        "source_counts": {
+          "active_item": 6
+        },
+        "used_pending_drafts": 0,
+        "mastered_count": 1,
+        "gap_count": 1,
+        "steps": [
+          {
+            "step": 1,
+            "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+            "item_id": "c6fabbb9-7818-427c-b446-d5a2971f8522",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 2,
+            "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+            "item_id": "8c936224-c569-490b-91c6-3641fc5ac966",
+            "source": "active_item",
+            "irt_b": -1.0,
+            "anchor": false,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 3,
+            "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+            "item_id": "c6fabbb9-7818-427c-b446-d5a2971f8522",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": true,
+            "persona_knows_kc": true
+          },
+          {
+            "step": 4,
+            "kc_id": "d576d596-8eee-40b7-ba22-52d3b1fe1c96",
+            "item_id": "258bbfd0-dac9-462a-a592-034b60583a32",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 5,
+            "kc_id": "d576d596-8eee-40b7-ba22-52d3b1fe1c96",
+            "item_id": "f933e33d-adf3-40ab-9182-5b49f2b0dae9",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          },
+          {
+            "step": 6,
+            "kc_id": "d576d596-8eee-40b7-ba22-52d3b1fe1c96",
+            "item_id": "258bbfd0-dac9-462a-a592-034b60583a32",
+            "source": "active_item",
+            "irt_b": 0.0,
+            "anchor": true,
+            "correct": false,
+            "persona_knows_kc": false
+          }
+        ]
+      }
+    }
+  },
+  "targeted_draft_only_kc_smoke": [
+    {
+      "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+      "kc_code": "G6-MAMATMATHMAT",
+      "kc_name": "Trừ hai phân số khác mẫu",
+      "ok": true,
+      "first_item_source": "pending_draft",
+      "steps": [
+        {
+          "step": 1,
+          "item_id": "draft:cd8df22c-4657-49c6-859c-ab9f0b2d7245",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        },
+        {
+          "step": 2,
+          "item_id": "draft:6db77809-5867-4901-8786-1b1a16b64572",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        },
+        {
+          "step": 3,
+          "item_id": "draft:cd8df22c-4657-49c6-859c-ab9f0b2d7245",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        }
+      ],
+      "final_status": "done",
+      "kc_result": "pass"
+    },
+    {
+      "kc_id": "eec78dc0-9976-407c-8519-9062268f54c0",
+      "kc_code": "G6-MATH-CHON-PHUONG-PHAP",
+      "kc_name": "Chọn phương pháp thu thập dữ liệu ",
+      "ok": true,
+      "first_item_source": "pending_draft",
+      "steps": [
+        {
+          "step": 1,
+          "item_id": "draft:bc2a94c4-2a43-4c32-8252-a16f4a0d08a7",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        },
+        {
+          "step": 2,
+          "item_id": "draft:387c3ea9-b916-4d28-89ac-dff95e7f8397",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        },
+        {
+          "step": 3,
+          "item_id": "draft:bc2a94c4-2a43-4c32-8252-a16f4a0d08a7",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        }
+      ],
+      "final_status": "done",
+      "kc_result": "pass"
+    },
+    {
+      "kc_id": "2667b436-6f58-4d3b-9160-fc27a18e1feb",
+      "kc_code": "G6-MATH-SO-SANH-HAI-3",
+      "kc_name": "So sánh hai góc ",
+      "ok": true,
+      "first_item_source": "pending_draft",
+      "steps": [
+        {
+          "step": 1,
+          "item_id": "draft:d92160b4-b60c-44a2-bb6f-d97e00fb5b00",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        },
+        {
+          "step": 2,
+          "item_id": "draft:6e5c8d3c-c406-4123-bba0-58b6af2c54e7",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        },
+        {
+          "step": 3,
+          "item_id": "draft:d92160b4-b60c-44a2-bb6f-d97e00fb5b00",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        }
+      ],
+      "final_status": "done",
+      "kc_result": "pass"
+    },
+    {
+      "kc_id": "375a0e3b-9199-4531-9230-6c8e885b9848",
+      "kc_code": "G9-MATH-TIM-MOT-SO",
+      "kc_name": "Tìm một số biết giá trị phân số của nó",
+      "ok": true,
+      "first_item_source": "pending_draft",
+      "steps": [
+        {
+          "step": 1,
+          "item_id": "draft:983bb5a4-63e5-4fc0-ad42-a6ba168f4d62",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        },
+        {
+          "step": 2,
+          "item_id": "draft:5473d5b6-d32c-4560-81c0-62253fb4d8ba",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        },
+        {
+          "step": 3,
+          "item_id": "draft:983bb5a4-63e5-4fc0-ad42-a6ba168f4d62",
+          "source": "pending_draft",
+          "irt_b": 0.0,
+          "anchor": true
+        }
+      ],
+      "final_status": "done",
+      "kc_result": "pass"
+    }
+  ]
+}

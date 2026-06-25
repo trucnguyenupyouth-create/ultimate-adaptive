@@ -1,0 +1,372 @@
+{
+  "status": "continue",
+  "items": 12,
+  "api_calls": 12,
+  "cost": 0.012771,
+  "source_counts": {
+    "active_item": 12
+  },
+  "kc_results": {
+    "66e748f8-6756-4f7a-8232-b6a4b7d7661f": "pass",
+    "0c23e6b9-98c6-4335-a3f3-e08fbf9ca5e9": "pass",
+    "f13f2f58-b3d6-4806-9a21-2f5a59622246": "pass",
+    "b68ce985-f530-48eb-9151-e880cf5a61fb": "fail"
+  },
+  "state_counts": {
+    "tested_mastered": 3,
+    "tested_gap": 1,
+    "inferred_mastered": 0,
+    "inferred_gap": 26,
+    "unknown": 217
+  },
+  "result": null,
+  "last_frontier": [
+    {
+      "step": 3,
+      "selected_kc": "f13f2f58-b3d6-4806-9a21-2f5a59622246",
+      "reason": "max_expected_closure_gain",
+      "candidates": [
+        {
+          "kc_id": "f13f2f58-b3d6-4806-9a21-2f5a59622246",
+          "score": 2955,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 29,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 28,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+          "score": 2901,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 27,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 26,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 5,
+          "has_items": true
+        },
+        {
+          "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+          "score": 2760,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 27,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 26,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "2ceee5b6-021d-46db-b5df-08030916bf4b",
+          "score": 2555,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 25,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 24,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "6556c96b-e3be-4d67-8875-69b3b678b2a5",
+          "score": 2391,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 22,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "selected_kc": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+      "reason": "all_direct_prerequisites_mastered",
+      "candidates": [
+        {
+          "kc_id": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+          "score": 2901,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 27,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 26,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 5,
+          "has_items": true
+        },
+        {
+          "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+          "score": 2760,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 27,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 26,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "2ceee5b6-021d-46db-b5df-08030916bf4b",
+          "score": 2555,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 25,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 24,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "6556c96b-e3be-4d67-8875-69b3b678b2a5",
+          "score": 2391,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 22,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+          "score": 2381,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 23,
+          "unknown_ancestors": 1,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "selected_kc": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+      "reason": "max_expected_closure_gain",
+      "candidates": [
+        {
+          "kc_id": "1cacabc0-84c6-435e-aafb-62a50e4425af",
+          "score": 2760,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 27,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 26,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "2ceee5b6-021d-46db-b5df-08030916bf4b",
+          "score": 2555,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 25,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 24,
+          "item_count": 6,
+          "unseen_item_count": 6,
+          "anchor_count": 1,
+          "has_items": true
+        },
+        {
+          "kc_id": "6556c96b-e3be-4d67-8875-69b3b678b2a5",
+          "score": 2391,
+          "reason": "all_direct_prerequisites_mastered",
+          "closure_gain": 22,
+          "unknown_ancestors": 0,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "05f26197-d571-4556-b0a4-6edbc70a1b4a",
+          "score": 2381,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 23,
+          "unknown_ancestors": 1,
+          "unknown_descendants": 21,
+          "item_count": 10,
+          "unseen_item_count": 10,
+          "anchor_count": 2,
+          "has_items": true
+        },
+        {
+          "kc_id": "0688b803-9f36-430d-9f4b-61749b2bda57",
+          "score": 1897,
+          "reason": "max_expected_closure_gain",
+          "closure_gain": 18,
+          "unknown_ancestors": 3,
+          "unknown_descendants": 14,
+          "item_count": 5,
+          "unseen_item_count": 5,
+          "anchor_count": 1,
+          "has_items": true
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "kc_code": "G6-MATH-NHAN-BIET-DOC",
+      "kc_name": "Nhận biết, đọc và viết số nguyên âm",
+      "item_id": "57d15a74-0775-4e04-a2d9-5ce850c8e6a1",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "B",
+      "correct_answer": "B",
+      "correct": true,
+      "thinking": "Số nguyên âm là mấy số có dấu trừ đằng trước, em nhớ cô giáo dạy là nó nhỏ hơn 0. Nhìn qua mấy đáp án thì chỉ có cái -5 là có dấu trừ thôi, nên em chọn luôn cho nhanh."
+    },
+    {
+      "step": 2,
+      "kc_code": "G6-MATH-NHAN-BIET-DOC",
+      "kc_name": "Nhận biết, đọc và viết số nguyên âm",
+      "item_id": "1a40d78f-0c6c-46fe-b338-1bac50c110be",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "C",
+      "correct_answer": "C",
+      "correct": true,
+      "thinking": "Số nguyên âm thường dùng cho mấy cái như nợ tiền hay là lạnh dưới 0 độ. Đỉnh núi thì cao lên nên chắc là số dương, tiền lãi cũng là có thêm tiền. Vậy chắc chắn là cái kho lạnh dưới 0 độ rồi."
+    },
+    {
+      "step": 3,
+      "kc_code": "G6-MATH-NHAN-BIET-DOC",
+      "kc_name": "Nhận biết, đọc và viết số nguyên âm",
+      "item_id": "e52efdef-39b2-4100-a54d-72c761e697d9",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "C",
+      "correct_answer": "C",
+      "correct": true,
+      "thinking": "Em nhớ cô giáo dặn là tập hợp số nguyên Z gồm số nguyên âm, số 0 và số nguyên dương. Mà riêng cái số 0 là nó đặc biệt lắm, nó không phải số dương mà cũng chẳng phải số âm. Vậy nên nói số nào cũng có dấu cộng hoặc trừ là không đúng rồi, em chọn câu C."
+    },
+    {
+      "step": 4,
+      "kc_code": "G6-MATH-TIA",
+      "kc_name": "Tia",
+      "item_id": "923efa8a-823c-4e62-a3cd-0091ec98f784",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "C",
+      "correct_answer": "C",
+      "correct": true,
+      "thinking": "Hai tia đối nhau là phải chung cái gốc rồi nó quay lưng lại với nhau tạo thành một đường thẳng tắp. Em nhớ hình vẽ trong sách giáo khoa là như thế. Câu C nghe đúng nhất vì nó nói chung gốc và tạo thành một đường thẳng."
+    },
+    {
+      "step": 5,
+      "kc_code": "G6-MATH-TIA",
+      "kc_name": "Tia",
+      "item_id": "614eee99-5095-43c3-a037-5707207eee4e",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "A",
+      "correct_answer": "A",
+      "correct": true,
+      "thinking": "Điểm B nằm giữa A và C thì em vẽ cái hình ra: A---B---C. Tia BA đi về"
+    },
+    {
+      "step": 6,
+      "kc_code": "G6-MATH-TIA",
+      "kc_name": "Tia",
+      "item_id": "dd5a6865-c5b4-4a3a-9775-5b7e0860afca",
+      "source": "active_item",
+      "persona_knows": true,
+      "answer": "C",
+      "correct_answer": "C",
+      "correct": true,
+      "thinking": "Ba điểm mà cùng nằm trên một đường thẳng thì chắc chắn là tụi nó thẳng hàng với nhau rồi. Cái này em nhớ rõ vì bài đầu tiên học về hình học lớp 6 cô giáo đã dạy kỹ phần này."
+    },
+    {
+      "step": 7,
+      "kc_code": "G6-MATH-PHAN-BIET-PHEP",
+      "kc_name": "Phân biệt phép chia hết và phép chia có dư, tìm đúng thương và số dư.",
+      "item_id": "ece1f8b5-eed4-4497-9320-80e52ef33521",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "C",
+      "correct_answer": "C",
+      "correct": true,
+      "thinking": "Em nhớ công thức phép chia có dư là số bị chia bằng số chia nhân với thương rồi cộng với số dư. Ở đây chia cho 15 thì 15 là số chia, vậy số 7 đứng cạnh nó phải là thương, còn số 4 cộng thêm vào là số dư. Em chọn câu C là thương 7, dư 4."
+    },
+    {
+      "step": 8,
+      "kc_code": "G6-MATH-PHAN-BIET-PHEP",
+      "kc_name": "Phân biệt phép chia hết và phép chia có dư, tìm đúng thương và số dư.",
+      "item_id": "7e2a1743-e64b-4dcf-90f4-9cc3d6951766",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "C",
+      "correct_answer": "C",
+      "correct": true,
+      "thinking": "Em lấy 487 chia cho 45 thì được 10 và dư ra 37 người. Nếu chỉ thuê 10 xe thì 37 người kia không có chỗ ngồi, nên chắc chắn là phải thuê thêm 1 xe nữa cho đủ hết mọi người. Vậy là cần 11 xe."
+    },
+    {
+      "step": 9,
+      "kc_code": "G6-MATH-PHAN-BIET-PHEP",
+      "kc_name": "Phân biệt phép chia hết và phép chia có dư, tìm đúng thương và số dư.",
+      "item_id": "0df3de0c-64d5-44dc-90af-3d8ebee8b55c",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "C",
+      "correct_answer": "C",
+      "correct": true,
+      "thinking": "Em thử lấy một số chia 9 dư 8 xem sao, ví dụ số 17 đi. Nếu 17 cộng thêm 1 là thành 18, mà 18 chia cho 9 thì vừa xinh bằng 2 luôn, không dư tí nào. Vậy là phép chia hết rồi, em chọn C."
+    },
+    {
+      "step": 10,
+      "kc_code": "G9-MATH-NHAN-BIET-PHAN",
+      "kc_name": "Nhận biết phân số có tử và mẫu là số nguyên, mẫu khác 0",
+      "item_id": "d4a2742d-b917-4895-9fd0-64f9730bd39c",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "A",
+      "correct_answer": "B",
+      "correct": false,
+      "thinking": "Phân số thì em nhớ là có cái gạch ngang ở giữa, số ở trên là tử còn ở dưới là mẫu."
+    },
+    {
+      "step": 11,
+      "kc_code": "G9-MATH-NHAN-BIET-PHAN",
+      "kc_name": "Nhận biết phân số có tử và mẫu là số nguyên, mẫu khác 0",
+      "item_id": "99a23af5-05b7-4903-8bfc-4680038fa988",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "A",
+      "correct_answer": "C",
+      "correct": false,
+      "thinking": "Em thấy trong tập M có 5 cái số có dấu gạch ngang nhìn giống phân số. Mà em nhớ mang máng"
+    },
+    {
+      "step": 12,
+      "kc_code": "G9-MATH-NHAN-BIET-PHAN",
+      "kc_name": "Nhận biết phân số có tử và mẫu là số nguyên, mẫu khác 0",
+      "item_id": "46b13e2d-6d19-4ec8-a540-de0ca2720d51",
+      "source": "active_item",
+      "persona_knows": false,
+      "answer": "A",
+      "correct_answer": "B",
+      "correct": false,
+      "thinking": "Em nhớ mang máng là phân số thì cái mẫu ở dưới không được bằng 0. Ở đây mẫu là n - 3,"
+    }
+  ]
+}

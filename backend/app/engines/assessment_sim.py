@@ -118,7 +118,7 @@ class DiagnosticResult:
 
 def compare_diagnosis(
     persona: StudentPersona,
-    assessed_results: dict[str, str],  # kc_id → "pass" | "fail" | "fundamental_gap"
+    assessed_results: dict[str, str],  # kc_id → legacy outcome or tested/inferred state
     assessed_theta: float,
     total_items: int,
     all_kc_ids: set[str],
@@ -128,14 +128,9 @@ def compare_diagnosis(
     
     Logic:
     - For each KC the persona has a ground truth for:
-      - If persona knows KC (true=True):
-        - assessed=pass → True Negative (correctly identified as mastered)
-        - assessed=fail/gap → False Positive (wrongly said gap)
-        - not tested → True Negative (KST inferred mastered — correct)
-      - If persona has gap (true=False):
-        - assessed=fail/gap → True Positive (correctly found gap)
-        - assessed=pass → False Negative (MISSED the gap — worst case)
-        - not tested → False Negative (KST skipped the gap)
+      - mastered state → assessment says the student knows the KC
+      - gap state → assessment says the student has a gap
+      - not tested/unknown → no diagnosis for that KC
     """
     result = DiagnosticResult(
         true_theta=persona.true_theta,
@@ -152,7 +147,7 @@ def compare_diagnosis(
             continue  # persona doesn't define this KC
         
         true_knows = persona.true_mastery[kc_id]
-        assessed = assessed_results.get(kc_id)  # None if not tested
+        assessed = assessed_results.get(kc_id)  # None if unclassified
         
         comparison = {
             "kc_id": kc_id,
@@ -161,27 +156,27 @@ def compare_diagnosis(
             "tested": kc_id in visited_kcs,
         }
         
-        if assessed is None:
-            # Not tested — KST inferred
+        if assessed is None or assessed == "unknown":
+            # Unclassified — still a missed opportunity for known gaps.
             result.not_tested += 1
             if true_knows:
                 result.true_negative += 1
                 comparison["match"] = True
-                comparison["category"] = "TN (inferred mastered)"
+                comparison["category"] = "TN (unclassified but no gap)"
             else:
                 result.false_negative += 1
                 comparison["match"] = False
-                comparison["category"] = "FN ⚠️ (gap missed — not tested)"
-        elif assessed == "pass":
+                comparison["category"] = "FN ⚠️ (gap missed — unclassified)"
+        elif _assessed_as_mastered(assessed):
             if true_knows:
                 result.true_negative += 1
                 comparison["match"] = True
-                comparison["category"] = "TN (correctly passed)"
+                comparison["category"] = "TN (correctly mastered)"
             else:
                 result.false_negative += 1
                 comparison["match"] = False
-                comparison["category"] = "FN ⚠️ (gap passed — MISSED)"
-        else:  # fail or fundamental_gap
+                comparison["category"] = "FN ⚠️ (gap marked mastered — MISSED)"
+        else:  # fail, fundamental_gap, tested_gap, inferred_gap
             if true_knows:
                 result.false_positive += 1
                 comparison["match"] = False
@@ -194,6 +189,10 @@ def compare_diagnosis(
         result.kc_comparisons.append(comparison)
     
     return result
+
+
+def _assessed_as_mastered(outcome: str) -> bool:
+    return outcome in {"pass", "tested_mastered", "inferred_mastered"}
 
 
 # ── Assessment Runner (Agent Mode) ───────────────────────────────────────────
@@ -278,11 +277,16 @@ async def run_agent_assessment(
             item,
             agent_response.correct,
             available_items,
+            response_meta={
+                "agent_answer": agent_response.answer,
+                "thinking": agent_response.thinking,
+                "correct_answer": get_correct_answer(item),
+            },
         )
     
     # Extract assessment results
     session = result.get("session", {})
-    assessed_results = session.get("kc_results", {})
+    assessed_results = session.get("kc_states") or session.get("kc_results", {})
     assessed_theta = session.get("theta", 0.0)
     
     # Get all KC IDs from graph for comparison
@@ -301,8 +305,15 @@ async def run_agent_assessment(
     )
     
     # Build final result
-    mastered = [k for k, v in assessed_results.items() if v == "pass"]
-    gaps = [k for k, v in assessed_results.items() if v != "pass"]
+    final_result = result.get("result", {})
+    mastered = final_result.get(
+        "mastered",
+        [k for k, v in assessed_results.items() if v in ("pass", "tested_mastered", "inferred_mastered")],
+    )
+    gaps = final_result.get(
+        "gaps",
+        [k for k, v in assessed_results.items() if v in ("fail", "fundamental_gap", "tested_gap", "inferred_gap")],
+    )
     
     return {
         "status": "completed",
@@ -310,10 +321,19 @@ async def run_agent_assessment(
         "assessment_result": {
             "mastered": mastered,
             "gaps": gaps,
-            "fundamental_gaps": [k for k, v in assessed_results.items() if v == "fundamental_gap"],
+            "tested_mastered": final_result.get("tested_mastered", []),
+            "tested_gaps": final_result.get("tested_gaps", []),
+            "inferred_mastered": final_result.get("inferred_mastered", []),
+            "inferred_gaps": final_result.get("inferred_gaps", []),
+            "unknown": final_result.get("unknown", []),
+            "fundamental_gaps": final_result.get(
+                "fundamental_gaps",
+                [k for k, v in session.get("kc_results", {}).items() if v == "fundamental_gap"],
+            ),
             "assessed_theta": round(assessed_theta, 3),
             "total_items": item_count,
-            "kcs_visited": len(assessed_results),
+            "kcs_visited": len(session.get("kc_results", {})),
+            "kcs_classified": len(assessed_results),
         },
         "diagnostic_comparison": comparison.to_dict(),
         "steps": steps,
@@ -397,7 +417,7 @@ async def run_math_assessment(
         result = cat.respond(result["session"], item, correct, available_items)
     
     session = result.get("session", {})
-    assessed_results = session.get("kc_results", {})
+    assessed_results = session.get("kc_states") or session.get("kc_results", {})
     assessed_theta = session.get("theta", 0.0)
     
     all_kc_ids = set()
@@ -412,14 +432,28 @@ async def run_math_assessment(
         all_kc_ids=all_kc_ids,
     )
     
+    final_result = result.get("result", {})
     return {
         "status": "completed",
         "persona": persona.to_dict(),
         "assessment_result": {
-            "mastered": [k for k, v in assessed_results.items() if v == "pass"],
-            "gaps": [k for k, v in assessed_results.items() if v != "pass"],
+            "mastered": final_result.get(
+                "mastered",
+                [k for k, v in assessed_results.items() if v in ("pass", "tested_mastered", "inferred_mastered")],
+            ),
+            "gaps": final_result.get(
+                "gaps",
+                [k for k, v in assessed_results.items() if v in ("fail", "fundamental_gap", "tested_gap", "inferred_gap")],
+            ),
+            "tested_mastered": final_result.get("tested_mastered", []),
+            "tested_gaps": final_result.get("tested_gaps", []),
+            "inferred_mastered": final_result.get("inferred_mastered", []),
+            "inferred_gaps": final_result.get("inferred_gaps", []),
+            "unknown": final_result.get("unknown", []),
             "assessed_theta": round(assessed_theta, 3),
             "total_items": item_count,
+            "kcs_visited": len(session.get("kc_results", {})),
+            "kcs_classified": len(assessed_results),
         },
         "diagnostic_comparison": comparison.to_dict(),
         "steps": steps,

@@ -106,6 +106,7 @@ async def _load_all_items(db: AsyncSession) -> dict[str, list[dict]]:
             "irt_a": item.irt_a,
             "irt_b": item.irt_b,
             "irt_c": item.irt_c,
+            "difficulty_label": item.difficulty_label,
             "is_diagnostic_anchor": item.is_diagnostic_anchor,
         })
     return grouped
