@@ -26,6 +26,39 @@ ROOT = Path(__file__).resolve().parents[2]
 STORE_PATH = ROOT / "data" / "assessment_v2_review" / "review_items.json"
 
 VALID_DECISIONS = {"needs_review", "accepted", "rejected", "revise"}
+VALID_PILOT_STATUSES = {"not_ready", "ready_for_pilot", "retired"}
+VALID_REVIEW_ACTIONS = {"accept", "revise", "replace", "needs_checker", "needs_widget"}
+SUPPORTED_WIDGETS = {"number", "fraction", "decimal", "power", "expression", "ordered_list", "set", "probability"}
+SUPPORTED_CHECKERS = {
+    "numeric_equal",
+    "fraction_equal",
+    "decimal_equal",
+    "power_tuple",
+    "expression_equivalent",
+    "ordered_list_equal",
+    "set_equal",
+    "probability_equal",
+    "rubric_manual",
+}
+ITEM_PAYLOAD_PATCH_KEYS = {
+    "question",
+    "answer_type",
+    "accepted_answers",
+    "tolerance",
+    "requires_kcs",
+    "diagnoses_kcs",
+    "inference_strength",
+    "academic_reviewed",
+    "common_wrong_patterns",
+    "pilot_status",
+    "review_action",
+    "answer_widget",
+    "checker_type",
+    "replacement_of",
+    "review_notes",
+    "difficulty_label",
+    "is_diagnostic_anchor",
+}
 
 REPLACEMENT_SUGGESTIONS: dict[str, dict[str, Any]] = {
     "v2-001": {
@@ -173,8 +206,102 @@ def enrich_review_item(item: dict[str, Any]) -> dict[str, Any]:
         enriched["recommended_review_action"] = "ready_for_algorithm"
 
     enriched["risk_tags"] = tags
+    enriched["answer_widget"] = enriched.get("answer_widget") or _default_answer_widget(enriched)
+    enriched["checker_type"] = enriched.get("checker_type") or _default_checker_type(enriched)
+    enriched["pilot_status"] = enriched.get("pilot_status") or _default_pilot_status(enriched)
+    enriched["review_action"] = enriched.get("review_action") or _default_review_action(enriched)
+    enriched["review_notes"] = enriched.get("review_notes") or enriched.get("review_comment") or ""
     enriched["grader_readiness"] = "ready" if enriched["recommended_review_action"] == "ready_for_algorithm" else "blocked"
+    enriched["pilot_blockers"] = _pilot_blockers(enriched)
     return enriched
+
+
+def _default_answer_widget(item: dict[str, Any]) -> str:
+    answer_type = str(item.get("answer_type") or "").lower()
+    question = str(item.get("question") or "").lower()
+    if "lũy thừa" in question or "luy thua" in question:
+        return "power"
+    if "sắp xếp" in question or "sap xep" in question:
+        return "ordered_list"
+    if "xác suất" in question or "xac suat" in question:
+        return "probability"
+    if answer_type in {"fraction", "ratio"}:
+        return "fraction"
+    if answer_type in {"decimal"}:
+        return "decimal"
+    if answer_type in {"integer", "number", "numeric"}:
+        return "number"
+    if answer_type == "set":
+        return "set"
+    if answer_type == "expression":
+        return "expression"
+    return "expression" if "biểu thức" in question or "bieu thuc" in question else "number"
+
+
+def _default_checker_type(item: dict[str, Any]) -> str:
+    widget = str(item.get("answer_widget") or _default_answer_widget(item))
+    answer_type = str(item.get("answer_type") or "").lower()
+    if widget == "power":
+        return "power_tuple"
+    if widget == "ordered_list":
+        return "ordered_list_equal"
+    if widget == "probability":
+        return "probability_equal"
+    if widget == "expression":
+        return "expression_equivalent"
+    if widget == "set":
+        return "set_equal"
+    if widget == "fraction" or answer_type == "ratio":
+        return "fraction_equal"
+    if widget == "decimal":
+        return "decimal_equal"
+    return "numeric_equal"
+
+
+def _default_review_action(item: dict[str, Any]) -> str:
+    action = item.get("recommended_review_action")
+    if action == "replace_required":
+        return "replace"
+    if action == "needs_widget_checker":
+        required = str(item.get("required_checker") or "")
+        return "needs_widget" if "widget" in required else "needs_checker"
+    if action == "ready_for_algorithm":
+        return "accept"
+    return "revise"
+
+
+def _pilot_blockers(item: dict[str, Any]) -> list[str]:
+    blockers: list[str] = []
+    if item.get("review_decision") not in {"accepted", "revise", "needs_review"}:
+        blockers.append("review_decision_not_allowed")
+    if item.get("recommended_review_action") in {"replace_required", "human_review_only"}:
+        blockers.append(str(item.get("recommended_review_action")))
+    if item.get("review_action") in {"replace", "needs_checker", "needs_widget"}:
+        blockers.append(str(item.get("review_action")))
+    if item.get("answer_widget") not in SUPPORTED_WIDGETS:
+        blockers.append("unsupported_widget")
+    if item.get("checker_type") not in SUPPORTED_CHECKERS or item.get("checker_type") == "rubric_manual":
+        blockers.append("unsupported_checker")
+    if not item.get("accepted_answers"):
+        blockers.append("missing_accepted_answers")
+    return list(dict.fromkeys(blockers))
+
+
+def is_pilot_ready(item: dict[str, Any]) -> bool:
+    enriched = enrich_review_item(item)
+    if enriched.get("pilot_status") != "ready_for_pilot":
+        return False
+    return not _pilot_blockers(enriched)
+
+
+def _default_pilot_status(item: dict[str, Any]) -> str:
+    if item.get("pilot_status") in VALID_PILOT_STATUSES:
+        return str(item["pilot_status"])
+    if item.get("review_decision") == "rejected":
+        return "retired"
+    if item.get("recommended_review_action") == "ready_for_algorithm":
+        return "ready_for_pilot"
+    return "not_ready"
 
 
 def _seed_review_values(item: dict[str, Any]) -> dict[str, Any]:
@@ -281,6 +408,7 @@ def _summarize(items: list[dict[str, Any]], gap_records: list[dict[str, Any]]) -
             risk_counts[tag] = risk_counts.get(tag, 0) + 1
         if item.get("grader_readiness") == "ready":
             ready_for_algorithm += 1
+        item["pilot_blockers"] = _pilot_blockers(item)
         if item.get("flagged_for_review"):
             flagged += 1
         if item.get("codex_review_status") == "provisionally_accepted_for_algorithm_test_only":
@@ -329,6 +457,7 @@ async def update_review_item_db(db: AsyncSession, review_id: str, patch: dict[st
         "review_decision": row.review_decision,
         "flagged_for_review": bool(row.flagged_for_review),
         "review_comment": row.review_comment or "",
+        "item_payload": deepcopy(row.item_payload or {}),
     }
 
     if "review_decision" in patch and patch["review_decision"] is not None:
@@ -344,10 +473,29 @@ async def update_review_item_db(db: AsyncSession, review_id: str, patch: dict[st
     if "review_comment" in patch and patch["review_comment"] is not None:
         row.review_comment = str(patch["review_comment"])
 
+    payload = deepcopy(row.item_payload or {})
+    for key in ITEM_PAYLOAD_PATCH_KEYS:
+        if key not in patch:
+            continue
+        value = patch[key]
+        if value is None and key not in {"tolerance", "replacement_of"}:
+            continue
+        if key == "pilot_status" and value not in VALID_PILOT_STATUSES:
+            raise ValueError(f"Invalid pilot_status: {value}")
+        if key == "review_action" and value not in VALID_REVIEW_ACTIONS:
+            raise ValueError(f"Invalid review_action: {value}")
+        if key == "answer_widget" and value not in SUPPORTED_WIDGETS:
+            raise ValueError(f"Invalid answer_widget: {value}")
+        if key == "checker_type" and value not in SUPPORTED_CHECKERS:
+            raise ValueError(f"Invalid checker_type: {value}")
+        payload[key] = value
+    row.item_payload = payload
+
     after = {
         "review_decision": row.review_decision,
         "flagged_for_review": bool(row.flagged_for_review),
         "review_comment": row.review_comment or "",
+        "item_payload": deepcopy(row.item_payload or {}),
     }
     history = list(row.review_history or [])
     history.append({
@@ -391,6 +539,7 @@ def update_review_item(review_id: str, patch: dict[str, Any]) -> dict[str, Any]:
             "review_decision": item.get("review_decision", "needs_review"),
             "flagged_for_review": bool(item.get("flagged_for_review")),
             "review_comment": item.get("review_comment", ""),
+            "item_payload": deepcopy(item),
         }
 
         if "review_decision" in patch and patch["review_decision"] is not None:
@@ -406,6 +555,10 @@ def update_review_item(review_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         if "review_comment" in patch and patch["review_comment"] is not None:
             item["review_comment"] = str(patch["review_comment"])
 
+        for key in ITEM_PAYLOAD_PATCH_KEYS:
+            if key in patch:
+                item[key] = patch[key]
+
         history = item.setdefault("review_history", [])
         history.append({
             "at": now,
@@ -415,6 +568,7 @@ def update_review_item(review_id: str, patch: dict[str, Any]) -> dict[str, Any]:
                 "review_decision": item.get("review_decision", "needs_review"),
                 "flagged_for_review": bool(item.get("flagged_for_review")),
                 "review_comment": item.get("review_comment", ""),
+                "item_payload": deepcopy(item),
             },
             "note": patch.get("note"),
         })

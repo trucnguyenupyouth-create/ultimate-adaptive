@@ -69,6 +69,67 @@ def test_strong_open_wrong_can_diagnose_targeted_gap():
     assert "strong_open_diagnoses:item-c-strong" in reasons
 
 
+def test_assessment_mode_does_not_repeat_same_kc_after_one_probe():
+    engine = _engine()
+    run = engine.new_run()
+    first = engine.select_next(run)
+    assert first is not None
+
+    engine.apply_response(run, first, DiagnosticResponse(item_id=first.id, correct=True, student_answer="5/6"))
+    second = engine.select_next(run)
+
+    assert second is not None
+    assert second.kc_id != first.kc_id
+
+
+def test_assessment_mode_can_confirm_after_breadth_is_exhausted():
+    engine = V2DiagnosticEngine(
+        nodes=[{"id": "a", "code": "A", "name": "A"}],
+        edges=[],
+        items=[
+            DiagnosticItem(id="item-a-1", kc_id="a", format_type="mcq", difficulty_label="anchor", content={"answer_type": "choice", "accepted_answers": ["1"]}),
+            DiagnosticItem(id="item-a-2", kc_id="a", format_type="mcq", difficulty_label="medium", content={"answer_type": "choice", "accepted_answers": ["2"]}),
+        ],
+    )
+    run = engine.new_run()
+    first = engine.select_next(run)
+    assert first is not None
+
+    engine.apply_response(run, first, DiagnosticResponse(item_id=first.id, correct=True, student_answer="1"))
+    second = engine.select_next(run)
+
+    assert second is not None
+    assert second.kc_id == "a"
+    assert second.id != first.id
+    assert run.frontier_history[-1]["reason"] == "confirmation_after_breadth"
+
+
+def test_assessment_mode_uses_bkt_wrong_and_unknown_is_strong_penalty():
+    engine = _engine()
+    run_wrong = engine.new_run()
+    item = engine.items_by_kc["a"][0]
+
+    engine.apply_response(run_wrong, item, DiagnosticResponse(item_id=item.id, correct=False, student_answer="wrong"))
+    assert round(run_wrong.states["a"].p_mastery, 2) == 0.14
+    assert run_wrong.states["a"].label == "tested_gap"
+    assert run_wrong.state_transitions[-1]["changes"][0]["reason"] == "bkt_direct_wrong"
+
+    run_unknown = engine.new_run()
+    engine.apply_response(
+        run_unknown,
+        item,
+        DiagnosticResponse(item_id=item.id, correct=False, student_answer="không biết", response_type="unknown"),
+    )
+    assert round(run_unknown.states["a"].p_mastery, 2) == 0.02
+    assert run_unknown.states["a"].label == "tested_gap"
+
+
+def test_probability_band_is_reported_for_uncertain_and_likely_states():
+    state = _engine().new_run().states["a"]
+    assert state.probability_band == "uncertain"
+    assert state.to_dict()["probability_band"] == "uncertain"
+
+
 def test_unreviewed_open_item_does_not_apply_strong_inference():
     item = DiagnosticItem(
         id="item-c-unreviewed",

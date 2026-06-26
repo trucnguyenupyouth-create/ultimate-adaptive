@@ -17,7 +17,15 @@ import networkx as nx
 MASTERED_THRESHOLD = 0.80
 GAP_THRESHOLD = 0.30
 DEFAULT_PRIOR = 0.50
-MIN_DIRECT_EVIDENCE = 2
+MIN_DIRECT_EVIDENCE = 1
+
+ASSESSMENT_CORRECT_DELTA = 0.35
+ASSESSMENT_WRONG_DELTA = -0.07
+ASSESSMENT_UNKNOWN_DELTA = -0.50
+ASSESSMENT_PROPAGATION_FACTOR = 0.60
+ASSESSMENT_PROPAGATION_DECAY = 0.55
+ASSESSMENT_MAX_TESTS_PER_KC = 1
+ASSESSMENT_CONFIRMATION_MAX_TESTS_PER_KC = 2
 
 SLIP_GUESS = {
     "mcq": (0.12, 0.25),
@@ -45,6 +53,7 @@ class DiagnosticResponse:
     correct: bool
     student_answer: str | None = None
     grading: dict[str, Any] | None = None
+    response_type: str = "answer"  # answer | unknown
 
 
 @dataclass
@@ -68,9 +77,22 @@ class DiagnosticState:
             return "inferred_gap"
         return "unknown"
 
+    @property
+    def probability_band(self) -> str:
+        if self.p_mastery <= 0.20:
+            return "strong_gap"
+        if self.p_mastery <= 0.35:
+            return "likely_gap"
+        if self.p_mastery < 0.70:
+            return "uncertain"
+        if self.p_mastery < 0.85:
+            return "likely_mastered"
+        return "strong_mastered"
+
     def to_dict(self) -> dict:
         payload = asdict(self)
         payload["label"] = self.label
+        payload["probability_band"] = self.probability_band
         return payload
 
 
@@ -100,7 +122,11 @@ class V2DiagnosticEngine:
         nodes: list[dict[str, Any]],
         edges: list[dict[str, Any]],
         items: list[DiagnosticItem],
+        mode: str = "assessment",
+        enable_confirmation_phase: bool = True,
     ):
+        self.mode = mode
+        self.enable_confirmation_phase = enable_confirmation_phase
         self.graph = nx.DiGraph()
         for node in nodes:
             self.graph.add_node(str(node["id"]), **node)
@@ -127,19 +153,16 @@ class V2DiagnosticEngine:
         return DiagnosticRun(states=states, tested_order=list(known_kcs))
 
     def select_next(self, run: DiagnosticRun) -> DiagnosticItem | None:
-        candidates: list[dict[str, Any]] = []
-        for kc_id in self.graph.nodes:
-            state = run.states[kc_id]
-            if state.label in {"tested_mastered", "tested_gap"}:
-                continue
-            usable = [item for item in self.items_by_kc.get(kc_id, []) if item.id not in run.seen_items]
-            if not usable:
-                continue
-            item = sorted(usable, key=self._item_sort_key)[0]
-            candidates.append(self._candidate_score(run, kc_id, item))
+        candidates = self._frontier_candidates(run, allow_confirmation=False)
+        reason_suffix = ""
+        if not candidates and self.mode == "assessment" and self.enable_confirmation_phase:
+            candidates = self._frontier_candidates(run, allow_confirmation=True)
+            reason_suffix = "_confirmation"
         if not candidates:
             return None
         selected = max(candidates, key=lambda row: row["score"])
+        if reason_suffix and selected["reason"] == "max_expected_information_gain":
+            selected["reason"] = "confirmation_after_breadth"
         run.frontier_history.append({
             "step": len(run.frontier_history) + 1,
             "selected_kc": selected["kc_id"],
@@ -148,6 +171,28 @@ class V2DiagnosticEngine:
             "top_candidates": sorted(candidates, key=lambda row: row["score"], reverse=True)[:5],
         })
         return selected["item"]
+
+    def _frontier_candidates(self, run: DiagnosticRun, allow_confirmation: bool) -> list[dict[str, Any]]:
+        candidates: list[dict[str, Any]] = []
+        for kc_id in self.graph.nodes:
+            state = run.states[kc_id]
+            if state.label in {"tested_mastered", "tested_gap"}:
+                continue
+            if self.mode == "assessment" and state.direct_evidence_count >= ASSESSMENT_MAX_TESTS_PER_KC:
+                if not allow_confirmation:
+                    continue
+                if state.direct_evidence_count >= ASSESSMENT_CONFIRMATION_MAX_TESTS_PER_KC:
+                    continue
+                if state.probability_band not in {"likely_gap", "uncertain", "likely_mastered"}:
+                    continue
+            elif allow_confirmation:
+                continue
+            usable = [item for item in self.items_by_kc.get(kc_id, []) if item.id not in run.seen_items]
+            if not usable:
+                continue
+            item = sorted(usable, key=self._item_sort_key)[0]
+            candidates.append(self._candidate_score(run, kc_id, item))
+        return candidates
 
     def apply_response(self, run: DiagnosticRun, item: DiagnosticItem, response: DiagnosticResponse) -> None:
         if item.id != response.item_id:
@@ -160,14 +205,26 @@ class V2DiagnosticEngine:
         state = run.states[item.kc_id]
         before = state.p_mastery
         p_correct = self._predict_correct(state.p_mastery, item)
-        slip, _guess = self._slip_guess(item)
-        if response.correct:
+        if self.mode == "assessment":
+            if response.response_type == "unknown":
+                state.p_mastery = self._clamp_probability(state.p_mastery + ASSESSMENT_UNKNOWN_DELTA)
+                state.wrong_count += 1
+            elif response.correct:
+                state.p_mastery = self._bkt_posterior(state.p_mastery, item, correct=True, p_correct=p_correct)
+                state.correct_count += 1
+            else:
+                state.p_mastery = self._bkt_posterior(state.p_mastery, item, correct=False, p_correct=p_correct)
+                state.wrong_count += 1
+        elif response.correct:
+            slip, _guess = self._slip_guess(item)
             posterior = state.p_mastery * (1.0 - slip) / max(p_correct, 1e-9)
             state.correct_count += 1
+            state.p_mastery = self._clamp_update(state.p_mastery, posterior, 0.25)
         else:
+            slip, _guess = self._slip_guess(item)
             posterior = state.p_mastery * slip / max(1.0 - p_correct, 1e-9)
             state.wrong_count += 1
-        state.p_mastery = self._clamp_update(state.p_mastery, posterior, 0.25)
+            state.p_mastery = self._clamp_update(state.p_mastery, posterior, 0.25)
         state.direct_evidence_count += 1
 
         evidence = {
@@ -181,6 +238,7 @@ class V2DiagnosticEngine:
             "p_mastery_before": round(before, 4),
             "p_correct_predicted": round(p_correct, 4),
             "p_mastery_after_direct": round(state.p_mastery, 4),
+            "response_type": response.response_type,
         }
         run.evidence_by_kc.setdefault(item.kc_id, []).append(evidence)
 
@@ -188,9 +246,10 @@ class V2DiagnosticEngine:
             "kc_id": item.kc_id,
             "from_p_mastery": round(before, 4),
             "to_p_mastery": round(state.p_mastery, 4),
-            "reason": "direct_correct" if response.correct else "direct_wrong",
+            "reason": self._direct_reason(response),
         }]
-        changes.extend(self._apply_graph_inference(run, item, response.correct))
+        direct_delta = state.p_mastery - before
+        changes.extend(self._apply_graph_inference(run, item, response.correct, response.response_type, direct_delta))
         run.state_transitions.append({
             "step": len(run.state_transitions) + 1,
             "item_id": item.id,
@@ -209,7 +268,7 @@ class V2DiagnosticEngine:
         item_quality = self._item_quality(item)
         score = 100.0 * expected_gain + 25.0 * balance + 12.0 * item_quality
         reason = "max_expected_information_gain"
-        if state.direct_evidence_count == 1:
+        if self.mode != "assessment" and state.direct_evidence_count == 1:
             score += 80.0
             reason = "complete_min_direct_evidence"
         return {
@@ -247,21 +306,64 @@ class V2DiagnosticEngine:
                     gain += self._uncertainty(run.states[diagnosed].p_mastery)
         return gain
 
-    def _apply_graph_inference(self, run: DiagnosticRun, item: DiagnosticItem, correct: bool) -> list[dict]:
+    def _apply_graph_inference(
+        self,
+        run: DiagnosticRun,
+        item: DiagnosticItem,
+        correct: bool,
+        response_type: str = "answer",
+        direct_delta: float | None = None,
+    ) -> list[dict]:
         changes: list[dict] = []
+        if direct_delta is None:
+            direct_delta = ASSESSMENT_CORRECT_DELTA if correct else ASSESSMENT_WRONG_DELTA
         if correct:
             for ancestor in nx.ancestors(self.graph, item.kc_id):
-                changes.extend(self._soft_update(run, ancestor, +0.08, f"soft_ancestor_boost:{item.kc_id}"))
+                distance = nx.shortest_path_length(self.graph, ancestor, item.kc_id)
+                changes.extend(self._propagate_assessment_delta(
+                    run,
+                    ancestor,
+                    self._propagated_delta(direct_delta, distance),
+                    f"bkt_ancestor_boost:{item.kc_id}",
+                ))
             if self._strong_inference_allowed(item):
                 for required in item.content.get("requires_kcs", []) or []:
                     changes.extend(self._strong_update(run, str(required), 0.84, f"strong_open_requires:{item.id}"))
         else:
+            delta = ASSESSMENT_UNKNOWN_DELTA if response_type == "unknown" else direct_delta
             for descendant in nx.descendants(self.graph, item.kc_id):
-                changes.extend(self._soft_update(run, descendant, -0.08, f"soft_descendant_decay:{item.kc_id}"))
+                distance = nx.shortest_path_length(self.graph, item.kc_id, descendant)
+                changes.extend(self._propagate_assessment_delta(
+                    run,
+                    descendant,
+                    self._propagated_delta(delta, distance),
+                    f"bkt_descendant_decay:{item.kc_id}",
+                ))
             if self._strong_inference_allowed(item):
                 for diagnosed in item.content.get("diagnoses_kcs", []) or []:
                     changes.extend(self._strong_update(run, str(diagnosed), 0.26, f"strong_open_diagnoses:{item.id}"))
         return changes
+
+    def _propagated_delta(self, direct_delta: float, distance: int) -> float:
+        distance = max(distance, 1)
+        return direct_delta * ASSESSMENT_PROPAGATION_FACTOR * (ASSESSMENT_PROPAGATION_DECAY ** (distance - 1))
+
+    def _propagate_assessment_delta(self, run: DiagnosticRun, kc_id: str, delta: float, reason: str) -> list[dict]:
+        if self.mode != "assessment":
+            legacy_delta = 0.08 if delta > 0 else -0.08
+            return self._soft_update(run, kc_id, legacy_delta, reason.replace("assessment_", "soft_"))
+        state = run.states.get(kc_id)
+        if state is None or state.direct_evidence_count > 0:
+            return []
+        before = state.p_mastery
+        state.p_mastery = self._clamp_probability(state.p_mastery + delta)
+        state.inferred_evidence_count += 1
+        return [{
+            "kc_id": kc_id,
+            "from_p_mastery": round(before, 4),
+            "to_p_mastery": round(state.p_mastery, 4),
+            "reason": reason,
+        }]
 
     def _soft_update(self, run: DiagnosticRun, kc_id: str, delta: float, reason: str) -> list[dict]:
         state = run.states.get(kc_id)
@@ -301,6 +403,15 @@ class V2DiagnosticEngine:
         slip, guess = self._slip_guess(item)
         return min(0.95, max(0.05, p_mastery * (1.0 - slip) + (1.0 - p_mastery) * guess))
 
+    def _bkt_posterior(self, p_mastery: float, item: DiagnosticItem, correct: bool, p_correct: float | None = None) -> float:
+        slip, _guess = self._slip_guess(item)
+        p_correct = self._predict_correct(p_mastery, item) if p_correct is None else p_correct
+        if correct:
+            posterior = p_mastery * (1.0 - slip) / max(p_correct, 1e-9)
+        else:
+            posterior = p_mastery * slip / max(1.0 - p_correct, 1e-9)
+        return self._clamp_probability(posterior)
+
     def _item_quality(self, item: DiagnosticItem) -> float:
         score = 1.0 if item.is_diagnostic_anchor else 0.0
         if item.format_type in {"open", "open_short", "fillin"}:
@@ -331,3 +442,11 @@ class V2DiagnosticEngine:
     def _clamp_update(self, before: float, after: float, max_delta: float) -> float:
         delta = max(-max_delta, min(max_delta, after - before))
         return min(0.98, max(0.02, before + delta))
+
+    def _clamp_probability(self, value: float) -> float:
+        return min(0.98, max(0.02, value))
+
+    def _direct_reason(self, response: DiagnosticResponse) -> str:
+        if response.response_type == "unknown":
+            return "direct_unknown"
+        return "bkt_direct_correct" if response.correct else "bkt_direct_wrong"

@@ -154,6 +154,13 @@ export interface V2ReviewItem {
   review_comment?: string;
   reviewed_at?: string | null;
   review_history?: V2ReviewHistoryEntry[];
+  pilot_status?: "not_ready" | "ready_for_pilot" | "retired" | string;
+  review_action?: "accept" | "revise" | "replace" | "needs_checker" | "needs_widget" | string;
+  answer_widget?: "number" | "fraction" | "decimal" | "power" | "expression" | "ordered_list" | "set" | "probability" | string;
+  checker_type?: string;
+  replacement_of?: string | null;
+  review_notes?: string;
+  pilot_blockers?: string[];
 }
 
 export interface V2ReviewSummary {
@@ -330,6 +337,23 @@ export async function updateV2ReviewItem(
     flagged_for_review?: boolean;
     review_comment?: string;
     note?: string;
+    question?: string;
+    answer_type?: string;
+    accepted_answers?: string[];
+    tolerance?: number | null;
+    requires_kcs?: string[];
+    diagnoses_kcs?: string[];
+    inference_strength?: string;
+    academic_reviewed?: boolean;
+    common_wrong_patterns?: V2CommonWrongPattern[];
+    pilot_status?: string;
+    review_action?: string;
+    answer_widget?: string;
+    checker_type?: string;
+    replacement_of?: string | null;
+    review_notes?: string;
+    difficulty_label?: string;
+    is_diagnostic_anchor?: boolean;
   }
 ): Promise<V2ReviewItem> {
   return apiFetch(`/question-gen/v2-review/items/${reviewId}`, {

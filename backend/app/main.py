@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import graph, assessment, items, learning, sandbox, question_gen, images, sandbox_assess
+from app.api.routes import graph, assessment, assessment_v2, items, learning, sandbox, question_gen, images, sandbox_assess
 from app.core.config import settings
 
 
@@ -45,6 +45,7 @@ app.add_middleware(
 
 app.include_router(graph.router)
 app.include_router(assessment.router)
+app.include_router(assessment_v2.router)
 app.include_router(items.router)
 app.include_router(learning.router)
 app.include_router(sandbox.router)

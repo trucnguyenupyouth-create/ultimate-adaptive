@@ -1195,6 +1195,22 @@ function GraphBuilderInner() {
           Question Gen
         </Link>
         <Link
+          href="/assessment-v2/algebra"
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "6px 12px", borderRadius: 6, fontSize: 13, fontWeight: 500,
+            border: "1px solid rgba(34,197,94,0.4)",
+            background: "rgba(34,197,94,0.08)",
+            color: "#22c55e",
+            textDecoration: "none",
+            transition: "all 0.15s",
+          }}
+          title="Assessment V2 — Student algebra pilot"
+        >
+          <Sparkles size={13} />
+          V2 Algebra Pilot
+        </Link>
+        <Link
           href="/assessment-runs"
           style={{
             display: "flex", alignItems: "center", gap: 6,

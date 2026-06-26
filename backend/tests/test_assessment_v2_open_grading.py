@@ -67,3 +67,48 @@ def test_strong_inference_requires_academic_review():
     )
 
     assert "strong inference requires academic_reviewed=true" in errors
+
+
+def test_unknown_response_is_not_correct():
+    result = grade_open_response({"answer_type": "integer", "accepted_answers": ["4"]}, "em không biết")
+
+    assert result.matched_rule == "unknown_response"
+    assert result.is_correct is False
+
+
+def test_power_tuple_checker_accepts_base_exponent():
+    result = grade_open_response(
+        {"answer_type": "power", "checker_type": "power_tuple", "accepted_answers": ["4^2"]},
+        "4 ** 2",
+    )
+
+    assert result.is_correct is True
+    assert result.matched_rule == "power_tuple"
+
+
+def test_expression_equivalent_checker():
+    result = grade_open_response(
+        {"answer_type": "expression", "checker_type": "expression_equivalent", "accepted_answers": ["2*x + 6"]},
+        "2*(x+3)",
+    )
+
+    assert result.is_correct is True
+    assert result.matched_rule == "expression_equivalent"
+
+
+def test_ordered_list_preserves_order():
+    content = {
+        "answer_type": "ordered_list",
+        "checker_type": "ordered_list_equal",
+        "accepted_answers": ["-8 < -5 < 0 < 3"],
+    }
+
+    assert grade_open_response(content, "-8; -5; 0; 3").is_correct is True
+    assert grade_open_response(content, "-5; -8; 0; 3").is_correct is False
+
+
+def test_probability_equivalence_accepts_fraction_decimal_percent():
+    content = {"answer_type": "probability", "checker_type": "probability_equal", "accepted_answers": ["1/4"]}
+
+    assert grade_open_response(content, "0.25").is_correct is True
+    assert grade_open_response(content, "25%").is_correct is True

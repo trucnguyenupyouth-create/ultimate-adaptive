@@ -295,6 +295,12 @@ const CSS = `
   .v2-save-state { font-size: 11px; color: var(--text-muted); }
   .v2-save-state.saved { color: var(--green); }
   .v2-save-state.failed { color: var(--red); }
+  .v2-workbench { background: #111827; border: 1px solid #334155; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .v2-workbench-title { color: #93c5fd; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+  .v2-edit-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .v2-edit-grid label, .v2-field { display: flex; flex-direction: column; gap: 5px; color: var(--text-muted); font-size: 11px; font-weight: 700; }
+  .v2-wide-input { width: 100%; min-width: 0; }
+  @media (max-width: 900px) { .v2-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 1250px) { .v2-scroll { grid-template-columns: 1fr; } .v2-side { position: static; } }
 `;
 
@@ -748,6 +754,123 @@ function itemReviewWarnings(item: V2ReviewItem): string[] {
   return warnings;
 }
 
+const ANSWER_WIDGETS = ["number", "fraction", "decimal", "power", "expression", "ordered_list", "set", "probability"];
+const CHECKER_TYPES = ["numeric_equal", "fraction_equal", "decimal_equal", "power_tuple", "expression_equivalent", "ordered_list_equal", "set_equal", "probability_equal", "rubric_manual"];
+const PILOT_STATUSES = ["not_ready", "ready_for_pilot", "retired"];
+const REVIEW_ACTIONS = ["accept", "revise", "replace", "needs_checker", "needs_widget"];
+
+function V2PilotWorkbench({
+  item,
+  disabled,
+  onSave,
+}: {
+  item: V2ReviewItem;
+  disabled: boolean;
+  onSave: (patch: Parameters<typeof updateV2ReviewItem>[1]) => void;
+}) {
+  const [question, setQuestion] = useState(item.question);
+  const [accepted, setAccepted] = useState((item.accepted_answers ?? []).join("; "));
+  const [notes, setNotes] = useState(item.review_notes ?? "");
+
+  useEffect(() => {
+    setQuestion(item.question);
+    setAccepted((item.accepted_answers ?? []).join("; "));
+    setNotes(item.review_notes ?? "");
+  }, [item.review_id, item.question, item.accepted_answers, item.review_notes]);
+
+  const blockers = item.pilot_blockers ?? [];
+  return (
+    <div className="v2-workbench">
+      <div className="v2-workbench-title">Pilot readiness workbench</div>
+      <div className="v2-edit-grid">
+        <label>
+          Pilot status
+          <select className="v2-select" value={item.pilot_status ?? "not_ready"} disabled={disabled} onChange={(event) => onSave({ pilot_status: event.target.value, note: `Pilot status set to ${event.target.value}` })}>
+            {PILOT_STATUSES.map((value) => <option key={value} value={value}>{value}</option>)}
+          </select>
+        </label>
+        <label>
+          Review action
+          <select className="v2-select" value={item.review_action ?? "revise"} disabled={disabled} onChange={(event) => onSave({ review_action: event.target.value, note: `Review action set to ${event.target.value}` })}>
+            {REVIEW_ACTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
+          </select>
+        </label>
+        <label>
+          Answer widget
+          <select className="v2-select" value={item.answer_widget ?? "number"} disabled={disabled} onChange={(event) => onSave({ answer_widget: event.target.value, note: `Answer widget set to ${event.target.value}` })}>
+            {ANSWER_WIDGETS.map((value) => <option key={value} value={value}>{value}</option>)}
+          </select>
+        </label>
+        <label>
+          Checker
+          <select className="v2-select" value={item.checker_type ?? "numeric_equal"} disabled={disabled} onChange={(event) => onSave({ checker_type: event.target.value, note: `Checker set to ${event.target.value}` })}>
+            {CHECKER_TYPES.map((value) => <option key={value} value={value}>{value}</option>)}
+          </select>
+        </label>
+      </div>
+      <label className="v2-field">
+        Question
+        <textarea className="v2-comment" value={question} onChange={(event) => setQuestion(event.target.value)} />
+      </label>
+      <label className="v2-field">
+        Accepted answers, separated by semicolon
+        <input className="v2-input v2-wide-input" value={accepted} onChange={(event) => setAccepted(event.target.value)} />
+      </label>
+      <label className="v2-field">
+        Review notes
+        <textarea className="v2-comment" value={notes} onChange={(event) => setNotes(event.target.value)} />
+      </label>
+      {blockers.length > 0 && (
+        <div className="v2-warning">
+          <strong>Pilot blockers:</strong> {blockers.join(", ")}
+        </div>
+      )}
+      <div className="v2-row-actions">
+        <button
+          className="btn-primary btn-sm"
+          disabled={disabled}
+          onClick={() => onSave({
+            question,
+            accepted_answers: accepted.split(";").map((value) => value.trim()).filter(Boolean),
+            review_notes: notes,
+            note: "Reviewer saved pilot item fields",
+          })}
+        >
+          Save pilot fields
+        </button>
+        {item.suggested_replacement && (
+          <button
+            className="btn-ghost btn-sm"
+            disabled={disabled}
+            onClick={() => onSave({
+              question: item.suggested_replacement?.question,
+              answer_type: item.suggested_replacement?.answer_type,
+              accepted_answers: item.suggested_replacement?.accepted_answers ?? [],
+              review_action: "revise",
+              pilot_status: "not_ready",
+              note: "Reviewer applied suggested replacement draft",
+            })}
+          >
+            Apply suggested replacement
+          </button>
+        )}
+        <button
+          className="btn-success btn-sm"
+          disabled={disabled || blockers.length > 0}
+          onClick={() => onSave({
+            review_decision: "accepted",
+            review_action: "accept",
+            pilot_status: "ready_for_pilot",
+            note: "Reviewer marked item ready for pilot",
+          })}
+        >
+          Mark ready for pilot
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AssessmentV2ReviewPanel() {
   const [items, setItems] = useState<V2ReviewItem[]>([]);
   const [gapRecords, setGapRecords] = useState<Array<Record<string, unknown> & { cluster: string }>>([]);
@@ -975,6 +1098,12 @@ function AssessmentV2ReviewPanel() {
                       )}
                     </div>
                   )}
+
+                  <V2PilotWorkbench
+                    item={item}
+                    disabled={savingId === item.review_id}
+                    onSave={(patch) => persistItem(item, patch)}
+                  />
 
                   <div className="v2-status-row">
                     {(["needs_review", "revise", "accepted", "rejected"] as V2LocalStatus[]).map((state) => (

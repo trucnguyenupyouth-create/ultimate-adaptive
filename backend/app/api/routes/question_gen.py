@@ -83,6 +83,23 @@ class V2ReviewPatchRequest(BaseModel):
     flagged_for_review: Optional[bool] = None
     review_comment: Optional[str] = None
     note: Optional[str] = None
+    question: Optional[str] = None
+    answer_type: Optional[str] = None
+    accepted_answers: Optional[List[str]] = None
+    tolerance: Optional[float] = None
+    requires_kcs: Optional[List[str]] = None
+    diagnoses_kcs: Optional[List[str]] = None
+    inference_strength: Optional[str] = None
+    academic_reviewed: Optional[bool] = None
+    common_wrong_patterns: Optional[List[Dict[str, Any]]] = None
+    pilot_status: Optional[str] = None
+    review_action: Optional[str] = None
+    answer_widget: Optional[str] = None
+    checker_type: Optional[str] = None
+    replacement_of: Optional[str] = None
+    review_notes: Optional[str] = None
+    difficulty_label: Optional[str] = None
+    is_diagnostic_anchor: Optional[bool] = None
 
 
 # ── Background Job Runner ─────────────────────────────────────────────────────

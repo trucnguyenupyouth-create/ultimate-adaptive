@@ -410,6 +410,30 @@ class AssessmentV2ItemReview(Base):
     )
 
 
+class AssessmentV2Session(Base):
+    """DB-backed student pilot session for Assessment V2."""
+    __tablename__ = "assessment_v2_sessions"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    session_code: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="in_progress")
+    max_questions: Mapped[int] = mapped_column(Integer, nullable=False, default=35)
+    student_label: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = now_col()
+    updated_at: Mapped[datetime] = now_col()
+    completed_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMPTZ, nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('in_progress', 'completed')",
+            name="assessment_v2_sessions_status_check",
+        ),
+        Index("idx_assessment_v2_sessions_status", "status"),
+        Index("idx_assessment_v2_sessions_code", "session_code"),
+    )
+
+
 class ItemImage(Base):
     """Image attachment for a question — belongs to either an Item or an ItemDraft."""
     __tablename__ = "item_images"

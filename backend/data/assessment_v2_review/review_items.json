@@ -3939,6 +3939,2148 @@
       "review_comment": "",
       "reviewed_at": null,
       "review_history": []
+    },
+    {
+      "review_id": "v2-061",
+      "cluster": "Number Foundations & Divisibility",
+      "kc_id": "29d23b91-701f-41c2-b158-b2f1dfff3e40",
+      "kc_code": "G6-MATH-PHAN-TICH-RA",
+      "kc_name": "Phân tích ra thừa số nguyên tố",
+      "question": "Viết các thừa số nguyên tố của 84.",
+      "answer_type": "set",
+      "accepted_answers": [
+        "{2,2,3,7}",
+        "2,2,3,7"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "29d23b91-701f-41c2-b158-b2f1dfff3e40"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "{2,3,7}",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "29d23b91-701f-41c2-b158-b2f1dfff3e40"
+          ]
+        },
+        {
+          "pattern": "{4,3,7}",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "29d23b91-701f-41c2-b158-b2f1dfff3e40"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-062",
+      "cluster": "Number Foundations & Divisibility",
+      "kc_id": "3f835ce1-4d29-4000-89c5-3175803add08",
+      "kc_code": "G6-MATH-DOC-VA-VIET",
+      "kc_name": "Đọc và viết chữ số",
+      "question": "Số 4 305 có chữ số hàng trăm là chữ số nào?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "3"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "3f835ce1-4d29-4000-89c5-3175803add08"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "4",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "3f835ce1-4d29-4000-89c5-3175803add08"
+          ]
+        },
+        {
+          "pattern": "0",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "3f835ce1-4d29-4000-89c5-3175803add08"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-063",
+      "cluster": "Expressions & Order of Operations",
+      "kc_id": "7c147ca4-23b5-4563-be98-cd0b07af6f6e",
+      "kc_code": "G6-MATH-BO-DAU-NGOAC",
+      "kc_name": "Bỏ dấu ngoặc có dấu + đằng trước ",
+      "question": "Tính giá trị biểu thức 20 + (7 - 4).",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "23"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "7c147ca4-23b5-4563-be98-cd0b07af6f6e"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "9",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "7c147ca4-23b5-4563-be98-cd0b07af6f6e"
+          ]
+        },
+        {
+          "pattern": "17",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "7c147ca4-23b5-4563-be98-cd0b07af6f6e"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-064",
+      "cluster": "Integers & Order",
+      "kc_id": "ab3650f9-b9db-458f-be79-83840d990c0a",
+      "kc_code": "G6-MATH-NHAN-HAI-SO",
+      "kc_name": "Nhân hai số nguyên khác dấu ",
+      "question": "Tính: (-8) × 5",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "-40"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "ab3650f9-b9db-458f-be79-83840d990c0a"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "40",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "ab3650f9-b9db-458f-be79-83840d990c0a"
+          ]
+        },
+        {
+          "pattern": "-13",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "ab3650f9-b9db-458f-be79-83840d990c0a"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-065",
+      "cluster": "Integers & Order",
+      "kc_id": "57767f23-fa58-4d24-a2c3-e2bc436786da",
+      "kc_code": "G6-MATH-SO-SANH-HAI-5",
+      "kc_name": "Biểu diễn số nguyên trên trục số và so sánh hai số nguyên",
+      "question": "Một số nguyên âm nhỏ hơn -8 đúng 1 đơn vị là số nào?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "-9"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "57767f23-fa58-4d24-a2c3-e2bc436786da"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "-7",
+          "diagnosis": "confuses direction on negative number line",
+          "diagnoses_kcs": [
+            "57767f23-fa58-4d24-a2c3-e2bc436786da"
+          ]
+        },
+        {
+          "pattern": "9",
+          "diagnosis": "drops negative sign",
+          "diagnoses_kcs": [
+            "57767f23-fa58-4d24-a2c3-e2bc436786da"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        },
+        {
+          "action": "codex_revised_to_remove_visible_options",
+          "note": "Reworded after risk gate flagged visible-option wording. Kept safe numeric grading.",
+          "concern": "Still requires academic review for wording and KC mapping."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-066",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "0164cf7c-e080-4ca0-909b-e292f65af633",
+      "kc_code": "G6-MATH-NHAN-BIET-HAI",
+      "kc_name": "Kiểm tra hai phân số bằng nhau bằng điều kiện nhân chéo -  a·d = b·c",
+      "question": "Điền k để 6/8 = k/12.",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "9"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "0164cf7c-e080-4ca0-909b-e292f65af633"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "8",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "0164cf7c-e080-4ca0-909b-e292f65af633"
+          ]
+        },
+        {
+          "pattern": "10",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "0164cf7c-e080-4ca0-909b-e292f65af633"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-067",
+      "cluster": "Number Foundations & Divisibility",
+      "kc_id": "f42ef71b-a82f-409a-838e-320ecfeb58d9",
+      "kc_code": "G6-MATH-BIEU-DIEN-SO",
+      "kc_name": "Biểu diễn số tự nhiên nhỏ hơn <30 thành số la mã",
+      "question": "Số La Mã XIV biểu diễn số tự nhiên nào?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "14"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "f42ef71b-a82f-409a-838e-320ecfeb58d9"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "16",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "f42ef71b-a82f-409a-838e-320ecfeb58d9"
+          ]
+        },
+        {
+          "pattern": "9",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "f42ef71b-a82f-409a-838e-320ecfeb58d9"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-068",
+      "cluster": "Expressions & Order of Operations",
+      "kc_id": "095f17d0-9860-4c78-9ad7-d93b1702af55",
+      "kc_code": "G6-MATH-NHAN-LUY-THUA",
+      "kc_name": "Nhân luỹ thừa cùng cơ số áp dụng quy tắc",
+      "question": "Tính giá trị của 2^3 × 2^2.",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "32"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "095f17d0-9860-4c78-9ad7-d93b1702af55"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "64",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "095f17d0-9860-4c78-9ad7-d93b1702af55"
+          ]
+        },
+        {
+          "pattern": "12",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "095f17d0-9860-4c78-9ad7-d93b1702af55"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-069",
+      "cluster": "Data / Statistics / Probability, Non-Visual",
+      "kc_id": "5c51957a-88d4-45ca-bfdb-6b4da0a754f2",
+      "kc_code": "G6-MATH-NHAN-BIET-TINH",
+      "kc_name": "Nhận biết tính không đoán trước của kết quả trờ chơi, thí nghiệm ",
+      "question": "Gieo một con xúc xắc chuẩn. Có bao nhiêu kết quả có thể xảy ra?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "6"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "5c51957a-88d4-45ca-bfdb-6b4da0a754f2"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "1",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "5c51957a-88d4-45ca-bfdb-6b4da0a754f2"
+          ]
+        },
+        {
+          "pattern": "2",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "5c51957a-88d4-45ca-bfdb-6b4da0a754f2"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-070",
+      "cluster": "Integers & Order",
+      "kc_id": "32caa11b-ee1d-4208-99dd-a8b393b45dd4",
+      "kc_code": "G6-MATH-CONG-HAI-SO",
+      "kc_name": "Cộng hai số nguyên âm",
+      "question": "Tính: (-14) + (-9)",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "-23"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "32caa11b-ee1d-4208-99dd-a8b393b45dd4"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "23",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "32caa11b-ee1d-4208-99dd-a8b393b45dd4"
+          ]
+        },
+        {
+          "pattern": "-5",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "32caa11b-ee1d-4208-99dd-a8b393b45dd4"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-071",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "4a8a5463-5958-48b7-8e90-f536aa889645",
+      "kc_code": "G6-MATH-CONG-HAI-PHAN",
+      "kc_name": "Cộng hai phân số cùng mẫu ",
+      "question": "Tính: 3/11 + 5/11",
+      "answer_type": "fraction",
+      "accepted_answers": [
+        "8/11"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "4a8a5463-5958-48b7-8e90-f536aa889645"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "8/22",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "4a8a5463-5958-48b7-8e90-f536aa889645"
+          ]
+        },
+        {
+          "pattern": "2/11",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "4a8a5463-5958-48b7-8e90-f536aa889645"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-072",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "ff3da98d-995e-4c4c-8e3b-681851c95671",
+      "kc_code": "G6-MATH-SO-SANH-HAI-1",
+      "kc_name": "So sánh hai phân số khác mẫu bằng cách quy đồng mẫu",
+      "question": "Trong hai phân số 3/4 và 5/6, phân số nào lớn hơn? Nhập tử số của phân số lớn hơn.",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "5"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "ff3da98d-995e-4c4c-8e3b-681851c95671"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "3",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "ff3da98d-995e-4c4c-8e3b-681851c95671"
+          ]
+        },
+        {
+          "pattern": "6",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "ff3da98d-995e-4c4c-8e3b-681851c95671"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-073",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "9b541386-16c6-4ee5-9dc0-c6eb76f0e390",
+      "kc_code": "G6-MATH-TIM-GIA-TRI",
+      "kc_name": "Tìm giá trị phân số của một số",
+      "question": "3/4 của 28 là bao nhiêu?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "21"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "9b541386-16c6-4ee5-9dc0-c6eb76f0e390"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "7",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "9b541386-16c6-4ee5-9dc0-c6eb76f0e390"
+          ]
+        },
+        {
+          "pattern": "24",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "9b541386-16c6-4ee5-9dc0-c6eb76f0e390"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-074",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "33b1d60d-acfc-4736-a239-6d12646115a8",
+      "kc_code": "G6-MATH-NHAN-BIET-HON",
+      "kc_name": "Nhận biết hỗn số dương",
+      "question": "Hỗn số 2 3/5 có phần nguyên là bao nhiêu?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "2"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "33b1d60d-acfc-4736-a239-6d12646115a8"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "3",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "33b1d60d-acfc-4736-a239-6d12646115a8"
+          ]
+        },
+        {
+          "pattern": "5",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "33b1d60d-acfc-4736-a239-6d12646115a8"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-075",
+      "cluster": "Number Foundations & Divisibility",
+      "kc_id": "49f12c64-77d0-45b6-a758-719231413662",
+      "kc_code": "G6-MATH-SO-LIEN-TRUOC",
+      "kc_name": "Số liền trước liền sau ",
+      "question": "Số liền sau của 999 là số nào?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "1000",
+        "1 000"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "49f12c64-77d0-45b6-a758-719231413662"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "998",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "49f12c64-77d0-45b6-a758-719231413662"
+          ]
+        },
+        {
+          "pattern": "999",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "49f12c64-77d0-45b6-a758-719231413662"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-076",
+      "cluster": "Integers & Order",
+      "kc_id": "3bf438fd-b505-41f5-9864-ce1c914cde8c",
+      "kc_code": "G6-MATH-TU-CHO-SO",
+      "kc_name": "Trừ hai số nguyên",
+      "question": "Tính: (-3) - 8",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "-11"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "3bf438fd-b505-41f5-9864-ce1c914cde8c"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "5",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "3bf438fd-b505-41f5-9864-ce1c914cde8c"
+          ]
+        },
+        {
+          "pattern": "11",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "3bf438fd-b505-41f5-9864-ce1c914cde8c"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-077",
+      "cluster": "Integers & Order",
+      "kc_id": "4138513c-6cc2-41fe-bed2-2b2d4641fc28",
+      "kc_code": "G6-MATH-NHAN-HAI-SO-1",
+      "kc_name": "Nhân hai số nguyên cùng dấu",
+      "question": "Tính: (-6) × (-7)",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "42"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "4138513c-6cc2-41fe-bed2-2b2d4641fc28"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "-42",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "4138513c-6cc2-41fe-bed2-2b2d4641fc28"
+          ]
+        },
+        {
+          "pattern": "13",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "4138513c-6cc2-41fe-bed2-2b2d4641fc28"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-078",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "111d3f6a-1d76-4929-bcb5-adc2b7bbe0d6",
+      "kc_code": "G6-MATH-SO-SANH-HAI",
+      "kc_name": "So sánh hai phân số cùng mẫu ",
+      "question": "Trong hai phân số 5/13 và 8/13, phân số lớn hơn có tử số là bao nhiêu?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "8"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "111d3f6a-1d76-4929-bcb5-adc2b7bbe0d6"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "5",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "111d3f6a-1d76-4929-bcb5-adc2b7bbe0d6"
+          ]
+        },
+        {
+          "pattern": "13",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "111d3f6a-1d76-4929-bcb5-adc2b7bbe0d6"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-079",
+      "cluster": "Integers & Order",
+      "kc_id": "ba99a753-23ae-43b9-9355-3010ffeb014a",
+      "kc_code": "G6-MATH-THUC-HIEN-PHEP",
+      "kc_name": "Thực hiện phép chia hết hai số nguyên - xác định đúng dấu của thương",
+      "question": "Tính: (-48) : 6",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "-8"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "ba99a753-23ae-43b9-9355-3010ffeb014a"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "8",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "ba99a753-23ae-43b9-9355-3010ffeb014a"
+          ]
+        },
+        {
+          "pattern": "-42",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "ba99a753-23ae-43b9-9355-3010ffeb014a"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-080",
+      "cluster": "Data / Statistics / Probability, Non-Visual",
+      "kc_id": "0e094f61-ff13-4343-b4df-989906486e9d",
+      "kc_code": "G6-MATH-DOC-VA-PHAN-1",
+      "kc_name": "Đọc và phân tích dữ liệu từ biểu đồ tranh ",
+      "question": "Mỗi biểu tượng đại diện cho 4 học sinh. Nếu lớp A có 7 biểu tượng, lớp A có bao nhiêu học sinh?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "28"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "0e094f61-ff13-4343-b4df-989906486e9d"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "11",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "0e094f61-ff13-4343-b4df-989906486e9d"
+          ]
+        },
+        {
+          "pattern": "7",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "0e094f61-ff13-4343-b4df-989906486e9d"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-081",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "656a1d64-f530-4757-88d5-0a96a5397eb7",
+      "kc_code": "G6-MATH-TRU-HAI-PHAN",
+      "kc_name": "Trừ hai phân số cùng mẫu",
+      "question": "Tính: 7/9 - 2/9",
+      "answer_type": "fraction",
+      "accepted_answers": [
+        "5/9"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "656a1d64-f530-4757-88d5-0a96a5397eb7"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "5/0",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "656a1d64-f530-4757-88d5-0a96a5397eb7"
+          ]
+        },
+        {
+          "pattern": "9/5",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "656a1d64-f530-4757-88d5-0a96a5397eb7"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-082",
+      "cluster": "Data / Statistics / Probability, Non-Visual",
+      "kc_id": "eec78dc0-9976-407c-8519-9062268f54c0",
+      "kc_code": "G6-MATH-CHON-PHUONG-PHAP",
+      "kc_name": "Chọn phương pháp thu thập dữ liệu ",
+      "question": "Muốn biết môn thể thao yêu thích của 30 bạn trong lớp, cần hỏi bao nhiêu bạn nếu khảo sát cả lớp?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "30"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "eec78dc0-9976-407c-8519-9062268f54c0"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "1",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "eec78dc0-9976-407c-8519-9062268f54c0"
+          ]
+        },
+        {
+          "pattern": "15",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "eec78dc0-9976-407c-8519-9062268f54c0"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-083",
+      "cluster": "Number Foundations & Divisibility",
+      "kc_id": "5fb891b6-3c61-44dd-8160-7f32b1f0eba2",
+      "kc_code": "G6-MATH-NHAN-BIET-SO-3",
+      "kc_name": "Nhận biết số chính phương",
+      "question": "Tính 4^2. Kết quả là số nào?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "16"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "5fb891b6-3c61-44dd-8160-7f32b1f0eba2"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "8",
+          "diagnosis": "multiplies base by exponent instead of squaring",
+          "diagnoses_kcs": [
+            "5fb891b6-3c61-44dd-8160-7f32b1f0eba2"
+          ]
+        },
+        {
+          "pattern": "6",
+          "diagnosis": "adds base and exponent",
+          "diagnoses_kcs": [
+            "5fb891b6-3c61-44dd-8160-7f32b1f0eba2"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        },
+        {
+          "action": "codex_revised_to_remove_visible_options",
+          "note": "Reworded after risk gate flagged visible-option wording. Kept safe numeric grading.",
+          "concern": "Still requires academic review for wording and KC mapping."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-084",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "be30a810-a2c6-4c8f-8d7d-aa515d7e49b7",
+      "kc_code": "G6-MATH-QUY-DONG-PHAN",
+      "kc_name": "Quy đồng mẫu các phân số",
+      "question": "Quy đồng 1/3 và 1/4 với mẫu chung 12. Viết hai phân số mới.",
+      "answer_type": "set",
+      "accepted_answers": [
+        "{4/12,3/12}",
+        "4/12,3/12"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "be30a810-a2c6-4c8f-8d7d-aa515d7e49b7"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "{1/12,1/12}",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "be30a810-a2c6-4c8f-8d7d-aa515d7e49b7"
+          ]
+        },
+        {
+          "pattern": "{3/12,4/12}",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "be30a810-a2c6-4c8f-8d7d-aa515d7e49b7"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-085",
+      "cluster": "Expressions & Order of Operations",
+      "kc_id": "2ceee5b6-021d-46db-b5df-08030916bf4b",
+      "kc_code": "G6-MATH-NHAN-BIET-CAU",
+      "kc_name": "Nhận biết cấu trúc lũy thừa (cơ số, số mũ, đọc/viết ký hiệu aⁿ)",
+      "question": "Trong lũy thừa 7^4, số mũ là bao nhiêu?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "4"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "2ceee5b6-021d-46db-b5df-08030916bf4b"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "7",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "2ceee5b6-021d-46db-b5df-08030916bf4b"
+          ]
+        },
+        {
+          "pattern": "11",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "2ceee5b6-021d-46db-b5df-08030916bf4b"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-086",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+      "kc_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "kc_name": "Nhận biết phân số có tử và mẫu là số nguyên, mẫu khác 0",
+      "question": "Với biểu thức 7/(n - 3), giá trị nào của n làm biểu thức không phải là phân số hợp lệ?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "3"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "b68ce985-f530-48eb-9151-e880cf5a61fb"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "n=0",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "b68ce985-f530-48eb-9151-e880cf5a61fb"
+          ]
+        },
+        {
+          "pattern": "7/3",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "b68ce985-f530-48eb-9151-e880cf5a61fb"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-087",
+      "cluster": "Number Foundations & Divisibility",
+      "kc_id": "6e6c4448-2c54-4921-b742-b881b8626aff",
+      "kc_code": "G6-MATH-NHAN-BIET-MO",
+      "kc_name": "Nhận biết - Mở rộng ước và bội sang số nguyên âm",
+      "question": "Số -24 có chia hết cho 6 không? Nếu có nhập thương -24:6.",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "-4"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "6e6c4448-2c54-4921-b742-b881b8626aff"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "4",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "6e6c4448-2c54-4921-b742-b881b8626aff"
+          ]
+        },
+        {
+          "pattern": "0",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "6e6c4448-2c54-4921-b742-b881b8626aff"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-088",
+      "cluster": "Data / Statistics / Probability, Non-Visual",
+      "kc_id": "cea4720f-ac7d-4ce6-b4cf-741062f959da",
+      "kc_code": "G6-MATH-LAP-BANG-THONG",
+      "kc_name": "Lập bảng thống kê ",
+      "question": "Dữ liệu A, B, A, C, A, B có bao nhiêu lần xuất hiện giá trị A?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "3"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "cea4720f-ac7d-4ce6-b4cf-741062f959da"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "2",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "cea4720f-ac7d-4ce6-b4cf-741062f959da"
+          ]
+        },
+        {
+          "pattern": "6",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "cea4720f-ac7d-4ce6-b4cf-741062f959da"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-089",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+      "kc_code": "G6-MAMATMATHMAT",
+      "kc_name": "Trừ hai phân số khác mẫu",
+      "question": "Tính: 5/6 - 1/4",
+      "answer_type": "fraction",
+      "accepted_answers": [
+        "7/12"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "82cf16c3-6304-4c48-b848-5e0bde0dee58"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "4/2",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "82cf16c3-6304-4c48-b848-5e0bde0dee58"
+          ]
+        },
+        {
+          "pattern": "4/10",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "82cf16c3-6304-4c48-b848-5e0bde0dee58"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-090",
+      "cluster": "Decimals, Percent, Ratio",
+      "kc_id": "a1085fdd-43e4-4d7b-96b6-36e24fb51777",
+      "kc_code": "G6-MATH-CONG-TRU-SO",
+      "kc_name": "Cộng trừ số thập phân có dấu ",
+      "question": "Tính: (-2,5) + 1,75",
+      "answer_type": "decimal",
+      "accepted_answers": [
+        "-0.75",
+        "-0,75"
+      ],
+      "tolerance": 1e-09,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "a1085fdd-43e4-4d7b-96b6-36e24fb51777"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "0.75",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "a1085fdd-43e4-4d7b-96b6-36e24fb51777"
+          ]
+        },
+        {
+          "pattern": "-4.25",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "a1085fdd-43e4-4d7b-96b6-36e24fb51777"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-091",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "375a0e3b-9199-4531-9230-6c8e885b9848",
+      "kc_code": "G6-MATH-TIM-MOT-SO-1",
+      "kc_name": "Tìm một số biết giá trị phân số của nó",
+      "question": "2/5 của một số bằng 18. Số đó là bao nhiêu?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "45"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "375a0e3b-9199-4531-9230-6c8e885b9848"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "36",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "375a0e3b-9199-4531-9230-6c8e885b9848"
+          ]
+        },
+        {
+          "pattern": "20",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "375a0e3b-9199-4531-9230-6c8e885b9848"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-092",
+      "cluster": "Decimals, Percent, Ratio",
+      "kc_id": "9100557a-7ccf-430a-82ff-0cb2d9eb4b21",
+      "kc_code": "G6-MATH-SO-SANH-HAI-2",
+      "kc_name": "So sánh hai số thập phân",
+      "question": "Trong hai số 3,08 và 3,8, số lớn hơn là số nào?",
+      "answer_type": "decimal",
+      "accepted_answers": [
+        "3.8",
+        "3,8"
+      ],
+      "tolerance": 1e-09,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "9100557a-7ccf-430a-82ff-0cb2d9eb4b21"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "3.08",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "9100557a-7ccf-430a-82ff-0cb2d9eb4b21"
+          ]
+        },
+        {
+          "pattern": "3,08",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "9100557a-7ccf-430a-82ff-0cb2d9eb4b21"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-093",
+      "cluster": "Decimals, Percent, Ratio",
+      "kc_id": "a4da21df-12a3-42f1-aef5-923f2960f3d6",
+      "kc_code": "G6-MATH-CHIA-SO-THAP",
+      "kc_name": "Chia số thập phân có dấu",
+      "question": "Tính: (-7,2) : 0,9",
+      "answer_type": "decimal",
+      "accepted_answers": [
+        "-8",
+        "-8.0"
+      ],
+      "tolerance": 1e-09,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "a4da21df-12a3-42f1-aef5-923f2960f3d6"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "8",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "a4da21df-12a3-42f1-aef5-923f2960f3d6"
+          ]
+        },
+        {
+          "pattern": "-0.8",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "a4da21df-12a3-42f1-aef5-923f2960f3d6"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-094",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "eecf4177-b5c2-48ea-ac8f-2f11c40c9956",
+      "kc_code": "G6-MATH-SO-DOI-CUA",
+      "kc_name": "Xác định số đối của phân số",
+      "question": "Số đối của -5/7 là phân số nào?",
+      "answer_type": "fraction",
+      "accepted_answers": [
+        "5/7"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "eecf4177-b5c2-48ea-ac8f-2f11c40c9956"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "-5/7",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "eecf4177-b5c2-48ea-ac8f-2f11c40c9956"
+          ]
+        },
+        {
+          "pattern": "7/5",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "eecf4177-b5c2-48ea-ac8f-2f11c40c9956"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-095",
+      "cluster": "Expressions & Order of Operations",
+      "kc_id": "da118684-1954-4b4a-ae1e-4a51f3317430",
+      "kc_code": "G6-MATH-BO-DAU-NGOAC-1",
+      "kc_name": "Bỏ dấu ngoặc có dấu - đằng trước",
+      "question": "Tính giá trị biểu thức 15 - (8 - 3).",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "10"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "da118684-1954-4b4a-ae1e-4a51f3317430"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "4",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "da118684-1954-4b4a-ae1e-4a51f3317430"
+          ]
+        },
+        {
+          "pattern": "20",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "da118684-1954-4b4a-ae1e-4a51f3317430"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-096",
+      "cluster": "Expressions & Order of Operations",
+      "kc_id": "cb9cba24-5074-4b1c-8fb6-84ab98c03a4e",
+      "kc_code": "G6-MATH-CHIA-LUY-THUA",
+      "kc_name": "Chia luỹ thừa cùng cơ số áp dụng quy tắc",
+      "question": "Tính giá trị của 3^5 : 3^3.",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "9"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "cb9cba24-5074-4b1c-8fb6-84ab98c03a4e"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "3",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "cb9cba24-5074-4b1c-8fb6-84ab98c03a4e"
+          ]
+        },
+        {
+          "pattern": "27",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "cb9cba24-5074-4b1c-8fb6-84ab98c03a4e"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-097",
+      "cluster": "Data / Statistics / Probability, Non-Visual",
+      "kc_id": "8b156b27-cb67-4f48-baa0-292c6d58c89a",
+      "kc_code": "G6-MATH-NHAN-BIET-DU",
+      "kc_name": "Nhận biết dữ liệu, phân biệt số liệu và dữ liệu không phải số liệu, đối tượng quan sát và dữ liệu thu được",
+      "question": "Một bảng ghi chiều cao 5 học sinh gồm: 140, 142, 140, 145, 143. Có bao nhiêu số liệu được ghi?",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "5"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "8b156b27-cb67-4f48-baa0-292c6d58c89a"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "4",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "8b156b27-cb67-4f48-baa0-292c6d58c89a"
+          ]
+        },
+        {
+          "pattern": "140",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "8b156b27-cb67-4f48-baa0-292c6d58c89a"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-098",
+      "cluster": "Fractions Equivalence và Operations",
+      "kc_id": "6c18010c-1818-45cb-9c06-7c4adde88e07",
+      "kc_code": "G6-MATH-NHAN-HAI-PHAN",
+      "kc_name": "Nhân hai phân số ",
+      "question": "Tính: 2/3 × 9/10",
+      "answer_type": "fraction",
+      "accepted_answers": [
+        "3/5"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "medium",
+      "is_diagnostic_anchor": false,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "6c18010c-1818-45cb-9c06-7c4adde88e07"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "18/30",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "6c18010c-1818-45cb-9c06-7c4adde88e07"
+          ]
+        },
+        {
+          "pattern": "11/13",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "6c18010c-1818-45cb-9c06-7c4adde88e07"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-099",
+      "cluster": "Number Foundations & Divisibility",
+      "kc_id": "64e80095-6942-4c30-84d4-a3aa7a90d5b0",
+      "kc_code": "G6-MATH-NHAN-BIET-MO-1",
+      "kc_name": "Nhận biết mở rộng mối quan hệ chia hết sang số nguyên âm",
+      "question": "Tìm thương của -18 khi chia cho 3.",
+      "answer_type": "integer",
+      "accepted_answers": [
+        "-6"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "64e80095-6942-4c30-84d4-a3aa7a90d5b0"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "6",
+          "diagnosis": "drops negative sign in integer division",
+          "diagnoses_kcs": [
+            "64e80095-6942-4c30-84d4-a3aa7a90d5b0"
+          ]
+        },
+        {
+          "pattern": "-15",
+          "diagnosis": "subtracts instead of divides",
+          "diagnoses_kcs": [
+            "64e80095-6942-4c30-84d4-a3aa7a90d5b0"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        },
+        {
+          "action": "codex_revised_to_remove_visible_options",
+          "note": "Reworded after risk gate flagged visible-option wording. Kept safe numeric grading.",
+          "concern": "Still requires academic review for wording and KC mapping."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
+    },
+    {
+      "review_id": "v2-100",
+      "cluster": "Number Foundations & Divisibility",
+      "kc_id": "55db8d40-9a2a-431e-b698-008f60325395",
+      "kc_code": "G6-MATH-TIM-UOC-VA",
+      "kc_name": "Tìm ước và bội số ",
+      "question": "Liệt kê các ước dương của 12 nhỏ hơn 12.",
+      "answer_type": "set",
+      "accepted_answers": [
+        "{1,2,3,4,6}",
+        "1,2,3,4,6"
+      ],
+      "tolerance": 0,
+      "difficulty_label": "anchor",
+      "is_diagnostic_anchor": true,
+      "requires_kcs": [],
+      "diagnoses_kcs": [
+        "55db8d40-9a2a-431e-b698-008f60325395"
+      ],
+      "inference_strength": "weak",
+      "academic_reviewed": false,
+      "common_wrong_patterns": [
+        {
+          "pattern": "{1,2,3,4,6,12}",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "55db8d40-9a2a-431e-b698-008f60325395"
+          ]
+        },
+        {
+          "pattern": "{2,4,6}",
+          "diagnosis": "common misconception or computation error",
+          "diagnoses_kcs": [
+            "55db8d40-9a2a-431e-b698-008f60325395"
+          ]
+        }
+      ],
+      "flags": [
+        "codex supplemental: auto-gradable open item for deterministic Assessment V2 algebra coverage; requires academic review before student use"
+      ],
+      "codex_review_status": "provisionally_accepted_for_algorithm_test_only",
+      "action_notes": [
+        {
+          "action": "codex_self_added_v2_coverage",
+          "note": "Tự thêm để mỗi algebra KC có ít nhất một open-ended, auto-gradable diagnostic fixture cho deterministic test. Không phải academic approval.",
+          "concern": "Reviewer cần xác nhận wording, KC mapping, misconception patterns, và inference strength trước khi dùng với học sinh thật."
+        }
+      ],
+      "review_decision": "needs_review",
+      "flagged_for_review": false,
+      "review_comment": "",
+      "reviewed_at": null,
+      "review_history": []
     }
   ],
   "gap_records": [
