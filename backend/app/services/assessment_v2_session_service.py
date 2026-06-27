@@ -144,6 +144,17 @@ def _serialize_item(item: DiagnosticItem, nodes_by_id: dict[str, dict[str, Any]]
     }
 
 
+def _serialize_diagnostic_item_for_payload(item: DiagnosticItem) -> dict[str, Any]:
+    return {
+        "id": item.id,
+        "kc_id": item.kc_id,
+        "format_type": item.format_type,
+        "content": item.content,
+        "difficulty_label": item.difficulty_label,
+        "is_diagnostic_anchor": item.is_diagnostic_anchor,
+    }
+
+
 def _normalize_student_answer(answer: Any) -> str:
     if isinstance(answer, dict):
         if "raw" in answer:
@@ -238,7 +249,7 @@ async def create_session(db: AsyncSession, max_questions: int = DEFAULT_MAX_QUES
         "created_at": _now_iso(),
         "nodes": nodes,
         "edges": edges,
-        "items": [item.__dict__ for item in items],
+        "items": [_serialize_diagnostic_item_for_payload(item) for item in items],
         "run": run.to_dict(),
         "current_item_id": first.id,
         "responses": [],

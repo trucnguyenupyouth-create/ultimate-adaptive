@@ -106,13 +106,35 @@ class DiagnosticRun:
     state_transitions: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
+        def strip_runtime_objects(value: Any) -> Any:
+            if isinstance(value, DiagnosticItem):
+                return {
+                    "id": value.id,
+                    "kc_id": value.kc_id,
+                    "format_type": value.format_type,
+                    "difficulty_label": value.difficulty_label,
+                    "is_diagnostic_anchor": value.is_diagnostic_anchor,
+                    "content": value.content,
+                }
+            if isinstance(value, dict):
+                return {
+                    key: strip_runtime_objects(inner)
+                    for key, inner in value.items()
+                    if key != "item"
+                }
+            if isinstance(value, list):
+                return [strip_runtime_objects(inner) for inner in value]
+            if isinstance(value, set):
+                return sorted(strip_runtime_objects(inner) for inner in value)
+            return value
+
         return {
             "states": {kc_id: state.to_dict() for kc_id, state in self.states.items()},
             "tested_order": self.tested_order,
             "seen_items": sorted(self.seen_items),
             "evidence_by_kc": self.evidence_by_kc,
-            "frontier_history": self.frontier_history,
-            "state_transitions": self.state_transitions,
+            "frontier_history": strip_runtime_objects(self.frontier_history),
+            "state_transitions": strip_runtime_objects(self.state_transitions),
         }
 
 

@@ -1,3 +1,5 @@
+import json
+
 from app.engines.assessment_v2.diagnostic_engine import (
     DiagnosticItem,
     DiagnosticResponse,
@@ -80,6 +82,17 @@ def test_assessment_mode_does_not_repeat_same_kc_after_one_probe():
 
     assert second is not None
     assert second.kc_id != first.kc_id
+
+
+def test_run_payload_is_json_serializable_after_frontier_selection():
+    engine = _engine()
+    run = engine.new_run()
+    item = engine.select_next(run)
+    assert item is not None
+
+    engine.apply_response(run, item, DiagnosticResponse(item_id=item.id, correct=True, student_answer="5/6"))
+
+    json.dumps(run.to_dict())
 
 
 def test_assessment_mode_can_confirm_after_breadth_is_exhausted():
