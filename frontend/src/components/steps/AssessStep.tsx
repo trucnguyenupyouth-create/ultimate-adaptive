@@ -1,7 +1,8 @@
 "use client";
 // ─── AssessStep ───────────────────────────────────────────────────────────────
-// Full-width two-column layout: question copy (left) · answer widget (right)
-// Mirrors the old .shell.hero-grid pattern
+// Single-column stacked layout matching old .question-panel pattern:
+//   topline → question title → question text → answer widget → actions
+// NOT a two-column grid — old ref used single column for questions.
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -94,7 +95,7 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     if (pitchMode) { advance(); return; }
     if (!sessionId || !currentItem || submitting) return;
 
-    const widgetType = (currentItem.answer_widget ?? "raw") as WidgetType;
+    const widgetType = (currentItem.answer_widget ?? "number") as WidgetType;
     let answer: string;
     if (widgetType === "fraction") {
       if (!isFractionReady(fracState)) return;
@@ -173,7 +174,7 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.4 }}
-      style={{ minHeight: "calc(100vh - 68px)", padding: "36px" }}
+      style={{ minHeight: "calc(100vh - 68px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "36px 24px" }}
     >
       <AnimatePresence mode="wait">
         {phase === "question" && (
@@ -184,154 +185,165 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.45 }}
             style={{
-              maxWidth: 1100,
+              maxWidth: 900,
               width: "100%",
-              margin: "0 auto",
               background: "rgba(255,255,255,0.92)",
-              border: `1px solid ${B.grayBorder}`,
+              border: "1px solid #dfe7f7",
               borderRadius: 28,
-              boxShadow: "0 24px 70px rgba(38,82,181,0.10)",
-              padding: 32,
+              boxShadow: "0 24px 70px rgba(38, 82, 181, 0.13)",
+              padding: 28,
               display: "grid",
-              gridTemplateColumns: "minmax(0,1.05fr) minmax(320px,0.95fr)",
-              gap: 36,
-              alignItems: "center",
-              minHeight: 480,
+              gap: 24,
             }}
           >
-            {/* Left: question copy */}
-            <div style={{ display: "grid", gap: 24, alignContent: "center" }}>
-              {/* Error */}
-              {error && (
-                <div className="rounded-xl p-3 text-sm" style={{ backgroundColor: B.redLight, color: B.red, fontFamily: INTER }}>
-                  {error} — <button onClick={() => setError(null)} style={{ textDecoration: "underline" }}>thử lại</button>
-                </div>
-              )}
-
-              {/* Eyebrow */}
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 7, width: "fit-content", color: B.blue, background: B.blueLight, border: `1px solid rgba(61,114,248,0.2)`, borderRadius: 999, padding: "7px 13px", fontWeight: 800, fontSize: 13, fontFamily: NUNITO }}>
-                <GraduationCap size={15} /> Câu hỏi chẩn đoán
+            {/* Error */}
+            {error && (
+              <div style={{ backgroundColor: "#fff1f0", color: "#b42318", border: "1px solid #ffd2cc", padding: "12px 14px", borderRadius: 16, lineHeight: 1.45, fontFamily: INTER, fontSize: 14 }}>
+                {error} — <button onClick={() => setError(null)} style={{ textDecoration: "underline", background: "none", border: "none", color: "inherit", cursor: "pointer" }}>thử lại</button>
               </div>
+            )}
 
-              {/* Progress bar */}
+            {/* Topline: progress + KC code chip */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, background: B.blueLight, color: B.blue, borderRadius: 999, padding: "4px 10px" }}>
+                <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 700, color: "#697386" }}>
                   Câu {questionNumber} / {maxQuestions}
                 </span>
                 <div style={{ display: "flex", gap: 4, flex: 1 }}>
                   {Array.from({ length: maxQuestions }, (_, i) => (
-                    <div key={i} style={{ flex: 1, height: 5, borderRadius: 999, backgroundColor: i < questionNumber ? B.blue : "#E5E7EB", transition: "background 0.3s" }} />
+                    <div key={i} style={{ width: 28, height: 5, borderRadius: 999, backgroundColor: i < questionNumber ? B.blue : "#E5E7EB", transition: "background 0.3s" }} />
                   ))}
                 </div>
               </div>
-
-              {/* Question text */}
-              <p style={{ fontFamily: INTER, color: B.text, fontSize: 26, lineHeight: 1.4, fontWeight: 600, margin: 0 }}>
-                {pitchMode ? "Rút gọn biểu thức:" : (currentItem?.question ?? "Đang tải câu hỏi...")}
-              </p>
-
-              {/* Pitch mode fraction visual */}
-              {pitchMode && (
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <Frac n={3} d={4} className="text-4xl" />
-                  <span style={{ fontSize: 32, fontWeight: 300, color: B.textLight }}>+</span>
-                  <Frac n={1} d={2} className="text-4xl" />
-                  <span style={{ fontSize: 32, fontWeight: 300, color: B.textLight }}>=</span>
-                  <span style={{ fontSize: 36, fontWeight: 700, color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
-                </div>
-              )}
-
-              {/* Adaptive badge */}
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, width: "fit-content", background: B.orangeLight, border: `1px solid rgba(245,158,11,0.25)`, borderRadius: 999, padding: "6px 12px" }}>
-                <Zap size={12} style={{ color: B.orange }} />
-                <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>
-                  Adaptive — không phải thứ tự cố định
+              {currentItem?.kc_code && (
+                <span style={{ border: "1px solid #cfe0ff", borderRadius: 999, padding: "8px 12px", fontSize: 13, color: "#40506a", background: "#f8fbff", fontFamily: INTER, fontWeight: 600 }}>
+                  {currentItem.kc_code}
                 </span>
-              </div>
+              )}
             </div>
 
-            {/* Right: answer widget */}
-            <div style={{ display: "grid", gap: 16 }}>
-              <div
+            {/* Question title + context */}
+            <div style={{ display: "grid", gap: 12 }}>
+              {currentItem?.kc_name && (
+                <h2 style={{ margin: 0, color: "#202738", fontSize: 32, lineHeight: 1.06, fontFamily: NUNITO, fontWeight: 800 }}>
+                  {currentItem.kc_name}
+                </h2>
+              )}
+              <p style={{ margin: 0, color: "#697386", fontSize: 14, lineHeight: 1.55, fontFamily: INTER }}>
+                Không có phản hồi ngay — câu hỏi tiếp theo được chọn thích ứng từ bản đồ tri thức.
+              </p>
+            </div>
+
+            {/* Question text — large, prominent */}
+            <p style={{ fontSize: 30, lineHeight: 1.32, color: "#202738", margin: 0, fontFamily: INTER, fontWeight: 600 }}>
+              {pitchMode ? "Rút gọn biểu thức:" : (currentItem?.question ?? "Đang tải câu hỏi...")}
+            </p>
+
+            {/* Pitch mode fraction visual */}
+            {pitchMode && (
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <Frac n={3} d={4} className="text-4xl" />
+                <span style={{ fontSize: 32, fontWeight: 300, color: "#697386" }}>+</span>
+                <Frac n={1} d={2} className="text-4xl" />
+                <span style={{ fontSize: 32, fontWeight: 300, color: "#697386" }}>=</span>
+                <span style={{ fontSize: 36, fontWeight: 700, color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
+              </div>
+            )}
+
+            {/* Answer widget — inside a bordered card */}
+            <div style={{
+              padding: 16,
+              borderRadius: 22,
+              background: "#f8fbff",
+              border: `1px solid ${isReady ? B.blue : "#dfe7f7"}`,
+              boxShadow: isReady ? `0 0 0 4px rgba(47, 102, 245, 0.14)` : "none",
+              transition: "border-color 0.2s, box-shadow 0.2s",
+            }}>
+              {isFracWidget ? (
+                <FractionWidget
+                  num={fracState.num} den={fracState.den}
+                  onNumChange={(v) => setFracState((s) => ({ ...s, num: v }))}
+                  onDenChange={(v) => setFracState((s) => ({ ...s, den: v }))}
+                  onSubmit={handleSubmit}
+                  disabled={submitting}
+                  size="lg"
+                />
+              ) : (
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={textState}
+                  onChange={(e) => setTextState(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+                  disabled={submitting}
+                  autoFocus
+                  placeholder="Nhập đáp án..."
+                  style={{
+                    width: "100%",
+                    border: "1px solid #d6def0",
+                    borderRadius: 18,
+                    padding: "16px 18px",
+                    fontSize: 22,
+                    color: "#202738",
+                    background: "white",
+                    outline: "none",
+                    fontFamily: NUNITO,
+                    fontWeight: 700,
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+              <button
+                onClick={handleSubmit}
+                disabled={!isReady || submitting}
                 style={{
-                  background: B.white,
-                  border: `2px solid ${isReady ? B.blue : B.grayBorder}`,
-                  borderRadius: 24,
-                  padding: 28,
-                  textAlign: "center",
-                  transition: "border-color 0.2s",
-                  boxShadow: isReady ? `0 0 0 4px ${B.blueLight}` : "none",
+                  border: 0, borderRadius: 18, padding: "13px 18px", fontSize: 15, fontWeight: 800,
+                  background: B.blue, color: "white",
+                  boxShadow: "0 16px 34px rgba(47, 102, 245, 0.24)",
+                  cursor: isReady && !submitting ? "pointer" : "not-allowed",
+                  opacity: isReady && !submitting ? 1 : 0.55,
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  fontFamily: NUNITO,
+                  transition: "transform 0.16s ease, box-shadow 0.16s ease",
                 }}
               >
-                <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20 }}>
-                  Nhập đáp án của bạn
-                </p>
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-                  {isFracWidget ? (
-                    <FractionWidget
-                      num={fracState.num} den={fracState.den}
-                      onNumChange={(v) => setFracState((s) => ({ ...s, num: v }))}
-                      onDenChange={(v) => setFracState((s) => ({ ...s, den: v }))}
-                      onSubmit={handleSubmit}
-                      disabled={submitting}
-                      size="lg"
-                    />
-                  ) : (
-                    <MathAnswerWidget
-                      widgetType={widgetType}
-                      textState={textState}
-                      onTextChange={setTextState}
-                      onSubmit={handleSubmit}
-                      disabled={submitting}
-                    />
-                  )}
-                </div>
-                <p style={{ fontFamily: MONO, color: B.textLight, fontSize: 11 }}>
-                  Tab · ↑↓ để chuyển ô · Enter để nộp
-                </p>
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: "flex", gap: 10 }}>
-                <button
-                  onClick={handleSubmit}
-                  disabled={!isReady || submitting}
-                  style={{
-                    flex: 1, borderRadius: 999, padding: "16px 0", fontWeight: 700, fontSize: 16,
-                    backgroundColor: B.blue, color: B.white, fontFamily: NUNITO,
-                    border: "none", cursor: isReady && !submitting ? "pointer" : "not-allowed",
-                    opacity: isReady && !submitting ? 1 : 0.3,
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    transition: "opacity 0.2s",
-                    boxShadow: "0 4px 16px rgba(61,114,248,0.25)",
-                  }}
-                >
-                  Nộp bài <ArrowRight size={18} />
-                </button>
-                <button
-                  onClick={handleSkip}
-                  disabled={submitting}
-                  style={{
-                    padding: "16px 22px", borderRadius: 999, border: `2px solid ${B.grayBorder}`,
-                    color: B.textMuted, fontFamily: NUNITO, fontWeight: 600, fontSize: 14,
-                    backgroundColor: B.white, cursor: "pointer",
-                  }}
-                >
-                  Không biết
-                </button>
-              </div>
-
-              {/* Widget showcase link */}
+                Nộp bài <ArrowRight size={17} />
+              </button>
               <button
-                onClick={() => setShowWidgets(true)}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 0", borderRadius: 999, backgroundColor: B.blueLight, border: "none", cursor: "pointer" }}
+                onClick={handleSkip}
+                disabled={submitting}
+                style={{
+                  border: 0, borderRadius: 18, padding: "13px 18px", fontSize: 15, fontWeight: 800,
+                  background: "#edf2fb", color: "#202738",
+                  cursor: "pointer", fontFamily: NUNITO,
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                }}
               >
-                <HelpCircle size={13} style={{ color: B.blue }} />
-                <span style={{ fontSize: 12, fontWeight: 600, fontFamily: NUNITO, color: B.blue }}>
-                  Xem tất cả loại widget toán học
-                </span>
+                <HelpCircle size={17} /> Không biết
               </button>
             </div>
+
+            {/* Adaptive hint */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, width: "fit-content", background: "#FFF8DF", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 999, padding: "6px 12px" }}>
+              <Zap size={12} style={{ color: B.orange }} />
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>
+                Adaptive — không phải thứ tự cố định
+              </span>
+            </div>
+
+            {/* Widget showcase link */}
+            <button
+              onClick={() => setShowWidgets(true)}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 0", borderRadius: 999, background: "white", border: "1px solid #cfe0ff", cursor: "pointer" }}
+            >
+              <GraduationCap size={13} style={{ color: B.blue }} />
+              <span style={{ fontSize: 12, fontWeight: 600, fontFamily: NUNITO, color: B.blue }}>
+                Xem tất cả loại widget toán học
+              </span>
+            </button>
           </motion.div>
         )}
 
