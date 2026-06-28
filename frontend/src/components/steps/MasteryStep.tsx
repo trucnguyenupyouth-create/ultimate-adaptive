@@ -137,9 +137,9 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {PITCH_MCQ.map((opt) => {
                   const isSel = selected === opt.id;
-                  let borderColor = B.grayBorder;
-                  let bg = B.white;
-                  let textColor = B.text;
+                  let borderColor: string = B.grayBorder;
+                  let bg: string = B.white;
+                  let textColor: string = B.text;
                   if (submitted && opt.correct) { borderColor = B.green; bg = B.greenLight; textColor = B.green; }
                   else if (submitted && isSel && !opt.correct) { borderColor = B.red; bg = B.redLight; textColor = B.red; }
                   else if (!submitted && isSel) { borderColor = B.blue; bg = B.blueLight; textColor = B.blue; }
