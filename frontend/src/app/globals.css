@@ -42,6 +42,11 @@
 
 html, body {
   font-family: 'Inter', -apple-system, sans-serif;
+  height: 100%;
+}
+
+/* ── Graph editor dark shell ─ scope dark styles here only ── */
+.graph-editor {
   background: var(--bg-base);
   color: var(--text-primary);
   height: 100%;

@@ -1020,7 +1020,7 @@ function GraphBuilderInner() {
   }, []);
 
   return (
-    <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
+    <div className="graph-editor" style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
       {/* ── Top navbar ──────────────────────────────────────────────── */}
       <div
         className="glass"
