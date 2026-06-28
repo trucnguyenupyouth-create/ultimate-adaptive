@@ -161,7 +161,7 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     }
   };
 
-  const widgetType = ((currentItem?.answer_widget ?? "fraction") as WidgetType);
+  const widgetType = ((currentItem?.answer_widget ?? "number") as WidgetType);
   const isFracWidget = widgetType === "fraction";
   const isReady = isFracWidget
     ? isFractionReady(fracState)

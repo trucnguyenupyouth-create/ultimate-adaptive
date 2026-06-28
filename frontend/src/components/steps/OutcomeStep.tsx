@@ -50,14 +50,13 @@ export function OutcomeStep({ preResult, postResult, onRestart, onNext }: Outcom
     }
   });
 
-  // Fallback pitch changes if real diff is empty
-  const displayChanges = changes.length > 0
-    ? changes
-    : [
-        { label: "Tính đẳng trị", from: "Khoảng trống", to: "Đang phát triển" },
-        { label: "Rút gọn",       from: "Khoảng trống", to: "Có thể tiếp cận" },
-        { label: "Cộng/trừ p.s.", from: "Khoảng trống", to: "Có thể tiếp cận" },
-      ];
+  // Pitch fallback only when real diff is empty AND mastery passed
+  const pitchFallback = [
+    { label: "Tính đẳng trị", from: "Khoảng trống", to: "Đang phát triển" },
+    { label: "Rút gọn",       from: "Khoảng trống", to: "Có thể tiếp cận" },
+    { label: "Cộng/trừ p.s.", from: "Khoảng trống", to: "Có thể tiếp cận" },
+  ];
+  const displayChanges = changes.length > 0 ? changes : pitchFallback;
 
   const upgradedCount = outcomeNodeIds.size || displayChanges.length;
 
@@ -76,7 +75,7 @@ export function OutcomeStep({ preResult, postResult, onRestart, onNext }: Outcom
           <KnowledgeMap
             skills={postSkills}
             targetNodeId={targetNodeId}
-            outcomeNodeIds={outcomeNodeIds.size > 0 ? outcomeNodeIds : new Set([15, 16, 18])}
+            outcomeNodeIds={outcomeNodeIds}
             showTarget
             outcome
           />

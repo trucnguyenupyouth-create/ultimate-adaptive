@@ -1,7 +1,7 @@
 "use client";
 // ─── MasteryStep ──────────────────────────────────────────────────────────────
-// Full-width two-column: mastery check (left) · knowledge map preview (right)
-// Mirrors old .shell.lesson-grid pattern
+// Full-width two-column: mastery check (left) · knowledge evidence (right)
+// MCQ only in pitch mode; real mode always uses open widget from API
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,8 +9,8 @@ import { ArrowRight, Check, BadgeCheck } from "lucide-react";
 import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
 import { StepCircle, Frac } from "@/components/wizzdom/MathDisplay";
 import {
-  FractionWidget, isFractionReady, serializeFraction,
-  type FractionWidgetState,
+  FractionWidget, MathAnswerWidget, isFractionReady, serializeFraction,
+  type FractionWidgetState, type WidgetType,
 } from "@/components/wizzdom/MathWidgets";
 import { submitAssessmentV2Mastery } from "@/lib/assessment-v2-api";
 import type { AssessmentV2Result } from "@/lib/assessment-v2-api";
@@ -24,12 +24,16 @@ interface MasteryStepProps {
 
 export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
   const mastery = result.learning_loop?.lesson?.mastery;
-  const isMCQ = pitchMode || mastery?.answer_widget === "mcq" || !mastery;
+
+  // MCQ is pitch-only; real mode uses the API widget type (fraction/number/etc)
+  const isMCQ = pitchMode;
+  const realWidgetType = ((mastery?.answer_widget ?? "number") as WidgetType);
 
   const [selected, setSelected] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [fracState, setFracState] = useState<FractionWidgetState>({ num: "", den: "" });
+  const [textState, setTextState] = useState("");
   const [openCorrect, setOpenCorrect] = useState<boolean | null>(null);
 
   const handleComplete = useCallback(async (answer: string) => {
@@ -50,6 +54,7 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
     }
   }, [pitchMode, result, onComplete]);
 
+  // Pitch mode: auto-select correct MCQ + auto-advance
   useEffect(() => {
     if (!pitchMode) return;
     const t1 = setTimeout(() => setSelected(1), 1000);
@@ -61,16 +66,28 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
   const handleMCQSubmit = () => { if (selected !== null) setSubmitted(true); };
 
   const handleOpenSubmit = () => {
-    if (!isFractionReady(fracState)) return;
-    const answer = serializeFraction(fracState);
+    let answer: string;
+    if (realWidgetType === "fraction") {
+      if (!isFractionReady(fracState)) return;
+      answer = serializeFraction(fracState);
+    } else {
+      if (!textState.trim()) return;
+      answer = textState;
+    }
+
     const accepted = mastery?.accepted_answers ?? [];
-    const isCorrect = accepted.some((a) => a.replace(/\s/g, "") === answer.replace(/\s/g, ""));
+    const isCorrect = accepted.some((a) =>
+      a.replace(/\s/g, "").toLowerCase() === answer.replace(/\s/g, "").toLowerCase()
+    );
     setOpenCorrect(isCorrect);
     setSubmitted(true);
   };
 
-  const isOpenReady = isFractionReady(fracState);
-  const mcqCorrect = isMCQ && selected !== null && (pitchMode ? PITCH_MCQ[selected].correct : false);
+  const isOpenReady = realWidgetType === "fraction"
+    ? isFractionReady(fracState)
+    : textState.trim().length > 0;
+
+  const mcqCorrect = isMCQ && selected !== null && PITCH_MCQ[selected].correct;
 
   // Build skill summary rows from result
   const reviewSkills = result.summary?.skills_to_review?.slice(0, 4) ?? [];
@@ -120,19 +137,23 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
 
           {/* Mastery box */}
           <div style={{ background: B.white, border: `1px solid ${B.grayBorder}`, borderRadius: 24, padding: 24, display: "grid", gap: 18 }}>
+            {/* Question prompt */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <StepCircle n={1} />
               <p style={{ fontFamily: INTER, color: B.text, fontSize: 16, fontWeight: 600, margin: 0 }}>
-                {mastery?.prompt ?? "Phân số nào đẳng trị với"}
-                {!mastery?.prompt && (
-                  <span style={{ marginLeft: 8 }}>
-                    <Frac n={2} d={3} className="text-xl" />?
-                  </span>
-                )}
+                {mastery?.prompt ?? (pitchMode ? "Phân số nào đẳng trị với" : "Trả lời câu hỏi dưới đây:")}
               </p>
             </div>
 
-            {/* MCQ options */}
+            {/* Pitch: show fraction visual */}
+            {pitchMode && !mastery?.prompt && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 36 }}>
+                <Frac n={2} d={3} className="text-xl" />
+                <span style={{ color: "#D1D5DB", fontSize: 20 }}>?</span>
+              </div>
+            )}
+
+            {/* MCQ options — pitch mode only */}
             {isMCQ && (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {PITCH_MCQ.map((opt) => {
@@ -165,7 +186,7 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
               </div>
             )}
 
-            {/* Open widget */}
+            {/* Open widget — real mode */}
             {!isMCQ && (
               <div style={{
                 borderRadius: 20, padding: 24, border: `2px solid ${submitted ? (openCorrect ? B.green : B.red) : isOpenReady ? B.blue : B.grayBorder}`,
@@ -173,13 +194,23 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
               }}>
                 <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20 }}>Nhập đáp án của bạn</p>
                 <div style={{ display: "flex", justifyContent: "center" }}>
-                  <FractionWidget
-                    num={fracState.num} den={fracState.den}
-                    onNumChange={(v) => setFracState((s) => ({ ...s, num: v }))}
-                    onDenChange={(v) => setFracState((s) => ({ ...s, den: v }))}
-                    onSubmit={!submitted ? handleOpenSubmit : undefined}
-                    disabled={submitted || submitting}
-                  />
+                  {realWidgetType === "fraction" ? (
+                    <FractionWidget
+                      num={fracState.num} den={fracState.den}
+                      onNumChange={(v) => setFracState((s) => ({ ...s, num: v }))}
+                      onDenChange={(v) => setFracState((s) => ({ ...s, den: v }))}
+                      onSubmit={!submitted ? handleOpenSubmit : undefined}
+                      disabled={submitted || submitting}
+                    />
+                  ) : (
+                    <MathAnswerWidget
+                      widgetType={realWidgetType}
+                      textState={textState}
+                      onTextChange={setTextState}
+                      onSubmit={!submitted ? handleOpenSubmit : undefined}
+                      disabled={submitted || submitting}
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -198,8 +229,8 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
                   }}
                 >
                   {(isMCQ ? mcqCorrect : openCorrect)
-                    ? (mastery?.hint ? `Chính xác! ${mastery.hint}` : "Chính xác! Nhân cả tử số và mẫu số với 2: 2/3 × 2/2 = 4/6")
-                    : `Chưa đúng. ${mastery?.hint ?? "Đáp án là 4/6 — nhân cả 2 và 3 với 2."}`
+                    ? (mastery?.hint ? `Chính xác! ${mastery.hint}` : "Chính xác!")
+                    : `Chưa đúng. ${mastery?.hint ?? ""}`
                   }
                 </motion.div>
               )}
@@ -224,7 +255,9 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
             ) : (
               <button
                 onClick={() => {
-                  const ans = isMCQ ? PITCH_MCQ.find((o) => o.id === selected)?.label ?? "" : serializeFraction(fracState);
+                  const ans = isMCQ
+                    ? PITCH_MCQ.find((o) => o.id === selected)?.label ?? ""
+                    : realWidgetType === "fraction" ? serializeFraction(fracState) : textState;
                   handleComplete(ans);
                 }}
                 disabled={submitting}
