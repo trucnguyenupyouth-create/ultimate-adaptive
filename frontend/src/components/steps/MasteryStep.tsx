@@ -255,7 +255,7 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
                 {reviewSkills.map((row) => (
                   <div key={row.kc_id} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 10, alignItems: "center", border: `1px solid ${B.grayBorder}`, borderRadius: 14, padding: 12, background: "#FFFBF0" }}>
                     <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.orange, display: "inline-block" }} />
-                    <p style={{ fontFamily: INTER, color: B.text, fontSize: 13, margin: 0, fontWeight: 500 }}>{row.kc_name}</p>
+                    <p style={{ fontFamily: INTER, color: B.text, fontSize: 13, margin: 0, fontWeight: 500 }}>{row.name}</p>
                     <span style={{ fontFamily: MONO, color: B.textMuted, fontSize: 11, fontWeight: 700 }}>{Math.round(row.p_mastery * 100)}%</span>
                   </div>
                 ))}
@@ -274,7 +274,7 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
                 {strongSkills.map((row) => (
                   <div key={row.kc_id} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 10, alignItems: "center", border: `1px solid rgba(16,185,129,0.2)`, borderRadius: 14, padding: 12, background: B.greenLight }}>
                     <Check size={13} style={{ color: B.green }} />
-                    <p style={{ fontFamily: INTER, color: B.text, fontSize: 13, margin: 0, fontWeight: 500 }}>{row.kc_name}</p>
+                    <p style={{ fontFamily: INTER, color: B.text, fontSize: 13, margin: 0, fontWeight: 500 }}>{row.name}</p>
                     <span style={{ fontFamily: MONO, color: B.green, fontSize: 11, fontWeight: 700 }}>{Math.round(row.p_mastery * 100)}%</span>
                   </div>
                 ))}
