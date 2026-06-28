@@ -1,11 +1,11 @@
 "use client";
 // ─── AssessStep ───────────────────────────────────────────────────────────────
-// Handles diagnostic assessment: real API + pitch mode
-// State machine: question → adapting (0.95s) → processing (1.8s) → onComplete
+// Full-width two-column layout: question copy (left) · answer widget (right)
+// Mirrors the old .shell.hero-grid pattern
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, HelpCircle, Zap } from "lucide-react";
+import { ArrowRight, HelpCircle, Zap, GraduationCap } from "lucide-react";
 import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
 import {
   FractionWidget, MathAnswerWidget, MathWidgetShowcase,
@@ -38,13 +38,11 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Widget states
   const [fracState, setFracState] = useState<FractionWidgetState>({ num: "", den: "" });
   const [textState, setTextState] = useState("");
 
   const initialized = useRef(false);
 
-  // ─── Initialize session ───────────────────────────────────────────────────
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
@@ -68,14 +66,12 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
       .catch((err) => setError(err.message));
   }, [pitchMode]);
 
-  // ─── Pitch mode auto-fill + advance ──────────────────────────────────────
   const advance = useCallback(
     (result?: AssessmentV2Result, sid?: string) => {
       setPhase("adapting");
       setTimeout(() => setPhase("processing"), 950);
       setTimeout(() => {
         if (pitchMode) {
-          // Import lazily to avoid circular
           import("@/lib/pitch-mock-data").then(({ PITCH_RESULT }) => {
             onComplete(PITCH_RESULT, "pitch-demo");
           });
@@ -94,7 +90,6 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [pitchMode, phase, advance]);
 
-  // ─── Submit answer ────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (pitchMode) { advance(); return; }
     if (!sessionId || !currentItem || submitting) return;
@@ -120,7 +115,6 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
       if (res.status === "completed") {
         advance(res as AssessmentV2Result, sessionId);
       } else {
-        // Next question
         const next = res as AssessmentV2SessionResponse;
         if (next.item) {
           setCurrentItem(next.item);
@@ -179,8 +173,7 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.4 }}
-      className="flex flex-col items-center justify-center px-4"
-      style={{ minHeight: "calc(100vh - 75px)" }}
+      style={{ minHeight: "calc(100vh - 68px)", padding: "36px" }}
     >
       <AnimatePresence mode="wait">
         {phase === "question" && (
@@ -190,112 +183,159 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.45 }}
-            className="w-full max-w-md"
+            style={{
+              maxWidth: 1100,
+              width: "100%",
+              margin: "0 auto",
+              background: "rgba(255,255,255,0.92)",
+              border: `1px solid ${B.grayBorder}`,
+              borderRadius: 28,
+              boxShadow: "0 24px 70px rgba(38,82,181,0.10)",
+              padding: 32,
+              display: "grid",
+              gridTemplateColumns: "minmax(0,1.05fr) minmax(320px,0.95fr)",
+              gap: 36,
+              alignItems: "center",
+              minHeight: 480,
+            }}
           >
-            {/* Error state */}
-            {error && (
-              <div className="mb-4 rounded-xl p-3 text-sm" style={{ backgroundColor: B.redLight, color: B.red, fontFamily: INTER }}>
-                {error} — <button onClick={() => setError(null)} style={{ textDecoration: "underline" }}>thử lại</button>
-              </div>
-            )}
-
-            {/* Progress bar */}
-            <div className="flex items-center gap-3 mb-8">
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full"
-                style={{ fontFamily: MONO, backgroundColor: B.blueLight, color: B.blue }}>
-                Câu {questionNumber} / {maxQuestions}
-              </span>
-              <div className="flex gap-1 flex-1">
-                {Array.from({ length: maxQuestions }, (_, i) => (
-                  <div key={i} className="flex-1 h-1.5 rounded-full"
-                    style={{ backgroundColor: i < questionNumber ? B.blue : "#E5E7EB" }} />
-                ))}
-              </div>
-            </div>
-
-            {/* Question card */}
-            <div className="rounded-2xl p-7 mb-5 shadow-sm border"
-              style={{ backgroundColor: B.white, borderColor: B.grayBorder }}>
-              <p className="text-sm mb-5" style={{ fontFamily: INTER, color: B.textMuted }}>
-                {pitchMode ? "Rút gọn biểu thức:" : (currentItem?.question ?? "Đang tải câu hỏi...")}
-              </p>
-              {/* Pitch mode: show visual fraction expression */}
-              {pitchMode && (
-                <div className="flex items-center justify-center gap-4">
-                  <Frac n={3} d={4} className="text-3xl" />
-                  <span className="text-3xl font-light" style={{ color: B.textLight }}>+</span>
-                  <Frac n={1} d={2} className="text-3xl" />
-                  <span className="text-3xl font-light" style={{ color: B.textLight }}>=</span>
-                  <span className="text-3xl font-bold" style={{ color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
+            {/* Left: question copy */}
+            <div style={{ display: "grid", gap: 24, alignContent: "center" }}>
+              {/* Error */}
+              {error && (
+                <div className="rounded-xl p-3 text-sm" style={{ backgroundColor: B.redLight, color: B.red, fontFamily: INTER }}>
+                  {error} — <button onClick={() => setError(null)} style={{ textDecoration: "underline" }}>thử lại</button>
                 </div>
               )}
-            </div>
 
-            {/* Answer widget card */}
-            <div className="rounded-2xl p-7 mb-3 border-2 shadow-sm text-center"
-              style={{ backgroundColor: B.white, borderColor: isReady ? B.blue : B.grayBorder, transition: "border-color 0.2s" }}>
-              <p className="text-xs font-semibold mb-5" style={{ fontFamily: NUNITO, color: B.textMuted }}>
-                Nhập đáp án của bạn
-              </p>
-              <div className="flex justify-center mb-4">
-                {isFracWidget ? (
-                  <FractionWidget
-                    num={fracState.num} den={fracState.den}
-                    onNumChange={(v) => setFracState((s) => ({ ...s, num: v }))}
-                    onDenChange={(v) => setFracState((s) => ({ ...s, den: v }))}
-                    onSubmit={handleSubmit}
-                    disabled={submitting}
-                    size="lg"
-                  />
-                ) : (
-                  <MathAnswerWidget
-                    widgetType={widgetType}
-                    textState={textState}
-                    onTextChange={setTextState}
-                    onSubmit={handleSubmit}
-                    disabled={submitting}
-                  />
-                )}
+              {/* Eyebrow */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 7, width: "fit-content", color: B.blue, background: B.blueLight, border: `1px solid rgba(61,114,248,0.2)`, borderRadius: 999, padding: "7px 13px", fontWeight: 800, fontSize: 13, fontFamily: NUNITO }}>
+                <GraduationCap size={15} /> Câu hỏi chẩn đoán
               </div>
-              <p className="text-xs" style={{ fontFamily: MONO, color: B.textLight }}>
-                Tab · ↑↓ để chuyển ô · Enter để nộp
+
+              {/* Progress bar */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, background: B.blueLight, color: B.blue, borderRadius: 999, padding: "4px 10px" }}>
+                  Câu {questionNumber} / {maxQuestions}
+                </span>
+                <div style={{ display: "flex", gap: 4, flex: 1 }}>
+                  {Array.from({ length: maxQuestions }, (_, i) => (
+                    <div key={i} style={{ flex: 1, height: 5, borderRadius: 999, backgroundColor: i < questionNumber ? B.blue : "#E5E7EB", transition: "background 0.3s" }} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Question text */}
+              <p style={{ fontFamily: INTER, color: B.text, fontSize: 26, lineHeight: 1.4, fontWeight: 600, margin: 0 }}>
+                {pitchMode ? "Rút gọn biểu thức:" : (currentItem?.question ?? "Đang tải câu hỏi...")}
               </p>
+
+              {/* Pitch mode fraction visual */}
+              {pitchMode && (
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <Frac n={3} d={4} className="text-4xl" />
+                  <span style={{ fontSize: 32, fontWeight: 300, color: B.textLight }}>+</span>
+                  <Frac n={1} d={2} className="text-4xl" />
+                  <span style={{ fontSize: 32, fontWeight: 300, color: B.textLight }}>=</span>
+                  <span style={{ fontSize: 36, fontWeight: 700, color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
+                </div>
+              )}
+
+              {/* Adaptive badge */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, width: "fit-content", background: B.orangeLight, border: `1px solid rgba(245,158,11,0.25)`, borderRadius: 999, padding: "6px 12px" }}>
+                <Zap size={12} style={{ color: B.orange }} />
+                <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>
+                  Adaptive — không phải thứ tự cố định
+                </span>
+              </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={handleSubmit}
-                disabled={!isReady || submitting}
-                className="flex-1 rounded-full py-4 font-bold text-base transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-25 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
-                style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO }}
+            {/* Right: answer widget */}
+            <div style={{ display: "grid", gap: 16 }}>
+              <div
+                style={{
+                  background: B.white,
+                  border: `2px solid ${isReady ? B.blue : B.grayBorder}`,
+                  borderRadius: 24,
+                  padding: 28,
+                  textAlign: "center",
+                  transition: "border-color 0.2s",
+                  boxShadow: isReady ? `0 0 0 4px ${B.blueLight}` : "none",
+                }}
               >
-                Nộp bài <ArrowRight size={18} />
-              </button>
+                <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20 }}>
+                  Nhập đáp án của bạn
+                </p>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+                  {isFracWidget ? (
+                    <FractionWidget
+                      num={fracState.num} den={fracState.den}
+                      onNumChange={(v) => setFracState((s) => ({ ...s, num: v }))}
+                      onDenChange={(v) => setFracState((s) => ({ ...s, den: v }))}
+                      onSubmit={handleSubmit}
+                      disabled={submitting}
+                      size="lg"
+                    />
+                  ) : (
+                    <MathAnswerWidget
+                      widgetType={widgetType}
+                      textState={textState}
+                      onTextChange={setTextState}
+                      onSubmit={handleSubmit}
+                      disabled={submitting}
+                    />
+                  )}
+                </div>
+                <p style={{ fontFamily: MONO, color: B.textLight, fontSize: 11 }}>
+                  Tab · ↑↓ để chuyển ô · Enter để nộp
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!isReady || submitting}
+                  style={{
+                    flex: 1, borderRadius: 999, padding: "16px 0", fontWeight: 700, fontSize: 16,
+                    backgroundColor: B.blue, color: B.white, fontFamily: NUNITO,
+                    border: "none", cursor: isReady && !submitting ? "pointer" : "not-allowed",
+                    opacity: isReady && !submitting ? 1 : 0.3,
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    transition: "opacity 0.2s",
+                    boxShadow: "0 4px 16px rgba(61,114,248,0.25)",
+                  }}
+                >
+                  Nộp bài <ArrowRight size={18} />
+                </button>
+                <button
+                  onClick={handleSkip}
+                  disabled={submitting}
+                  style={{
+                    padding: "16px 22px", borderRadius: 999, border: `2px solid ${B.grayBorder}`,
+                    color: B.textMuted, fontFamily: NUNITO, fontWeight: 600, fontSize: 14,
+                    backgroundColor: B.white, cursor: "pointer",
+                  }}
+                >
+                  Không biết
+                </button>
+              </div>
+
+              {/* Widget showcase link */}
               <button
-                className="px-5 rounded-full border-2 font-semibold text-sm transition-all hover:opacity-70"
-                style={{ borderColor: B.grayBorder, color: B.textMuted, fontFamily: NUNITO, backgroundColor: B.white }}
-                onClick={handleSkip}
-                disabled={submitting}
+                onClick={() => setShowWidgets(true)}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 0", borderRadius: 999, backgroundColor: B.blueLight, border: "none", cursor: "pointer" }}
               >
-                Không biết
+                <HelpCircle size={13} style={{ color: B.blue }} />
+                <span style={{ fontSize: 12, fontWeight: 600, fontFamily: NUNITO, color: B.blue }}>
+                  Xem tất cả loại widget toán học
+                </span>
               </button>
             </div>
-
-            {/* Widget library link */}
-            <button
-              onClick={() => setShowWidgets(true)}
-              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-full transition-all hover:opacity-70"
-              style={{ backgroundColor: B.blueLight }}
-            >
-              <HelpCircle size={13} style={{ color: B.blue }} />
-              <span className="text-xs font-semibold" style={{ fontFamily: NUNITO, color: B.blue }}>
-                Xem tất cả loại widget toán học
-              </span>
-            </button>
           </motion.div>
         )}
 
+        {/* Adapting state */}
         {phase === "adapting" && (
           <motion.div
             key="adapt"
@@ -303,33 +343,28 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35 }}
-            className="text-center space-y-4 max-w-xs"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 180px)" }}
           >
-            <div className="flex justify-center gap-2 mb-2">
-              {[0, 0.15, 0.3].map((d) => (
-                <motion.div key={d} className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: B.orange }}
-                  animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 0.9, repeat: Infinity, delay: d }} />
-              ))}
-            </div>
-            <p className="text-lg font-bold" style={{ fontFamily: NUNITO, color: B.text }}>
-              Đang điều chỉnh câu tiếp theo
-            </p>
-            <p className="text-sm leading-relaxed" style={{ fontFamily: INTER, color: B.textMuted }}>
-              Câu trả lời của bạn đã được phân tích.<br />
-              Hệ thống đang chọn câu hỏi phù hợp nhất tiếp theo.
-            </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ backgroundColor: B.orangeLight }}>
-              <Zap size={12} style={{ color: B.orange }} />
-              <span className="text-xs font-bold" style={{ fontFamily: NUNITO, color: B.orange }}>
-                Adaptive — không phải thứ tự cố định
-              </span>
+            <div style={{ textAlign: "center", maxWidth: 340 }}>
+              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+                {[0, 0.15, 0.3].map((d) => (
+                  <motion.div key={d} style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.orange }}
+                    animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 0.9, repeat: Infinity, delay: d }} />
+                ))}
+              </div>
+              <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 18, marginBottom: 8 }}>
+                Đang điều chỉnh câu tiếp theo
+              </p>
+              <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, lineHeight: 1.6 }}>
+                Câu trả lời của bạn đã được phân tích.<br />
+                Hệ thống đang chọn câu hỏi phù hợp nhất tiếp theo.
+              </p>
             </div>
           </motion.div>
         )}
 
+        {/* Processing state */}
         {phase === "processing" && (
           <motion.div
             key="proc"
@@ -337,25 +372,27 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-center space-y-5"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 180px)" }}
           >
-            <div className="flex justify-center gap-2 mb-2">
-              {[0, 0.2, 0.4].map((d) => (
-                <motion.div key={d} className="w-3 h-3 rounded-full" style={{ backgroundColor: B.blue }}
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 1.1, repeat: Infinity, delay: d }} />
-              ))}
-            </div>
-            <p className="text-xl font-bold" style={{ fontFamily: NUNITO, color: B.text }}>
-              Đang xây dựng bản đồ tri thức
-            </p>
-            <p className="text-sm" style={{ fontFamily: INTER, color: B.textMuted }}>
-              {maxQuestions} câu trả lời được phân tích…
-            </p>
-            <div className="w-56 mx-auto h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E5E7EB" }}>
-              <motion.div className="h-full rounded-full" style={{ backgroundColor: B.blue }}
-                initial={{ width: "0%" }} animate={{ width: "100%" }}
-                transition={{ duration: 1.7, ease: "easeInOut" }} />
+            <div style={{ textAlign: "center" }}>
+              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+                {[0, 0.2, 0.4].map((d) => (
+                  <motion.div key={d} style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: B.blue }}
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 1.1, repeat: Infinity, delay: d }} />
+                ))}
+              </div>
+              <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 22, marginBottom: 8 }}>
+                Đang xây dựng bản đồ tri thức
+              </p>
+              <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, marginBottom: 20 }}>
+                {maxQuestions} câu trả lời được phân tích…
+              </p>
+              <div style={{ width: 220, margin: "0 auto", height: 6, borderRadius: 999, overflow: "hidden", backgroundColor: "#E5E7EB" }}>
+                <motion.div style={{ height: "100%", borderRadius: 999, backgroundColor: B.blue }}
+                  initial={{ width: "0%" }} animate={{ width: "100%" }}
+                  transition={{ duration: 1.7, ease: "easeInOut" }} />
+              </div>
             </div>
           </motion.div>
         )}
