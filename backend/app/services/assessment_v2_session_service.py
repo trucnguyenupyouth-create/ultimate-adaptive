@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from fractions import Fraction
 from typing import Any
 
 from sqlalchemy import select
@@ -31,6 +32,31 @@ def _now() -> datetime:
 
 def _now_iso() -> str:
     return _now().isoformat()
+
+
+def _fraction_value(value: str) -> Fraction | None:
+    text = str(value or "").strip().lower().replace(" ", "").replace(",", ".")
+    if not text:
+        return None
+    try:
+        if "/" in text:
+            return Fraction(text)
+        return Fraction(str(float(text)))
+    except (ValueError, ZeroDivisionError):
+        return None
+
+
+def _answers_equivalent(answer: str, accepted: list[str]) -> bool:
+    normalized = str(answer or "").strip().lower().replace(" ", "").replace(",", ".")
+    answer_fraction = _fraction_value(normalized)
+    for expected in accepted:
+        expected_normalized = str(expected or "").strip().lower().replace(" ", "").replace(",", ".")
+        if normalized == expected_normalized:
+            return True
+        expected_fraction = _fraction_value(expected_normalized)
+        if answer_fraction is not None and expected_fraction is not None and answer_fraction == expected_fraction:
+            return True
+    return False
 
 
 async def _load_g6_graph(db: AsyncSession) -> dict[str, list[dict[str, Any]]]:
@@ -233,6 +259,117 @@ def _student_summary(run: DiagnosticRun, nodes: list[dict[str, Any]]) -> dict[st
     }
 
 
+def _pick_learning_recommendation(summary: dict[str, Any]) -> dict[str, Any] | None:
+    for key in ("skills_to_review", "ready_to_learn", "possibly_affected", "not_enough_evidence"):
+        rows = summary.get(key) or []
+        if rows:
+            recommendation = dict(rows[0])
+            recommendation["source_bucket"] = key
+            return recommendation
+    return None
+
+
+def _lesson_for_recommendation(recommendation: dict[str, Any] | None) -> dict[str, Any]:
+    code = str((recommendation or {}).get("code") or "")
+    name = str((recommendation or {}).get("name") or "Selected skill")
+    if "PHAN" in code or "B31K2" in code or "TINH-CHAT-CO" in code:
+        return {
+            "lesson_id": "fraction-simplify-foundation",
+            "title": "Target lesson: rút gọn phân số",
+            "subtitle": name,
+            "concept": (
+                "Một phân số không đổi giá trị nếu chia cả tử và mẫu cho cùng một số khác 0. "
+                "Mục tiêu là đưa về dạng không còn ước chung lớn hơn 1."
+            ),
+            "worked_example": [
+                "18 và 24 cùng chia hết cho 6.",
+                "18/24 = (18 : 6)/(24 : 6).",
+                "Kết quả là 3/4, vì 3 và 4 không còn ước chung lớn hơn 1.",
+            ],
+            "practice_prompt": "Thử nhanh: 21/28 rút gọn thành phân số nào?",
+            "mastery": {
+                "prompt": "Mastery check: rút gọn 30/45 về dạng tối giản.",
+                "answer_widget": "fraction",
+                "accepted_answers": ["2/3"],
+                "hint": "Nhập tử số và mẫu số sau khi chia cho ước chung lớn nhất.",
+            },
+        }
+    if "LUY" in code or "CAU" in code or "SO-3" in code:
+        return {
+            "lesson_id": "power-notation-foundation",
+            "title": "Target lesson: đọc cấu trúc lũy thừa",
+            "subtitle": name,
+            "concept": "Trong a^n, a là cơ số và n là số mũ. Số mũ cho biết cơ số được nhân với chính nó bao nhiêu lần.",
+            "worked_example": [
+                "7^4 có cơ số là 7.",
+                "Số mũ là 4.",
+                "Giá trị 7^4 khác với việc chỉ ra số mũ.",
+            ],
+            "practice_prompt": "Trong 5^3, số mũ là bao nhiêu?",
+            "mastery": {
+                "prompt": "Mastery check: trong 9^2, số mũ là bao nhiêu?",
+                "answer_widget": "number",
+                "accepted_answers": ["2"],
+                "hint": "Chỉ nhập số mũ, không nhập cả biểu thức.",
+            },
+        }
+    return {
+        "lesson_id": "generic-missing-step",
+        "title": "Target lesson: rebuild the missing step",
+        "subtitle": name,
+        "concept": "Hệ thống chọn kỹ năng này vì nó nằm gần ranh giới giữa vùng đã chắc và vùng cần ôn.",
+        "worked_example": ["Đọc yêu cầu.", "Làm từng bước.", "Đối chiếu đáp án với điều kiện của bài."],
+        "practice_prompt": "Làm lại một câu cùng kỹ năng với đáp án ngắn gọn.",
+        "mastery": {
+            "prompt": "Mastery check: nhập 1 nếu đã sẵn sàng tiếp tục.",
+            "answer_widget": "number",
+            "accepted_answers": ["1"],
+            "hint": "Demo generic cho kỹ năng chưa có lesson riêng.",
+        },
+    }
+
+
+def _learning_loop(payload: dict[str, Any], summary: dict[str, Any]) -> dict[str, Any]:
+    existing = dict(payload.get("learning_loop") or {})
+    recommendation = existing.get("recommendation") or _pick_learning_recommendation(summary)
+    lesson = existing.get("lesson") or _lesson_for_recommendation(recommendation)
+    return {
+        "recommendation": recommendation,
+        "lesson": lesson,
+        "mastery_status": existing.get("mastery_status") or "not_started",
+        "mastery_checks": list(existing.get("mastery_checks") or []),
+        "updated_at": existing.get("updated_at"),
+    }
+
+
+def _session_response_from_row(row: AssessmentV2Session) -> dict[str, Any]:
+    payload = dict(row.payload or {})
+    nodes = list(payload.get("nodes", []))
+    items = [
+        DiagnosticItem(
+            id=item["id"],
+            kc_id=item["kc_id"],
+            format_type=item["format_type"],
+            content=item["content"],
+            difficulty_label=item.get("difficulty_label", "medium"),
+            is_diagnostic_anchor=bool(item.get("is_diagnostic_anchor")),
+        )
+        for item in payload.get("items", [])
+    ]
+    item_by_id = {item.id: item for item in items}
+    current_item = item_by_id.get(payload.get("current_item_id"))
+    responses = list(payload.get("responses", []))
+    return {
+        "session_id": str(row.id),
+        "session_code": row.session_code,
+        "status": row.status,
+        "max_questions": row.max_questions,
+        "question_number": len(responses) + 1,
+        "item": _serialize_item(current_item, {node["id"]: node for node in nodes}) if current_item else None,
+        "responses": responses,
+    }
+
+
 async def create_session(db: AsyncSession, max_questions: int = DEFAULT_MAX_QUESTIONS, student_label: str | None = None) -> dict[str, Any]:
     nodes, edges, items = await _load_pilot_context(db)
     if not items:
@@ -265,14 +402,17 @@ async def create_session(db: AsyncSession, max_questions: int = DEFAULT_MAX_QUES
     db.add(row)
     await db.commit()
     await db.refresh(row)
-    return {
-        "session_id": str(row.id),
-        "session_code": row.session_code,
-        "status": row.status,
-        "max_questions": row.max_questions,
-        "question_number": 1,
-        "item": _serialize_item(first, {node["id"]: node for node in nodes}),
-    }
+    return _session_response_from_row(row)
+
+
+async def get_session(db: AsyncSession, session_id: str) -> dict[str, Any]:
+    result = await db.execute(select(AssessmentV2Session).where(AssessmentV2Session.id == uuid.UUID(session_id)))
+    row = result.scalar_one_or_none()
+    if row is None:
+        raise KeyError(f"Assessment V2 session {session_id} not found")
+    if row.status == "completed":
+        return await get_result(db, session_id)
+    return _session_response_from_row(row)
 
 
 async def submit_response(
@@ -368,15 +508,100 @@ async def get_result(db: AsyncSession, session_id: str) -> dict[str, Any]:
     payload = dict(row.payload or {})
     run = _run_from_payload(payload)
     summary = _student_summary(run, list(payload.get("nodes", [])))
+    learning_loop = _learning_loop(payload, summary)
     return {
         "session_id": str(row.id),
         "session_code": row.session_code,
         "status": row.status,
         "max_questions": row.max_questions,
         "summary": summary,
+        "learning_loop": learning_loop,
         "responses": payload.get("responses", []),
         "run": run.to_dict(),
     }
+
+
+async def get_learning_loop(db: AsyncSession, session_id: str) -> dict[str, Any]:
+    result = await get_result(db, session_id)
+    return {
+        "session_id": result["session_id"],
+        "session_code": result["session_code"],
+        "learning_loop": result["learning_loop"],
+    }
+
+
+async def submit_mastery_response(
+    db: AsyncSession,
+    session_id: str,
+    answer: Any = None,
+) -> dict[str, Any]:
+    result = await db.execute(select(AssessmentV2Session).where(AssessmentV2Session.id == uuid.UUID(session_id)))
+    row = result.scalar_one_or_none()
+    if row is None:
+        raise KeyError(f"Assessment V2 session {session_id} not found")
+
+    payload = dict(row.payload or {})
+    run = _run_from_payload(payload)
+    summary = _student_summary(run, list(payload.get("nodes", [])))
+    learning_loop = _learning_loop(payload, summary)
+    recommendation = learning_loop.get("recommendation")
+    lesson = learning_loop.get("lesson") or {}
+    mastery = lesson.get("mastery") or {}
+    accepted = [str(value) for value in mastery.get("accepted_answers", [])]
+    answer_text = _normalize_student_answer(answer)
+    is_correct = _answers_equivalent(answer_text, accepted)
+
+    check = {
+        "step": len(learning_loop.get("mastery_checks") or []) + 1,
+        "submitted_at": _now_iso(),
+        "answer": answer_text,
+        "accepted_answers": accepted,
+        "correct": is_correct,
+        "lesson_id": lesson.get("lesson_id"),
+        "target_kc_id": (recommendation or {}).get("kc_id"),
+        "target_kc_code": (recommendation or {}).get("code"),
+    }
+    learning_loop["mastery_checks"] = [*list(learning_loop.get("mastery_checks") or []), check]
+    learning_loop["mastery_status"] = "passed" if is_correct else "needs_more_practice"
+    learning_loop["updated_at"] = _now_iso()
+
+    if is_correct and recommendation and recommendation.get("kc_id") in run.states:
+        kc_id = str(recommendation["kc_id"])
+        state = run.states[kc_id]
+        before = state.p_mastery
+        state.p_mastery = max(state.p_mastery, 0.92)
+        state.direct_evidence_count += 1
+        state.correct_count += 1
+        run.evidence_by_kc.setdefault(kc_id, []).append({
+            "context": "mastery_check",
+            "lesson_id": lesson.get("lesson_id"),
+            "correct": True,
+            "student_answer": answer_text,
+            "p_mastery_before": round(before, 4),
+            "p_mastery_after_direct": round(state.p_mastery, 4),
+        })
+        run.state_transitions.append({
+            "step": len(run.state_transitions) + 1,
+            "item_id": f"mastery:{lesson.get('lesson_id')}",
+            "kc_id": kc_id,
+            "correct": True,
+            "changes": [{
+                "kc_id": kc_id,
+                "from_p_mastery": round(before, 4),
+                "to_p_mastery": round(state.p_mastery, 4),
+                "reason": "learning_loop_mastery_check_passed",
+            }],
+        })
+
+    payload["run"] = run.to_dict()
+    payload["learning_loop"] = learning_loop
+    row.payload = payload
+    row.updated_at = _now()
+    await db.commit()
+    await db.refresh(row)
+    updated = await get_result(db, session_id)
+    updated["mastery_check"] = check
+    return updated
 
 
 async def get_review(db: AsyncSession, session_id: str) -> dict[str, Any]:

@@ -44,8 +44,10 @@ export interface AssessmentV2Result {
   status: "in_progress" | "completed";
   max_questions: number;
   summary: AssessmentV2Summary;
+  learning_loop?: AssessmentV2LearningLoop;
   responses: AssessmentV2TranscriptStep[];
   run: Record<string, unknown>;
+  mastery_check?: AssessmentV2MasteryCheck;
 }
 
 export interface AssessmentV2SummaryRow {
@@ -85,6 +87,38 @@ export interface AssessmentV2TranscriptStep {
   };
 }
 
+export interface AssessmentV2LearningLoop {
+  recommendation?: AssessmentV2SummaryRow & { source_bucket?: string } | null;
+  lesson?: {
+    lesson_id?: string;
+    title: string;
+    subtitle: string;
+    concept: string;
+    worked_example: string[];
+    practice_prompt: string;
+    mastery: {
+      prompt: string;
+      answer_widget: string;
+      accepted_answers: string[];
+      hint: string;
+    };
+  } | null;
+  mastery_status: "not_started" | "passed" | "needs_more_practice" | string;
+  mastery_checks: AssessmentV2MasteryCheck[];
+  updated_at?: string | null;
+}
+
+export interface AssessmentV2MasteryCheck {
+  step: number;
+  submitted_at: string;
+  answer: string;
+  accepted_answers: string[];
+  correct: boolean;
+  lesson_id?: string | null;
+  target_kc_id?: string | null;
+  target_kc_code?: string | null;
+}
+
 export async function createAssessmentV2Session(options?: {
   max_questions?: number;
   student_label?: string;
@@ -96,6 +130,10 @@ export async function createAssessmentV2Session(options?: {
       student_label: options?.student_label ?? null,
     }),
   });
+}
+
+export async function getAssessmentV2Session(sessionId: string): Promise<AssessmentV2SessionResponse | AssessmentV2Result> {
+  return apiFetch(`/assessment-v2/sessions/${sessionId}`);
 }
 
 export async function submitAssessmentV2Response(
@@ -110,4 +148,22 @@ export async function submitAssessmentV2Response(
 
 export async function getAssessmentV2Result(sessionId: string): Promise<AssessmentV2Result> {
   return apiFetch(`/assessment-v2/sessions/${sessionId}/result`);
+}
+
+export async function getAssessmentV2LearningLoop(sessionId: string): Promise<{
+  session_id: string;
+  session_code: string;
+  learning_loop: AssessmentV2LearningLoop;
+}> {
+  return apiFetch(`/assessment-v2/sessions/${sessionId}/learning-loop`);
+}
+
+export async function submitAssessmentV2Mastery(
+  sessionId: string,
+  payload: { answer?: unknown },
+): Promise<AssessmentV2Result> {
+  return apiFetch(`/assessment-v2/sessions/${sessionId}/mastery`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }

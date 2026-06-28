@@ -1310,6 +1310,104 @@ function GraphBuilderInner() {
             </div>
           </Panel>
 
+          {/* Wizzdom demo entry — top-right */}
+          <Panel position="top-right">
+            <div
+              style={{
+                width: 310,
+                borderRadius: 22,
+                padding: 18,
+                background: "linear-gradient(135deg, #ffffff 0%, #eef5ff 58%, #fff8df 100%)",
+                border: "1px solid #cfe0ff",
+                boxShadow: "0 18px 48px rgba(47,102,245,0.22)",
+                color: "#202738",
+                display: "grid",
+                gap: 12,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 12,
+                      display: "grid",
+                      placeItems: "center",
+                      background: "#eef5ff",
+                      border: "1px solid #cfe0ff",
+                      color: "#2f66f5",
+                    }}
+                  >
+                    <Sparkles size={18} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 850, color: "#202738" }}>Wizzdom Demo</div>
+                    <div style={{ fontSize: 11, fontWeight: 750, color: "#2f66f5" }}>Assess → Learn → Mastery</div>
+                  </div>
+                </div>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 900,
+                    color: "#7a4d00",
+                    background: "#fff8df",
+                    border: "1px solid #ffe4a3",
+                    borderRadius: 999,
+                    padding: "5px 8px",
+                  }}
+                >
+                  Pitch
+                </span>
+              </div>
+              <p style={{ margin: 0, color: "#697386", fontSize: 13, lineHeight: 1.45 }}>
+                Student-facing Grade 6 algebra loop with open answers, knowledge map, targeted lesson, and mastery update.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <Link
+                  href="/assessment-v2/algebra"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    minHeight: 38,
+                    borderRadius: 14,
+                    background: "#2f66f5",
+                    color: "#fff",
+                    textDecoration: "none",
+                    fontSize: 12,
+                    fontWeight: 850,
+                    boxShadow: "0 12px 28px rgba(47,102,245,0.25)",
+                  }}
+                >
+                  <Sparkles size={14} />
+                  Open demo
+                </Link>
+                <Link
+                  href="/assessment-runs"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    minHeight: 38,
+                    borderRadius: 14,
+                    background: "#ffffff",
+                    color: "#2f66f5",
+                    border: "1px solid #cfe0ff",
+                    textDecoration: "none",
+                    fontSize: 12,
+                    fontWeight: 850,
+                  }}
+                >
+                  <Route size={14} />
+                  Evidence
+                </Link>
+              </div>
+            </div>
+          </Panel>
+
           {/* ── Bottom collapsible toolbar ─────────────────────────── */}
           <Panel position="bottom-center">
             <div

@@ -26,6 +26,10 @@ class SubmitResponseRequest(BaseModel):
     response_type: str = "answer"
 
 
+class SubmitMasteryRequest(BaseModel):
+    answer: Any = None
+
+
 @router.post("/sessions")
 async def create_session(body: CreateSessionRequest, db: AsyncSession = Depends(get_db)):
     try:
@@ -36,6 +40,14 @@ async def create_session(body: CreateSessionRequest, db: AsyncSession = Depends(
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+
+
+@router.get("/sessions/{session_id}")
+async def get_session(session_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        return await service.get_session(db, session_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.post("/sessions/{session_id}/responses")
@@ -60,6 +72,24 @@ async def get_result(session_id: str, db: AsyncSession = Depends(get_db)):
         return await service.get_result(db, session_id)
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/sessions/{session_id}/learning-loop")
+async def get_learning_loop(session_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        return await service.get_learning_loop(db, session_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/sessions/{session_id}/mastery")
+async def submit_mastery(session_id: str, body: SubmitMasteryRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        return await service.submit_mastery_response(db, session_id, answer=body.answer)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 @router.get("/sessions/{session_id}/review")
