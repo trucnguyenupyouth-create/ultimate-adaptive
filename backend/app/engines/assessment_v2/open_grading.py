@@ -322,7 +322,8 @@ def grade_open_response(content: dict, student_answer: Any) -> OpenGradeResult:
     answer_type = normalize_ascii_key(content.get("answer_type") or "short_text")
     checker_type = normalize_ascii_key(content.get("checker_type") or "").replace(" ", "")
     accepted = _accepted_answers(content)
-    tolerance = float(content.get("tolerance", 1e-9))
+    raw_tolerance = content.get("tolerance", 1e-9)
+    tolerance = 1e-9 if raw_tolerance is None else float(raw_tolerance)
     effective_type = checker_type or answer_type
 
     if effective_type in {"integer", "decimal", "number", "numeric", "numericequal", "decimalequal"}:

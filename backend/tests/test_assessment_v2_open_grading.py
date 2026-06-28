@@ -19,6 +19,21 @@ def test_numeric_grading_accepts_decimal_comma():
     assert result.confidence == 1.0
 
 
+def test_numeric_grading_accepts_null_tolerance():
+    result = grade_open_response(
+        {
+            "question": "A cach goc O 5 don vi ve ben trai",
+            "answer_type": "integer",
+            "accepted_answers": ["-5"],
+            "tolerance": None,
+        },
+        "-5",
+    )
+
+    assert result.is_correct is True
+    assert result.matched_rule == "numeric_equal"
+
+
 def test_fraction_grading_accepts_equivalent_fraction():
     result = grade_open_response(
         {
