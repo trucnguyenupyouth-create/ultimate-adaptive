@@ -2,7 +2,7 @@
 // ─── AssessStep ───────────────────────────────────────────────────────────────
 // Single-column stacked layout matching reference layout:
 //   Progress → Question Card → Answer Widget Card → Actions
-// Styled with Tailwind classes exactly matching reference proportions
+// Inline-styled for 100% reliable layout execution in production
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -51,6 +51,7 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
   const widgetType = ((currentItem?.answer_widget ?? "number") as WidgetType);
   const isFracWidget = widgetType === "fraction";
 
+  // Check Readiness
   let isReady = false;
   if (widgetType === "fraction") {
     isReady = isFractionReady(fracState);
@@ -227,8 +228,14 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.4 }}
-      className="flex flex-col items-center justify-center px-4"
-      style={{ minHeight: "calc(100vh - 75px)" }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 16px",
+        minHeight: "calc(100vh - 75px)",
+      }}
     >
       <AnimatePresence mode="wait">
         {phase === "question" && (
@@ -238,29 +245,41 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.45 }}
-            className="w-full max-w-md"
+            style={{ width: "100%", maxWidth: 448 }}
           >
             {/* Error */}
             {error && (
-              <div className="mb-4 rounded-xl p-4 border text-sm leading-relaxed font-medium" style={{ backgroundColor: "#FFF2F2", borderColor: "rgba(239,68,68,0.3)", color: B.red }}>
+              <div style={{ marginBottom: 16, borderRadius: 12, padding: 16, border: `1px solid rgba(239,68,68,0.3)`, backgroundColor: "#FFF2F2", fontSize: 14, color: B.red, fontFamily: INTER, fontWeight: 500 }}>
                 {error} — <button onClick={() => setError(null)} style={{ textDecoration: "underline", background: "none", border: "none", color: "inherit", cursor: "pointer" }}>thử lại</button>
               </div>
             )}
 
             {/* Progress */}
-            <div className="flex items-center gap-3 mb-8">
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
               <span
-                className="text-xs font-bold px-2.5 py-1 rounded-full animate-pulse"
-                style={{ fontFamily: MONO, backgroundColor: B.blueLight, color: B.blue }}
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "4px 10px",
+                  borderRadius: 9999,
+                  backgroundColor: B.blueLight,
+                  color: B.blue,
+                }}
               >
                 Câu {questionNumber} / {maxQuestions}
               </span>
-              <div className="flex gap-1 flex-1">
+              <div style={{ display: "flex", gap: 4, flex: 1 }}>
                 {Array.from({ length: maxQuestions }, (_, i) => (
                   <div
                     key={i}
-                    className="flex-1 h-1.5 rounded-full transition-colors duration-300"
-                    style={{ backgroundColor: i < questionNumber ? B.blue : "#E5E7EB" }}
+                    style={{
+                      flex: 1,
+                      height: 6,
+                      borderRadius: 9999,
+                      backgroundColor: i < questionNumber ? B.blue : "#E5E7EB",
+                      transition: "background-color 0.3s",
+                    }}
                   />
                 ))}
               </div>
@@ -268,23 +287,31 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
 
             {/* Question card */}
             <div
-              className="rounded-2xl p-7 mb-5 shadow-sm border"
-              style={{ backgroundColor: B.white, borderColor: B.grayBorder }}
+              style={{
+                backgroundColor: B.white,
+                borderColor: B.grayBorder,
+                borderWidth: 1,
+                borderStyle: "solid",
+                borderRadius: 16,
+                padding: 28,
+                marginBottom: 20,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+              }}
             >
-              <p className="text-sm mb-5" style={{ fontFamily: INTER, color: B.textMuted }}>
+              <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, marginBottom: 20 }}>
                 {currentItem?.kc_name || (pitchMode ? "Rút gọn biểu thức:" : "Câu hỏi chẩn đoán:")}
               </p>
               
               {pitchMode ? (
-                <div className="flex items-center justify-center gap-4">
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
                   <Frac n={3} d={4} className="text-3xl" />
-                  <span className="text-3xl font-light" style={{ color: B.textLight }}>+</span>
+                  <span style={{ fontSize: 24, fontWeight: 300, color: B.textLight }}>+</span>
                   <Frac n={1} d={2} className="text-3xl" />
-                  <span className="text-3xl font-light" style={{ color: B.textLight }}>=</span>
-                  <span className="text-3xl font-bold" style={{ color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
+                  <span style={{ fontSize: 24, fontWeight: 300, color: B.textLight }}>=</span>
+                  <span style={{ fontSize: 32, fontWeight: 700, color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
                 </div>
               ) : (
-                <p className="text-lg font-bold text-center" style={{ color: B.text, fontFamily: INTER }}>
+                <p style={{ color: B.text, fontFamily: INTER, fontSize: 18, fontWeight: 700, textAlign: "center", lineHeight: 1.5 }}>
                   {currentItem?.question || "Đang tải câu hỏi..."}
                 </p>
               )}
@@ -292,17 +319,23 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
 
             {/* Answer widget card */}
             <div
-              className="rounded-2xl p-7 mb-3 border-2 shadow-sm text-center"
               style={{
                 backgroundColor: B.white,
                 borderColor: isReady ? B.blue : B.grayBorder,
+                borderWidth: 2,
+                borderStyle: "solid",
+                borderRadius: 16,
+                padding: 28,
+                marginBottom: 12,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                textAlign: "center",
                 transition: "border-color 0.2s",
               }}
             >
-              <p className="text-xs font-semibold mb-5" style={{ fontFamily: NUNITO, color: B.textMuted }}>
+              <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20 }}>
                 Nhập đáp án của bạn
               </p>
-              <div className="flex justify-center mb-4">
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
                 <MathAnswerWidget
                   widgetType={widgetType}
                   disabled={submitting}
@@ -323,26 +356,53 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
                   onCoordinateChange={setCoordinateState}
                 />
               </div>
-              <p className="text-xs" style={{ fontFamily: MONO, color: B.textLight }}>
+              <p style={{ fontFamily: MONO, color: B.textLight, fontSize: 12 }}>
                 {isFracWidget ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
               </p>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 mb-4">
+            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
               <button
                 onClick={handleSubmit}
                 disabled={!isReady || submitting}
-                className="flex-1 rounded-full py-4 font-bold text-base transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-25 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
-                style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO }}
+                style={{
+                  flex: 1,
+                  borderRadius: 9999,
+                  padding: "16px 0",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  backgroundColor: B.blue,
+                  color: B.white,
+                  fontFamily: NUNITO,
+                  border: "none",
+                  cursor: isReady && !submitting ? "pointer" : "not-allowed",
+                  opacity: isReady && !submitting ? 1 : 0.25,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  boxShadow: "0 4px 12px rgba(61,114,248,0.15)",
+                  transition: "all 0.2s",
+                }}
               >
                 Nộp bài <ArrowRight size={18} />
               </button>
               <button
-                className="px-5 rounded-full border-2 font-semibold text-sm transition-all hover:opacity-70"
-                style={{ borderColor: B.grayBorder, color: B.textMuted, fontFamily: NUNITO, backgroundColor: B.white }}
                 onClick={handleSkip}
                 disabled={submitting}
+                style={{
+                  borderRadius: 9999,
+                  border: `2px solid ${B.grayBorder}`,
+                  padding: "0 24px",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  color: B.textMuted,
+                  fontFamily: NUNITO,
+                  backgroundColor: B.white,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
               >
                 Không biết
               </button>
@@ -351,13 +411,26 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             {/* Widget library link */}
             <button
               onClick={() => setShowWidgets(true)}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-full transition-all hover:opacity-70"
-              style={{ backgroundColor: B.blueLight }}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "10px 0",
+                borderRadius: 9999,
+                backgroundColor: B.blueLight,
+                color: B.blue,
+                fontFamily: NUNITO,
+                fontSize: 12,
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
             >
               <HelpCircle size={13} style={{ color: B.blue }} />
-              <span className="text-xs font-semibold" style={{ fontFamily: NUNITO, color: B.blue }}>
-                Xem tất cả loại widget toán học
-              </span>
+              <span>Xem tất cả loại widget toán học</span>
             </button>
           </motion.div>
         )}
@@ -370,32 +443,45 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35 }}
-            className="text-center space-y-4 max-w-xs"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              gap: 16,
+              maxWidth: 280,
+            }}
           >
-            <div className="flex justify-center gap-2 mb-2">
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 8 }}>
               {[0, 0.15, 0.3].map((d) => (
                 <motion.div
                   key={d}
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: B.orange }}
+                  style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.orange }}
                   animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 0.9, repeat: Infinity, delay: d }}
                 />
               ))}
             </div>
-            <p className="text-lg font-bold" style={{ fontFamily: NUNITO, color: B.text }}>
+            <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 18, margin: 0 }}>
               Đang điều chỉnh câu tiếp theo
             </p>
-            <p className="text-sm leading-relaxed" style={{ fontFamily: INTER, color: B.textMuted }}>
+            <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
               Câu trả lời của bạn đã được phân tích.
               <br />Hệ thống đang chọn câu hỏi phù hợp nhất tiếp theo.
             </p>
             <div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ backgroundColor: B.orangeLight }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 12px",
+                borderRadius: 9999,
+                backgroundColor: B.orangeLight,
+              }}
             >
               <Zap size={12} style={{ color: B.orange }} />
-              <span className="text-xs font-bold" style={{ fontFamily: NUNITO, color: B.orange }}>
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>
                 Adaptive — không phải thứ tự cố định
               </span>
             </div>
@@ -410,29 +496,34 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-center space-y-5"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              gap: 20,
+            }}
           >
-            <div className="flex justify-center gap-2 mb-2">
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 8 }}>
               {[0, 0.2, 0.4].map((d) => (
                 <motion.div
                   key={d}
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: B.blue }}
+                  style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: B.blue }}
                   animate={{ y: [0, -10, 0] }}
                   transition={{ duration: 1.1, repeat: Infinity, delay: d }}
                 />
               ))}
             </div>
-            <p className="text-xl font-bold" style={{ fontFamily: NUNITO, color: B.text }}>
+            <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 20, margin: 0 }}>
               Đang xây dựng bản đồ tri thức
             </p>
-            <p className="text-sm" style={{ fontFamily: INTER, color: B.textMuted }}>
+            <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, margin: 0 }}>
               12 câu hỏi đã được phân tích…
             </p>
-            <div className="w-56 mx-auto h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E5E7EB" }}>
+            <div style={{ width: 220, height: 6, borderRadius: 9999, overflow: "hidden", backgroundColor: "#E5E7EB" }}>
               <motion.div
-                className="h-full rounded-full"
-                style={{ backgroundColor: B.blue }}
+                style={{ height: "100%", borderRadius: 9999, backgroundColor: B.blue }}
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
                 transition={{ duration: 1.7, ease: "easeInOut" }}

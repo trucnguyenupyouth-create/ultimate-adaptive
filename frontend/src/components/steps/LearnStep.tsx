@@ -1,11 +1,10 @@
 "use client";
 // ─── LearnStep ────────────────────────────────────────────────────────────────
-// Single-column centered layout matching reference layout:
-//   Category Badges → Title & Concept → Visual Card (worked example or fraction bars) → Practice Card → CTA Button
-// Styled with Tailwind classes exactly matching reference proportions
+// Single-column centered layout matching reference layout exactly.
+// Inline-styled for 100% reliable layout execution in production.
 
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Target, Zap } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
 import {
   Frac, FractionBar, StepCircle, PitchBar,
@@ -46,32 +45,55 @@ export function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
     >
       <PitchBar active={pitchMode} duration={6000} onComplete={onComplete} />
       
-      <div className="flex flex-col items-center justify-center px-4 py-12" style={{ minHeight: "calc(100vh - 78px)" }}>
-        <div className="w-full max-w-xl space-y-6">
-          
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "48px 16px",
+          minHeight: "calc(100vh - 78px)",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 576,
+            display: "flex",
+            flexDirection: "column",
+            gap: 24,
+          }}
+        >
           {/* Subtitle / Category Badges */}
-          <div className="flex items-center gap-3 flex-wrap">
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <span
-              className="text-xs font-bold px-3 py-1.5 rounded-full"
-              style={{ fontFamily: NUNITO, backgroundColor: B.orangeLight, color: B.orange }}
+              style={{
+                fontFamily: NUNITO,
+                fontSize: 12,
+                fontWeight: 700,
+                padding: "6px 12px",
+                borderRadius: 9999,
+                backgroundColor: B.orangeLight,
+                color: B.orange,
+              }}
             >
               {subtitle}
             </span>
-            <span className="text-xs" style={{ color: B.textMuted, fontFamily: INTER }}>
+            <span style={{ fontSize: 12, color: B.textMuted, fontFamily: INTER }}>
               Mở khóa 6 kỹ năng liên kết
             </span>
           </div>
 
           {/* Title & Concept */}
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <StepCircle n={1} done />
-              <h2 className="text-2xl font-extrabold" style={{ fontFamily: NUNITO, color: B.text }}>
+              <h2 style={{ fontSize: 24, fontWeight: 800, fontFamily: NUNITO, color: B.text, margin: 0 }}>
                 {title}
               </h2>
             </div>
             {concept && (
-              <p className="pl-9 text-base leading-relaxed" style={{ color: B.textMid, fontFamily: INTER }}>
+              <p style={{ paddingLeft: 36, fontSize: 16, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
                 {concept}
               </p>
             )}
@@ -79,24 +101,46 @@ export function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
 
           {/* Main Visual or Worked Example Card */}
           <div
-            className="rounded-2xl p-6 space-y-4 border shadow-sm"
-            style={{ backgroundColor: B.white, borderColor: B.grayBorder }}
+            style={{
+              backgroundColor: B.white,
+              borderColor: B.grayBorder,
+              borderWidth: 1,
+              borderStyle: "solid",
+              borderRadius: 16,
+              padding: 24,
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            }}
           >
             {workedExample.length > 0 ? (
               <>
-                <p className="text-xs font-semibold" style={{ fontFamily: NUNITO, color: B.textMuted }}>
+                <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, margin: 0 }}>
                   Ví dụ minh họa:
                 </p>
-                <div className="space-y-3">
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {workedExample.map((step, i) => (
-                    <div key={i} className="flex items-start gap-2.5">
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                       <div
-                        className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                        style={{ backgroundColor: B.blueLight, color: B.blue, fontFamily: NUNITO }}
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: B.blueLight,
+                          color: B.blue,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          fontFamily: NUNITO,
+                          flexShrink: 0,
+                        }}
                       >
                         {i + 1}
                       </div>
-                      <p className="text-sm leading-relaxed" style={{ color: B.textMid, fontFamily: INTER }}>
+                      <p style={{ fontSize: 14, lineHeight: 1.45, color: B.textMid, fontFamily: INTER, margin: 0 }}>
                         {step}
                       </p>
                     </div>
@@ -105,17 +149,25 @@ export function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
               </>
             ) : (
               <>
-                <p className="text-xs font-semibold" style={{ fontFamily: NUNITO, color: B.textMuted }}>
+                <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, margin: 0 }}>
                   Tất cả đều biểu diễn cùng một giá trị:
                 </p>
-                <div className="space-y-3">
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   <FractionBar n={1} d={2} color={B.blue} label="1/2" />
                   <FractionBar n={2} d={4} color={B.blue} label="2/4" />
                   <FractionBar n={3} d={6} color={B.blue} label="3/6" />
                 </div>
-                <div className="pt-3 border-t flex items-start gap-2.5" style={{ borderColor: B.grayBorder }}>
-                  <Check size={15} className="shrink-0 mt-0.5" style={{ color: B.green }} />
-                  <p className="text-sm leading-relaxed" style={{ color: B.textMid, fontFamily: INTER }}>
+                <div
+                  style={{
+                    borderTop: `1px solid ${B.grayBorder}`,
+                    paddingTop: 12,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 10,
+                  }}
+                >
+                  <Check size={15} style={{ color: B.green, flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 14, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
                     Nhân (hoặc chia) cả tử số và mẫu số cho cùng một số → phân số vẫn đẳng trị.
                   </p>
                 </div>
@@ -126,20 +178,29 @@ export function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
           {/* Practice card */}
           {practicePrompt && (
             <div
-              className="rounded-2xl p-5 border shadow-sm"
-              style={{ backgroundColor: B.blueLight, borderColor: "rgba(61,114,248,0.15)" }}
+              style={{
+                borderRadius: 16,
+                padding: 20,
+                backgroundColor: B.blueLight,
+                borderWidth: 1,
+                borderStyle: "solid",
+                borderColor: "rgba(61,114,248,0.15)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
             >
-              <p className="text-xs font-bold mb-3" style={{ fontFamily: NUNITO, color: B.blue }}>
+              <p style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.blue, margin: 0 }}>
                 Tại sao cần cho bài toán {pitchMode ? "3/4 + 1/2" : (rec?.code ?? "kỹ năng mục tiêu")}
               </p>
-              <div className="flex items-center gap-3 flex-wrap text-sm" style={{ fontFamily: INTER, color: B.textMid }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: 14, fontFamily: INTER, color: B.textMid }}>
                 <span>{practicePrompt}</span>
                 {isFractionLesson && (
-                  <div className="flex items-center gap-2">
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Frac n={1} d={2} className="text-base" />
                     <span style={{ color: B.textLight }}>=</span>
                     <Frac n={2} d={4} className="text-base" />
-                    <span className="text-xs ml-1" style={{ fontFamily: MONO, color: B.textMuted }}>(×2)</span>
+                    <span style={{ fontSize: 11, fontFamily: MONO, color: B.textMuted }}>(×2)</span>
                   </div>
                 )}
               </div>
@@ -149,8 +210,24 @@ export function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
           {/* Action Button */}
           <button
             onClick={onComplete}
-            className="w-full rounded-full py-4 font-bold transition-all hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
-            style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO, fontSize: "1rem" }}
+            style={{
+              width: "100%",
+              borderRadius: 9999,
+              padding: "16px 0",
+              fontWeight: 700,
+              fontSize: 16,
+              backgroundColor: B.blue,
+              color: B.white,
+              fontFamily: NUNITO,
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              boxShadow: "0 4px 12px rgba(61,114,248,0.15)",
+              transition: "all 0.2s",
+            }}
           >
             Kiểm tra hiểu bài <ArrowRight size={18} />
           </button>

@@ -1,8 +1,7 @@
 "use client";
 // ─── MasteryStep ──────────────────────────────────────────────────────────────
-// Single-column centered layout matching reference layout:
-//   Step indicator → Question Card → Answer Input (MCQ grid or open card) → Feedback Box → Action Button
-// Styled with Tailwind classes exactly matching reference proportions
+// Single-column centered layout matching reference layout exactly.
+// Inline-styled for 100% reliable layout execution in production.
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -102,17 +101,30 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.45 }}
-      className="flex flex-col items-center justify-center px-4"
-      style={{ minHeight: "calc(100vh - 72px)" }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "48px 16px",
+        minHeight: "calc(100vh - 72px)",
+      }}
     >
-      <div className="w-full max-w-md space-y-5">
+      <div style={{ width: "100%", maxWidth: 448, display: "flex", flexDirection: "column", gap: 20 }}>
         
         {/* Step Indicator */}
-        <div className="flex items-center gap-2">
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <StepCircle n={1} />
           <span
-            className="text-xs font-bold px-3 py-1.5 rounded-full"
-            style={{ fontFamily: NUNITO, backgroundColor: B.blueLight, color: B.blue }}
+            style={{
+              fontFamily: NUNITO,
+              fontSize: 12,
+              fontWeight: 700,
+              padding: "6px 12px",
+              borderRadius: 9999,
+              backgroundColor: B.blueLight,
+              color: B.blue,
+            }}
           >
             Kiểm tra thành thạo · 1 câu
           </span>
@@ -120,20 +132,27 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
 
         {/* Question Card */}
         <div
-          className="rounded-2xl p-7 border shadow-sm"
-          style={{ backgroundColor: B.white, borderColor: B.grayBorder }}
+          style={{
+            backgroundColor: B.white,
+            borderColor: B.grayBorder,
+            borderWidth: 1,
+            borderStyle: "solid",
+            borderRadius: 16,
+            padding: 28,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+          }}
         >
-          <p className="text-sm mb-5" style={{ color: B.textMuted, fontFamily: INTER }}>
+          <p style={{ fontSize: 14, color: B.textMuted, fontFamily: INTER, margin: "0 0 20px" }}>
             {pitchMode ? "Phân số nào đẳng trị với" : (mastery?.prompt ?? "Kiểm tra xem bài học đã hiệu quả chưa:")}
           </p>
           
           {pitchMode ? (
-            <div className="flex items-center gap-3">
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <Frac n={2} d={3} className="text-3xl" />
-              <span className="text-2xl" style={{ color: "#D1D5DB" }}>?</span>
+              <span style={{ fontSize: 24, color: "#D1D5DB" }}>?</span>
             </div>
           ) : (
-            <p className="text-lg font-bold" style={{ color: B.text, fontFamily: INTER }}>
+            <p style={{ fontSize: 18, fontWeight: 700, color: B.text, fontFamily: INTER, margin: 0, lineHeight: 1.5 }}>
               {mastery?.prompt || "Nhập đáp án cho câu hỏi học được."}
             </p>
           )}
@@ -141,33 +160,38 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
 
         {/* MCQ option buttons */}
         {isMCQ && (
-          <div className="grid grid-cols-2 gap-3">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {MCQ_OPTIONS.map((opt) => {
               const isSel = selected === opt.id;
-            let borderColor: string = B.grayBorder;
-            let bg: string = B.white;
-            let textColor: string = B.text;
-            if (submitted && opt.correct) { borderColor = B.green; bg = B.greenLight; textColor = B.green; }
-            else if (submitted && isSel && !opt.correct) { borderColor = B.red; bg = B.redLight; textColor = B.red; }
-            else if (!submitted && isSel) { borderColor = B.blue; bg = B.blueLight; textColor = B.blue; }
+              let borderColor: string = B.grayBorder;
+              let bg: string = B.white;
+              let textColor: string = B.text;
+              if (submitted && opt.correct) { borderColor = B.green; bg = B.greenLight; textColor = B.green; }
+              else if (submitted && isSel && !opt.correct) { borderColor = B.red; bg = B.redLight; textColor = B.red; }
+              else if (!submitted && isSel) { borderColor = B.blue; bg = B.blueLight; textColor = B.blue; }
               
               return (
                 <button
                   key={opt.id}
                   onClick={() => !submitted && setSelected(opt.id)}
-                  className="rounded-2xl p-5 text-center border-2 transition-all shadow-sm"
                   style={{
+                    borderRadius: 16,
+                    padding: 20,
+                    textAlign: "center",
+                    borderWidth: 2,
+                    borderStyle: "solid",
                     borderColor,
                     backgroundColor: bg,
                     cursor: submitted ? "default" : "pointer",
-                    boxShadow: !submitted && isSel ? `0 0 0 3px ${B.blueLight}` : undefined
+                    boxShadow: !submitted && isSel ? `0 0 0 3px ${B.blueLight}` : undefined,
+                    transition: "all 0.15s",
                   }}
                 >
-                  <span className="text-2xl font-extrabold" style={{ fontFamily: NUNITO, color: textColor }}>
+                  <span style={{ fontSize: 24, fontWeight: 850, fontFamily: NUNITO, color: textColor }}>
                     {opt.label}
                   </span>
                   {submitted && opt.correct && (
-                    <div className="flex justify-center mt-2">
+                    <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}>
                       <Check size={16} style={{ color: B.green }} />
                     </div>
                   )}
@@ -180,17 +204,22 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
         {/* Open widget card (real mode) */}
         {!isMCQ && (
           <div
-            className="rounded-2xl p-7 border-2 shadow-sm text-center"
             style={{
               backgroundColor: B.white,
               borderColor: submitted ? (openCorrect ? B.green : B.red) : isOpenReady ? B.blue : B.grayBorder,
+              borderWidth: 2,
+              borderStyle: "solid",
+              borderRadius: 16,
+              padding: 28,
+              textAlign: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
               transition: "border-color 0.2s"
             }}
           >
-            <p className="text-xs font-semibold mb-5" style={{ fontFamily: NUNITO, color: B.textMuted }}>
+            <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20 }}>
               Nhập đáp án của bạn
             </p>
-            <div className="flex justify-center mb-4">
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               {realWidgetType === "fraction" ? (
                 <FractionWidget
                   num={fracState.num}
@@ -211,7 +240,7 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
                 />
               )}
             </div>
-            <p className="text-xs" style={{ fontFamily: MONO, color: B.textLight }}>
+            <p style={{ fontFamily: MONO, color: B.textLight, fontSize: 12 }}>
               {realWidgetType === "fraction" ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
             </p>
           </div>
@@ -223,8 +252,14 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl p-4 border text-sm leading-relaxed font-medium"
               style={{
+                borderRadius: 16,
+                padding: 16,
+                borderWidth: 1,
+                borderStyle: "solid",
+                fontSize: 14,
+                lineHeight: 1.5,
+                fontWeight: 500,
                 fontFamily: INTER,
                 backgroundColor: (isMCQ ? mcqCorrect : openCorrect) ? B.greenLight : B.redLight,
                 borderColor: (isMCQ ? mcqCorrect : openCorrect) ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)",
@@ -244,8 +279,21 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
           <button
             onClick={isMCQ ? handleMCQSubmit : handleOpenSubmit}
             disabled={isMCQ ? selected === null : !isOpenReady || submitting}
-            className="w-full rounded-full py-4 font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-25 disabled:cursor-not-allowed shadow-sm"
-            style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO, fontSize: "1rem" }}
+            style={{
+              width: "100%",
+              borderRadius: 9999,
+              padding: "16px 0",
+              fontWeight: 700,
+              fontSize: 16,
+              backgroundColor: B.blue,
+              color: B.white,
+              fontFamily: NUNITO,
+              border: "none",
+              cursor: (isMCQ ? selected !== null : isOpenReady) && !submitting ? "pointer" : "not-allowed",
+              opacity: (isMCQ ? selected !== null : isOpenReady) && !submitting ? 1 : 0.25,
+              boxShadow: "0 4px 12px rgba(61,114,248,0.15)",
+              transition: "all 0.2s",
+            }}
           >
             Nộp bài
           </button>
@@ -258,8 +306,24 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
               handleComplete(ans);
             }}
             disabled={submitting}
-            className="w-full rounded-full py-4 font-bold border-2 transition-all hover:opacity-80 flex items-center justify-center gap-2"
-            style={{ borderColor: B.blue, backgroundColor: B.white, color: B.blue, fontFamily: NUNITO, fontSize: "1rem" }}
+            style={{
+              width: "100%",
+              borderRadius: 9999,
+              padding: "16px 0",
+              fontWeight: 700,
+              fontSize: 16,
+              backgroundColor: B.white,
+              color: B.blue,
+              fontFamily: NUNITO,
+              border: `2px solid ${B.blue}`,
+              cursor: submitting ? "not-allowed" : "pointer",
+              opacity: submitting ? 0.5 : 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              transition: "all 0.2s",
+            }}
           >
             {(isMCQ ? mcqCorrect : openCorrect) ? "Xem tiến độ của tôi" : "Tiếp tục"} <ArrowRight size={18} />
           </button>
