@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { B, MONO, type SkillStrength } from "@/components/wizzdom/design-tokens";
 import type { Skill } from "@/lib/map-data";
-import { SKILLS as DEFAULT_SKILLS, EDGES } from "@/lib/map-data";
+import { SKILLS as DEFAULT_SKILLS, EDGES as DEFAULT_EDGES } from "@/lib/map-data";
 
 // ─── Color helpers ────────────────────────────────────────────────────────────
 function nodeColor(s: SkillStrength, updated = false): string {
@@ -30,6 +30,7 @@ function edgeStroke(s1: SkillStrength, s2: SkillStrength): string {
 // ─── KnowledgeMap ─────────────────────────────────────────────────────────────
 interface KnowledgeMapProps {
   skills?: Skill[];          // defaults to SKILLS (pitch mode)
+  edges?: [number, number][];
   targetNodeId?: number;     // node to pulse (default 15)
   outcomeNodeIds?: Set<number>; // nodes to flash green
   animateIn?: boolean;
@@ -39,6 +40,7 @@ interface KnowledgeMapProps {
 
 export function KnowledgeMap({
   skills = DEFAULT_SKILLS,
+  edges = DEFAULT_EDGES,
   targetNodeId = 15,
   outcomeNodeIds = new Set([15, 16, 18]),
   animateIn = false,
@@ -53,7 +55,7 @@ export function KnowledgeMap({
     return () => clearTimeout(t);
   }, [animateIn]);
 
-  const getSkill = (id: number) => skills.find((s) => s.id === id)!;
+  const getSkill = (id: number) => skills.find((s) => s.id === id);
 
   return (
     <svg
@@ -75,6 +77,9 @@ export function KnowledgeMap({
           <feGaussianBlur stdDeviation="1.4" result="b" />
           <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
+        <marker id="kg-arrow" markerWidth="5" markerHeight="5" refX="4.3" refY="2.5" orient="auto">
+          <path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(30,41,59,0.22)" />
+        </marker>
 
         {/* Cluster background gradients */}
         <radialGradient id="bgL" cx="15%" cy="25%" r="28%">
@@ -103,7 +108,7 @@ export function KnowledgeMap({
       {outcome && <rect width="100" height="100" fill="url(#bgU)" />}
 
       {/* Edges */}
-      {EDGES.map(([a, b], i) => {
+      {edges.map(([a, b], i) => {
         const sa = getSkill(a);
         const sb = getSkill(b);
         if (!sa || !sb) return null;
@@ -113,6 +118,7 @@ export function KnowledgeMap({
             x1={sa.x} y1={sa.y} x2={sb.x} y2={sb.y}
             stroke={edgeStroke(sa.strength, sb.strength)}
             strokeWidth="0.25"
+            markerEnd="url(#kg-arrow)"
             style={{ opacity: revealed ? 1 : 0, transition: `opacity ${0.4 + i * 0.004}s ease` }}
           />
         );

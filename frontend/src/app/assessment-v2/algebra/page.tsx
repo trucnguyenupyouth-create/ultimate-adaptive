@@ -24,6 +24,13 @@ import {
 } from "@/lib/assessment-v2-api";
 import { adaptSummaryToSkills, findTargetNodeId, findOutcomeNodeIds } from "@/lib/map-adapter";
 import { PITCH_RESULT, PITCH_POST_MASTERY, PITCH_ASSESS_QUESTION } from "@/lib/pitch-mock-data";
+import {
+  DEMO_FRACTION_EDGES,
+  DEMO_FRACTION_MAP_POST,
+  DEMO_FRACTION_MAP_PRE,
+  DEMO_OUTCOME_NODE_IDS,
+  DEMO_TARGET_NODE_ID,
+} from "@/lib/demo-map-data";
 
 type Phase = "assess" | "map" | "lesson" | "mastery" | "outcome";
 
@@ -547,9 +554,9 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
   const [panelIn, setPanelIn] = useState(false);
 
   const vm = result.summary.value_metrics;
-  const totalSkills = vm.skills_directly_tested + vm.skills_inferred;
-  const adaptedSkills = adaptSummaryToSkills(result.summary);
-  const targetNodeId = findTargetNodeId(result.learning_loop?.recommendation?.kc_id);
+  const adaptedSkills = pitchMode ? DEMO_FRACTION_MAP_PRE : adaptSummaryToSkills(result.summary);
+  const totalSkills = pitchMode ? DEMO_FRACTION_MAP_PRE.length : (vm.skills_directly_tested + vm.skills_inferred);
+  const targetNodeId = pitchMode ? DEMO_TARGET_NODE_ID : findTargetNodeId(result.learning_loop?.recommendation?.kc_id);
   const recommendationName = result.learning_loop?.recommendation?.name ?? "Kỹ năng trọng tâm";
 
   const breakdown = [
@@ -558,6 +565,7 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
     { color: B.orange,  label: "Khoảng trống",         value: String(result.summary.skills_to_review.length), accent: true },
     { color: "#94A3B8", label: "Suy luận từ dữ liệu",  value: "—", dim: true },
   ];
+  const demoFlow = ["Phân số hợp lệ", "Tính chất phân số", "Quy đồng mẫu", "Cộng khác mẫu"];
 
   useEffect(() => {
     const t = setTimeout(() => setPanelIn(true), 400);
@@ -576,7 +584,13 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
       <div className="map-step-container">
         <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ width: "100%", maxWidth: 580, aspectRatio: "1/1" }}>
-            <KnowledgeMap skills={adaptedSkills} targetNodeId={targetNodeId} animateIn showTarget />
+            <KnowledgeMap
+              skills={adaptedSkills}
+              edges={pitchMode ? DEMO_FRACTION_EDGES : undefined}
+              targetNodeId={targetNodeId}
+              animateIn
+              showTarget
+            />
           </div>
         </div>
 
@@ -613,6 +627,25 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
             ))}
           </motion.div>
 
+          {pitchMode && (
+            <motion.div initial={{ opacity: 0 }} animate={skillCount >= Math.floor(totalSkills * 0.75) ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
+              style={{ borderRadius: 16, padding: 14, border: `1px solid ${B.grayBorder}`, backgroundColor: B.white }}>
+              <p style={{ fontFamily: MONO, fontSize: 10, fontWeight: 800, color: B.textMuted, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 0 }}>
+                Prerequisite flow thật
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                {demoFlow.map((label, index) => (
+                  <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ borderRadius: 999, padding: "5px 8px", fontFamily: NUNITO, fontSize: 11, fontWeight: 800, color: index === 2 ? B.orange : B.textMid, backgroundColor: index === 2 ? B.orangeLight : "#F8FAFC", border: `1px solid ${index === 2 ? "rgba(245,158,11,0.24)" : B.grayBorder}` }}>
+                      {label}
+                    </span>
+                    {index < demoFlow.length - 1 && <span style={{ color: B.textLight, fontSize: 12 }}>→</span>}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           <motion.div initial={{ opacity: 0, y: 8 }} animate={skillCount >= totalSkills ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5 }} style={{ borderRadius: 16, padding: 16, display: "flex", flexDirection: "column", gap: 8, backgroundColor: B.orangeLight, border: `1.5px solid rgba(245,158,11,0.25)` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -623,7 +656,7 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
               {recommendationName}
             </p>
             <p style={{ fontSize: 12, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
-              {pitchMode ? "Dữ liệu thật cho thấy lỗi cộng ngang tử/mẫu; bài học mục tiêu là quy đồng mẫu." : "Giải quyết nó sẽ mở khóa các kỹ năng liên kết"}
+              {pitchMode ? "Bản đồ demo dùng KC thật: lỗi ở cộng phân số khác mẫu trỏ về prerequisite quy đồng mẫu." : "Giải quyết nó sẽ mở khóa các kỹ năng liên kết"}
             </p>
           </motion.div>
 
@@ -1041,10 +1074,11 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
   const [show, setShow] = useState(false);
   useEffect(() => { const t = setTimeout(() => setShow(true), 300); return () => clearTimeout(t); }, []);
 
-  const preSkills  = adaptSummaryToSkills(preResult.summary);
-  const postSkills = adaptSummaryToSkills(postResult.summary);
-  const outcomeNodeIds = findOutcomeNodeIds(preSkills, postSkills);
-  const targetNodeId   = findTargetNodeId(postResult.learning_loop?.recommendation?.kc_id);
+  const isPitchResult = postResult.session_id === "pitch-real-g6-algebra";
+  const preSkills  = isPitchResult ? DEMO_FRACTION_MAP_PRE : adaptSummaryToSkills(preResult.summary);
+  const postSkills = isPitchResult ? DEMO_FRACTION_MAP_POST : adaptSummaryToSkills(postResult.summary);
+  const outcomeNodeIds = isPitchResult ? DEMO_OUTCOME_NODE_IDS : findOutcomeNodeIds(preSkills, postSkills);
+  const targetNodeId   = isPitchResult ? DEMO_TARGET_NODE_ID : findTargetNodeId(postResult.learning_loop?.recommendation?.kc_id);
 
   const changes: Array<{ label: string; from: string; to: string }> = [];
   postSkills.forEach((post) => {
@@ -1074,7 +1108,14 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
       className="outcome-container">
       <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ width: "100%", maxWidth: 580, aspectRatio: "1/1" }}>
-          <KnowledgeMap skills={postSkills} targetNodeId={targetNodeId} outcomeNodeIds={outcomeNodeIds} showTarget outcome />
+          <KnowledgeMap
+            skills={postSkills}
+            edges={isPitchResult ? DEMO_FRACTION_EDGES : undefined}
+            targetNodeId={targetNodeId}
+            outcomeNodeIds={outcomeNodeIds}
+            showTarget
+            outcome
+          />
         </div>
       </div>
 
@@ -1217,6 +1258,7 @@ export default function AlgebraAssessmentPage() {
           font-family: 'Inter', sans-serif;
           display: flex;
           flex-direction: column;
+          overflow-x: hidden;
         }
         .header-wrapper {
           height: 72px;
