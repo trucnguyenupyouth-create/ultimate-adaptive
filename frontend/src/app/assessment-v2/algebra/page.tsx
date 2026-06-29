@@ -29,6 +29,7 @@ import {
   DEMO_FRACTION_MAP_POST,
   DEMO_FRACTION_MAP_PRE,
   DEMO_OUTCOME_NODE_IDS,
+  DEMO_PREREQUISITE_FLOW,
   DEMO_TARGET_NODE_ID,
 } from "@/lib/demo-map-data";
 
@@ -565,7 +566,6 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
     { color: B.orange,  label: "Khoảng trống",         value: String(result.summary.skills_to_review.length), accent: true },
     { color: "#94A3B8", label: "Suy luận từ dữ liệu",  value: "—", dim: true },
   ];
-  const demoFlow = ["Phân số hợp lệ", "Tính chất phân số", "Quy đồng mẫu", "Cộng khác mẫu"];
 
   useEffect(() => {
     const t = setTimeout(() => setPanelIn(true), 400);
@@ -633,14 +633,24 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
               <p style={{ fontFamily: MONO, fontSize: 10, fontWeight: 800, color: B.textMuted, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 0 }}>
                 Prerequisite flow thật
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                {demoFlow.map((label, index) => (
-                  <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ borderRadius: 999, padding: "5px 8px", fontFamily: NUNITO, fontSize: 11, fontWeight: 800, color: index === 2 ? B.orange : B.textMid, backgroundColor: index === 2 ? B.orangeLight : "#F8FAFC", border: `1px solid ${index === 2 ? "rgba(245,158,11,0.24)" : B.grayBorder}` }}>
-                      {label}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {DEMO_PREREQUISITE_FLOW.map((node, index) => (
+                  <div key={node.id} style={{ display: "grid", gridTemplateColumns: "18px 1fr", gap: 8, alignItems: "start" }}>
+                    <span style={{ width: 18, height: 18, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: MONO, fontSize: 9, fontWeight: 800, color: index === 2 ? B.white : B.textMuted, backgroundColor: index === 2 ? B.orange : "#EEF2FF" }}>
+                      {index + 1}
                     </span>
-                    {index < demoFlow.length - 1 && <span style={{ color: B.textLight, fontSize: 12 }}>→</span>}
-                  </span>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ margin: 0, fontFamily: MONO, fontSize: 10, fontWeight: 800, color: index === 2 ? B.orange : B.textMuted }}>
+                        {node.code}
+                      </p>
+                      <p style={{ margin: "2px 0 0", fontFamily: NUNITO, fontSize: 12, fontWeight: 800, color: B.text, lineHeight: 1.25 }}>
+                        {node.fullName}
+                      </p>
+                    </div>
+                    {index < DEMO_PREREQUISITE_FLOW.length - 1 && (
+                      <div style={{ gridColumn: "1 / 3", paddingLeft: 8, color: B.textLight, fontSize: 12, lineHeight: 1 }}>↓</div>
+                    )}
+                  </div>
                 ))}
               </div>
             </motion.div>

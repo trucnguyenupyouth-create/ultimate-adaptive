@@ -11,6 +11,8 @@ export interface Skill {
   y: number;
   label: string;
   strength: SkillStrength;
+  code?: string;
+  fullName?: string;
 }
 
 export const SKILLS: Skill[] = [

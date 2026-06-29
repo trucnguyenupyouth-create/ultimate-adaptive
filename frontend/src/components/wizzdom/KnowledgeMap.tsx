@@ -126,6 +126,7 @@ export function KnowledgeMap({
 
       {/* Nodes */}
       {skills.map((skill, i) => {
+        const labelLines = skill.label.split("\n");
         const isTarget = skill.id === targetNodeId && showTarget;
         const isUpdated = outcome && outcomeNodeIds.has(skill.id);
         const effS: SkillStrength = isUpdated ? "medium" : skill.strength;
@@ -170,7 +171,7 @@ export function KnowledgeMap({
             <text
               x={skill.x} y={skill.y + r + (isInferred ? 1.9 : 2.1)}
               textAnchor="middle"
-              fontSize={isInferred ? "1.1" : "1.3"}
+              fontSize={labelLines.length > 1 ? (isInferred ? "1" : "1.15") : (isInferred ? "1.1" : "1.3")}
               fill={isInferred ? "#94A3B8" : col}
               fontFamily={MONO}
               style={{
@@ -179,7 +180,15 @@ export function KnowledgeMap({
                 pointerEvents: "none",
               }}
             >
-              {skill.label}
+              {labelLines.map((line, lineIndex) => (
+                <tspan
+                  key={line}
+                  x={skill.x}
+                  dy={lineIndex === 0 ? 0 : 1.35}
+                >
+                  {line}
+                </tspan>
+              ))}
             </text>
           </g>
         );
