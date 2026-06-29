@@ -52,7 +52,7 @@ interface AssessStepProps {
 
 type AssessPhase = "question" | "adapting" | "processing";
 
-function DiagnosticReasoningTrace({ stage }: { stage: "pattern" | "graph" }) {
+function DiagnosticReasoningTrace({ stage, onContinue }: { stage: "pattern" | "graph"; onContinue: () => void }) {
   const isGraphStage = stage === "graph";
   const proof = PITCH_GRAPH_PROOF.evidence;
   const steps = [
@@ -226,6 +226,30 @@ function DiagnosticReasoningTrace({ stage }: { stage: "pattern" | "graph" }) {
           </motion.div>
         ))}
       </div>
+
+      <button
+        onClick={onContinue}
+        style={{
+          justifySelf: "center",
+          minWidth: 240,
+          borderRadius: 9999,
+          padding: "14px 24px",
+          fontWeight: 850,
+          fontSize: 15,
+          backgroundColor: B.blue,
+          color: B.white,
+          fontFamily: NUNITO,
+          border: "none",
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          boxShadow: "0 8px 20px rgba(61,114,248,0.18)",
+        }}
+      >
+        {isGraphStage ? "Show knowledge map" : "Trace to knowledge graph"} <ArrowRight size={17} />
+      </button>
     </motion.div>
   );
 }
@@ -313,6 +337,10 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
 
   const advance = useCallback(
     (result?: AssessmentV2Result, sid?: string) => {
+      if (pitchMode) {
+        setPhase("adapting");
+        return;
+      }
       const adaptDelay = pitchMode ? 2300 : 950;
       const completeDelay = pitchMode ? 5200 : 950 + 1800;
       setPhase("adapting");
@@ -327,24 +355,6 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     },
     [pitchMode, onComplete]
   );
-
-  // Demo auto-advance simulation
-  useEffect(() => {
-    if (!pitchMode || phase !== "question" || !currentItem) return;
-    
-    const fillTimer = setTimeout(() => {
-      setFracState({ num: "2", den: "5" });
-    }, 1100);
-
-    const submitTimer = setTimeout(() => {
-      advance();
-    }, 2700);
-
-    return () => {
-      clearTimeout(fillTimer);
-      clearTimeout(submitTimer);
-    };
-  }, [pitchMode, phase, currentItem, advance]);
 
   const handleSubmit = async () => {
     if (pitchMode) { advance(); return; }
@@ -627,7 +637,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
         {/* Adapting State */}
         {phase === "adapting" && (
           pitchMode ? (
-            <DiagnosticReasoningTrace stage="pattern" />
+            <DiagnosticReasoningTrace stage="pattern" onContinue={() => setPhase("processing")} />
           ) : (
             <motion.div
               key="adapt"
@@ -684,7 +694,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
         {/* Processing State */}
         {phase === "processing" && (
           pitchMode ? (
-            <DiagnosticReasoningTrace stage="graph" />
+            <DiagnosticReasoningTrace stage="graph" onContinue={() => onComplete(PITCH_RESULT, "pitch-demo")} />
           ) : (
             <motion.div
               key="proc"
@@ -776,7 +786,7 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-      <PitchBar active={pitchMode} duration={pitchMode ? 9500 : 6500} onComplete={onComplete} />
+      <PitchBar active={false} duration={pitchMode ? 9500 : 6500} onComplete={onComplete} />
       <div className={`map-step-container ${pitchMode ? "pitch-proof-grid" : ""}`}>
         <div style={{ padding: pitchMode ? 22 : 16, display: "flex", alignItems: pitchMode ? "flex-start" : "center", justifyContent: "center" }}>
           <div style={{ width: "100%", maxWidth: pitchMode ? 980 : 580, aspectRatio: pitchMode ? undefined : "1/1" }}>
@@ -833,25 +843,6 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
 
           {pitchMode && (
             <>
-              <motion.div initial={{ opacity: 0 }} animate={skillCount >= Math.floor(totalSkills * 0.72) ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
-                style={{ borderRadius: 18, padding: 16, border: `1px solid ${B.grayBorder}`, backgroundColor: B.white, display: "flex", flexDirection: "column", gap: 12 }}>
-                <p style={{ fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.blue, margin: 0, textTransform: "uppercase", letterSpacing: 0 }}>
-                  Why Wizzdom knows this
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {PITCH_GRAPH_PROOF.proof_steps.map((step, index) => (
-                    <div key={step} style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                      <span style={{ width: 20, height: 20, borderRadius: 9999, display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: index < 3 ? B.blueLight : B.orangeLight, color: index < 3 ? B.blue : B.orange, fontFamily: MONO, fontSize: 10, fontWeight: 900 }}>
-                        {index + 1}
-                      </span>
-                      <span style={{ fontFamily: NUNITO, fontSize: 13, fontWeight: 850, color: B.text }}>
-                        {step}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-
               <motion.div initial={{ opacity: 0 }} animate={skillCount >= Math.floor(totalSkills * 0.85) ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
                 style={{ borderRadius: 18, padding: 16, border: `1px solid rgba(245,158,11,0.25)`, backgroundColor: B.orangeLight, display: "flex", flexDirection: "column", gap: 10 }}>
                 <p style={{ fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.orange, margin: 0, textTransform: "uppercase", letterSpacing: 0 }}>
@@ -956,7 +947,7 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.45 }}>
-      <PitchBar active={pitchMode} duration={6000} onComplete={onComplete} />
+      <PitchBar active={false} duration={6000} onComplete={onComplete} />
       <div className="learn-container">
         <div className="learn-wrapper">
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -1106,18 +1097,6 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
       setSubmitting(false);
     }
   }, [pitchMode, result, onComplete]);
-
-  // Demo auto-advance simulation
-  useEffect(() => {
-    if (!pitchMode) return;
-    const t1 = setTimeout(() => setFracState({ num: "1", den: "2" }), 1000);
-    const t2 = setTimeout(() => {
-      setOpenCorrect(true);
-      setSubmitted(true);
-    }, 2400);
-    const t3 = setTimeout(() => handleComplete("1/2"), 4200);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, [pitchMode, handleComplete]);
 
   const handleMCQSubmit = () => { if (selected !== null) setSubmitted(true); };
 
@@ -1718,7 +1697,7 @@ export default function AlgebraAssessmentPage() {
               fontFamily: NUNITO,
               transition: "all 0.2s",
             }}
-            title={pitchMode ? "Turn off demo mode" : "Turn on automatic demo mode"}>
+            title={pitchMode ? "Turn off demo mode" : "Turn on presenter demo mode"}>
             {pitchMode ? <Pause size={12} /> : <Play size={12} />}
             <span>Demo</span>
           </button>
