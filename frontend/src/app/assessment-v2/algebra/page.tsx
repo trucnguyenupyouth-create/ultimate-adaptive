@@ -23,7 +23,7 @@ import {
   createAssessmentV2Session, submitAssessmentV2Response, submitAssessmentV2Mastery,
 } from "@/lib/assessment-v2-api";
 import { adaptSummaryToSkills, findTargetNodeId, findOutcomeNodeIds } from "@/lib/map-adapter";
-import { PITCH_RESULT, PITCH_POST_MASTERY, PITCH_ASSESS_QUESTION, PITCH_MCQ } from "@/lib/pitch-mock-data";
+import { PITCH_RESULT, PITCH_POST_MASTERY, PITCH_ASSESS_QUESTION } from "@/lib/pitch-mock-data";
 
 type Phase = "assess" | "map" | "lesson" | "mastery" | "outcome";
 
@@ -88,20 +88,22 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
   const initialized = useRef(false);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-
     const useMockFallback = () => {
       console.warn("API failed or pitch mode enabled with backend offline. Using mock demo data.");
       setCurrentItem(PITCH_ASSESS_QUESTION as AssessmentV2Item);
-      setQuestionNumber(7);
+      setQuestionNumber(6);
       setMaxQuestions(12);
+      setError(null);
     };
 
     if (pitchMode) {
       useMockFallback();
+      initialized.current = true;
       return;
     }
+
+    if (initialized.current) return;
+    initialized.current = true;
 
     createAssessmentV2Session({ max_questions: 12 })
       .then((res) => {
@@ -135,7 +137,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     if (!pitchMode || phase !== "question" || !currentItem) return;
     
     const fillTimer = setTimeout(() => {
-      setFracState({ num: "5", den: "4" });
+      setFracState({ num: "2", den: "5" });
     }, 1100);
 
     const submitTimer = setTimeout(() => {
@@ -287,16 +289,21 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             {/* Question card */}
             <div className="question-card">
               <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, marginBottom: 20, margin: "0 0 20px" }}>
-                {pitchMode ? "Rút gọn biểu thức:" : (currentItem?.kc_name || "Câu hỏi chẩn đoán:")}
+                {pitchMode ? `${currentItem?.kc_code ?? "G6 Algebra"} · ${currentItem?.kc_name ?? "Câu hỏi thật"}` : (currentItem?.kc_name || "Câu hỏi chẩn đoán:")}
               </p>
               
               {pitchMode ? (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
-                  <Frac n={3} d={4} className="text-3xl" />
-                  <span style={{ fontSize: 24, fontWeight: 300, color: B.textLight }}>+</span>
-                  <Frac n={1} d={2} className="text-3xl" />
-                  <span style={{ fontSize: 24, fontWeight: 300, color: B.textLight }}>=</span>
-                  <span style={{ fontSize: 32, fontWeight: 700, color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+                  <p style={{ color: B.text, fontFamily: INTER, fontSize: 18, fontWeight: 700, textAlign: "center", lineHeight: 1.5, margin: 0 }}>
+                    {currentItem?.question}
+                  </p>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
+                    <Frac n={1} d={2} className="text-3xl" />
+                    <span style={{ fontSize: 24, fontWeight: 300, color: B.textLight }}>+</span>
+                    <Frac n={1} d={3} className="text-3xl" />
+                    <span style={{ fontSize: 24, fontWeight: 300, color: B.textLight }}>=</span>
+                    <span style={{ fontSize: 32, fontWeight: 700, color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
+                  </div>
                 </div>
               ) : (
                 <p style={{ color: B.text, fontFamily: INTER, fontSize: 18, fontWeight: 700, textAlign: "center", lineHeight: 1.5, margin: 0 }}>
@@ -540,15 +547,15 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
   const [panelIn, setPanelIn] = useState(false);
 
   const vm = result.summary.value_metrics;
-  const totalSkills = pitchMode ? 47 : (vm.skills_directly_tested + vm.skills_inferred);
+  const totalSkills = vm.skills_directly_tested + vm.skills_inferred;
   const adaptedSkills = adaptSummaryToSkills(result.summary);
   const targetNodeId = findTargetNodeId(result.learning_loop?.recommendation?.kc_id);
   const recommendationName = result.learning_loop?.recommendation?.name ?? "Kỹ năng trọng tâm";
 
   const breakdown = [
-    { color: B.blue,    label: "Thành thạo",           value: pitchMode ? "31" : String(result.summary.strong_areas.length) },
-    { color: B.blueMid, label: "Đang phát triển",      value: pitchMode ? "8" : String(result.summary.possibly_affected.length) },
-    { color: B.orange,  label: "Khoảng trống",         value: pitchMode ? "8" : String(result.summary.skills_to_review.length), accent: true },
+    { color: B.blue,    label: "Thành thạo",           value: String(result.summary.strong_areas.length) },
+    { color: B.blueMid, label: "Đang phát triển",      value: String(result.summary.possibly_affected.length) },
+    { color: B.orange,  label: "Khoảng trống",         value: String(result.summary.skills_to_review.length), accent: true },
     { color: "#94A3B8", label: "Suy luận từ dữ liệu",  value: "—", dim: true },
   ];
 
@@ -569,7 +576,7 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
       <div className="map-step-container">
         <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ width: "100%", maxWidth: 580, aspectRatio: "1/1" }}>
-            <KnowledgeMap animateIn showTarget />
+            <KnowledgeMap skills={adaptedSkills} targetNodeId={targetNodeId} animateIn showTarget />
           </div>
         </div>
 
@@ -580,7 +587,7 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
               <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: B.textMuted }}>
-                {pitchMode ? 12 : vm.questions_asked} câu hỏi
+                {vm.questions_asked} câu hỏi
               </span>
               <span style={{ color: "#D1D5DB" }}>→</span>
             </div>
@@ -613,10 +620,10 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
               <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>Điểm tập trung được xác định</span>
             </div>
             <p style={{ fontWeight: 700, fontFamily: NUNITO, color: B.text, fontSize: 16, margin: 0 }}>
-              {pitchMode ? "Cụm Phân số" : recommendationName}
+              {recommendationName}
             </p>
             <p style={{ fontSize: 12, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
-              {pitchMode ? "Tính đẳng trị là gốc rễ — giải quyết nó sẽ mở khóa 6 kỹ năng liên kết" : "Giải quyết nó sẽ mở khóa các kỹ năng liên kết"}
+              {pitchMode ? "Dữ liệu thật cho thấy lỗi cộng ngang tử/mẫu; bài học mục tiêu là quy đồng mẫu." : "Giải quyết nó sẽ mở khóa các kỹ năng liên kết"}
             </p>
           </motion.div>
 
@@ -704,7 +711,7 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
           </div>
 
           <div className="learn-visual-card">
-            {workedExample.length > 0 && !pitchMode ? (
+            {workedExample.length > 0 ? (
               <>
                 <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, margin: 0 }}>Ví dụ minh họa:</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -741,7 +748,7 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
           {practicePrompt && (
             <div style={{ borderRadius: 16, padding: 20, backgroundColor: B.blueLight, borderWidth: 1, borderStyle: "solid", borderColor: "rgba(61,114,248,0.15)", display: "flex", flexDirection: "column", gap: 12 }}>
               <p style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.blue, margin: 0 }}>
-                Tại sao cần cho bài toán {pitchMode ? "3/4 + 1/2" : (rec?.code ?? "kỹ năng mục tiêu")}
+                Tại sao cần cho bài toán {pitchMode ? "1/2 + 1/3" : (rec?.code ?? "kỹ năng mục tiêu")}
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: 14, fontFamily: INTER, color: B.textMid }}>
                 <span>{practicePrompt}</span>
@@ -804,7 +811,7 @@ const MCQ_OPTIONS = [
 function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
   const mastery = result.learning_loop?.lesson?.mastery;
 
-  const isMCQ = pitchMode;
+  const isMCQ = false;
   const realWidgetType = ((mastery?.answer_widget ?? "number") as WidgetType);
 
   const [selected, setSelected] = useState<number | null>(null);
@@ -833,9 +840,12 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
   // Demo auto-advance simulation
   useEffect(() => {
     if (!pitchMode) return;
-    const t1 = setTimeout(() => setSelected(1), 1000);
-    const t2 = setTimeout(() => setSubmitted(true), 2400);
-    const t3 = setTimeout(() => handleComplete("4/6"), 4200);
+    const t1 = setTimeout(() => setFracState({ num: "1", den: "2" }), 1000);
+    const t2 = setTimeout(() => {
+      setOpenCorrect(true);
+      setSubmitted(true);
+    }, 2400);
+    const t3 = setTimeout(() => handleComplete("1/2"), 4200);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [pitchMode, handleComplete]);
 
@@ -1064,7 +1074,7 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
       className="outcome-container">
       <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ width: "100%", maxWidth: 580, aspectRatio: "1/1" }}>
-          <KnowledgeMap showTarget outcome />
+          <KnowledgeMap skills={postSkills} targetNodeId={targetNodeId} outcomeNodeIds={outcomeNodeIds} showTarget outcome />
         </div>
       </div>
 

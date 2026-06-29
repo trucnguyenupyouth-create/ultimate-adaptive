@@ -302,7 +302,7 @@ export function serializeCoordinate(s: CoordinateWidgetState) { return `(${s.x},
 // ─── Unified MathAnswerWidget ─────────────────────────────────────────────────
 // Dispatches to correct widget based on `widgetType` from API
 
-type WidgetType = "integer" | "decimal" | "fraction" | "mixed_number" | "power" | "sqrt" | "inequality_sign" | "coordinate" | "mcq" | "raw";
+export type WidgetType = "number" | "integer" | "decimal" | "fraction" | "mixed_number" | "power" | "sqrt" | "inequality_sign" | "coordinate" | "mcq" | "raw";
 
 interface MathAnswerWidgetProps {
   widgetType: WidgetType;
@@ -536,6 +536,3 @@ export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
     </motion.div>
   );
 }
-
-// ─── Export type for use in page ──────────────────────────────────────────────
-export type { WidgetType };
