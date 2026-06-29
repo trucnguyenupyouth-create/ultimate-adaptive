@@ -3,10 +3,11 @@
 // Self-contained page mirroring reference app interface 100%, replacing mock data with API data where appropriate.
 // Implements unified learning loop: Assess → Map → Learn → Mastery → Outcome
 // Dual mode: Real Live API (default) + Pitch Demo (with auto-advance)
+// Styled using local CSS definitions for 100% reliable layout execution in production.
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Check, RotateCcw, Zap, Play, Pause, HelpCircle, GraduationCap } from "lucide-react";
+import { ArrowRight, Check, RotateCcw, Zap, Play, Pause, HelpCircle } from "lucide-react";
 import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
 import { KnowledgeMap } from "@/components/wizzdom/KnowledgeMap";
 import {
@@ -90,10 +91,15 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     if (initialized.current) return;
     initialized.current = true;
 
-    if (pitchMode) {
+    const useMockFallback = () => {
+      console.warn("API failed or pitch mode enabled with backend offline. Using mock demo data.");
       setCurrentItem(PITCH_ASSESS_QUESTION as AssessmentV2Item);
       setQuestionNumber(7);
       setMaxQuestions(12);
+    };
+
+    if (pitchMode) {
+      useMockFallback();
       return;
     }
 
@@ -228,8 +234,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.4 }}
-      className="flex flex-col items-center justify-center px-4"
-      style={{ minHeight: "calc(100vh - 75px)" }}
+      className="assess-wrapper"
     >
       <AnimatePresence mode="wait">
         {phase === "question" && (
@@ -239,53 +244,62 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.45 }}
-            className="w-full max-w-md"
+            className="assess-content"
           >
             {/* Error */}
             {error && (
-              <div className="mb-4 rounded-xl p-4 border text-sm leading-relaxed font-medium" style={{ backgroundColor: "#FFF2F2", borderColor: "rgba(239,68,68,0.3)", color: B.red }}>
+              <div style={{ marginBottom: 16, borderRadius: 12, padding: 16, border: `1px solid rgba(239,68,68,0.3)`, backgroundColor: "#FFF2F2", fontSize: 14, color: B.red, fontFamily: INTER, fontWeight: 500 }}>
                 {error} — <button onClick={() => setError(null)} style={{ textDecoration: "underline", background: "none", border: "none", color: "inherit", cursor: "pointer" }}>thử lại</button>
               </div>
             )}
 
             {/* Progress */}
-            <div className="flex items-center gap-3 mb-8">
+            <div className="progress-bar-wrapper">
               <span
-                className="text-xs font-bold px-2.5 py-1 rounded-full"
-                style={{ fontFamily: MONO, backgroundColor: B.blueLight, color: B.blue }}
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "4px 10px",
+                  borderRadius: 9999,
+                  backgroundColor: B.blueLight,
+                  color: B.blue,
+                }}
               >
                 Câu {questionNumber} / {maxQuestions}
               </span>
-              <div className="flex gap-1 flex-1">
+              <div style={{ display: "flex", gap: 4, flex: 1 }}>
                 {Array.from({ length: maxQuestions }, (_, i) => (
                   <div
                     key={i}
-                    className="flex-1 h-1.5 rounded-full transition-colors duration-300"
-                    style={{ backgroundColor: i < questionNumber ? B.blue : "#E5E7EB" }}
+                    style={{
+                      flex: 1,
+                      height: 6,
+                      borderRadius: 9999,
+                      backgroundColor: i < questionNumber ? B.blue : "#E5E7EB",
+                      transition: "background-color 0.3s",
+                    }}
                   />
                 ))}
               </div>
             </div>
 
             {/* Question card */}
-            <div
-              className="rounded-2xl p-7 mb-5 shadow-sm border"
-              style={{ backgroundColor: B.white, borderColor: B.grayBorder }}
-            >
-              <p className="text-sm mb-5" style={{ fontFamily: INTER, color: B.textMuted }}>
-                {currentItem?.kc_name || (pitchMode ? "Rút gọn biểu thức:" : "Câu hỏi chẩn đoán:")}
+            <div className="question-card">
+              <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, marginBottom: 20, margin: "0 0 20px" }}>
+                {pitchMode ? "Rút gọn biểu thức:" : (currentItem?.kc_name || "Câu hỏi chẩn đoán:")}
               </p>
               
               {pitchMode ? (
-                <div className="flex items-center justify-center gap-4">
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
                   <Frac n={3} d={4} className="text-3xl" />
-                  <span className="text-3xl font-light" style={{ color: B.textLight }}>+</span>
+                  <span style={{ fontSize: 24, fontWeight: 300, color: B.textLight }}>+</span>
                   <Frac n={1} d={2} className="text-3xl" />
-                  <span className="text-3xl font-light" style={{ color: B.textLight }}>=</span>
-                  <span className="text-3xl font-bold" style={{ color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
+                  <span style={{ fontSize: 24, fontWeight: 300, color: B.textLight }}>=</span>
+                  <span style={{ fontSize: 32, fontWeight: 700, color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
                 </div>
               ) : (
-                <p className="text-lg font-bold text-center" style={{ color: B.text, fontFamily: INTER, lineHeight: 1.5, margin: 0 }}>
+                <p style={{ color: B.text, fontFamily: INTER, fontSize: 18, fontWeight: 700, textAlign: "center", lineHeight: 1.5, margin: 0 }}>
                   {currentItem?.question || "Đang tải câu hỏi..."}
                 </p>
               )}
@@ -293,17 +307,17 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
 
             {/* Answer widget card */}
             <div
-              className="rounded-2xl p-7 mb-3 border-2 shadow-sm text-center"
+              className="answer-widget-card"
               style={{
-                backgroundColor: B.white,
-                borderColor: isReady ? B.blue : B.grayBorder,
-                transition: "border-color 0.2s",
+                borderColor: (pitchMode ? isFractionReady(fracState) : isReady) ? B.blue : B.grayBorder,
+                borderWidth: 2,
+                borderStyle: "solid",
               }}
             >
-              <p className="text-xs font-semibold mb-5" style={{ fontFamily: NUNITO, color: B.textMuted }}>
+              <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20, margin: "0 0 20px" }}>
                 Nhập đáp án của bạn
               </p>
-              <div className="flex justify-center mb-4">
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
                 {pitchMode ? (
                   <FractionWidget num={fracState.num} den={fracState.den} onNumChange={(v) => setFracState(s => ({ ...s, num: v }))} onDenChange={(v) => setFracState(s => ({ ...s, den: v }))} size="lg" />
                 ) : (
@@ -328,24 +342,51 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
                   />
                 )}
               </div>
-              <p className="text-xs" style={{ fontFamily: MONO, color: B.textLight }}>
+              <p style={{ fontFamily: MONO, color: B.textLight, fontSize: 12, margin: 0 }}>
                 {pitchMode || isFracWidget ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
               </p>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 mb-4">
+            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
               <button
                 onClick={handleSubmit}
                 disabled={!(pitchMode ? isFractionReady(fracState) : isReady) || submitting}
-                className="flex-1 rounded-full py-4 font-bold text-base transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-25 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
-                style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO }}
+                style={{
+                  flex: 1,
+                  borderRadius: 9999,
+                  padding: "16px 0",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  backgroundColor: B.blue,
+                  color: B.white,
+                  fontFamily: NUNITO,
+                  border: "none",
+                  cursor: (pitchMode ? isFractionReady(fracState) : isReady) && !submitting ? "pointer" : "not-allowed",
+                  opacity: (pitchMode ? isFractionReady(fracState) : isReady) && !submitting ? 1 : 0.25,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  boxShadow: "0 4px 12px rgba(61,114,248,0.15)",
+                  transition: "all 0.2s",
+                }}
               >
                 Nộp bài <ArrowRight size={18} />
               </button>
               <button
-                className="px-5 rounded-full border-2 font-semibold text-sm transition-all hover:opacity-70"
-                style={{ borderColor: B.grayBorder, color: B.textMuted, fontFamily: NUNITO, backgroundColor: B.white }}
+                style={{
+                  borderRadius: 9999,
+                  border: `2px solid ${B.grayBorder}`,
+                  padding: "0 24px",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  color: B.textMuted,
+                  fontFamily: NUNITO,
+                  backgroundColor: B.white,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
                 onClick={handleSkip}
                 disabled={submitting}
               >
@@ -356,13 +397,26 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             {/* Widget library link */}
             <button
               onClick={() => setShowWidgets(true)}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-full transition-all hover:opacity-70"
-              style={{ backgroundColor: B.blueLight }}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "10px 0",
+                borderRadius: 9999,
+                backgroundColor: B.blueLight,
+                color: B.blue,
+                fontFamily: NUNITO,
+                fontSize: 12,
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
             >
               <HelpCircle size={13} style={{ color: B.blue }} />
-              <span className="text-xs font-semibold" style={{ fontFamily: NUNITO, color: B.blue }}>
-                Xem tất cả loại widget toán học
-              </span>
+              <span>Xem tất cả loại widget toán học</span>
             </button>
           </motion.div>
         )}
@@ -375,32 +429,45 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35 }}
-            className="text-center space-y-4 max-w-xs"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              gap: 16,
+              maxWidth: 280,
+            }}
           >
-            <div className="flex justify-center gap-2 mb-2">
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 8 }}>
               {[0, 0.15, 0.3].map((d) => (
                 <motion.div
                   key={d}
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: B.orange }}
+                  style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.orange }}
                   animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 0.9, repeat: Infinity, delay: d }}
                 />
               ))}
             </div>
-            <p className="text-lg font-bold" style={{ fontFamily: NUNITO, color: B.text }}>
+            <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 18, margin: 0 }}>
               Đang điều chỉnh câu tiếp theo
             </p>
-            <p className="text-sm leading-relaxed" style={{ fontFamily: INTER, color: B.textMuted }}>
+            <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
               Câu trả lời của bạn đã được phân tích.
               <br />Hệ thống đang chọn câu hỏi phù hợp nhất tiếp theo.
             </p>
             <div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ backgroundColor: B.orangeLight }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 12px",
+                borderRadius: 9999,
+                backgroundColor: B.orangeLight,
+              }}
             >
               <Zap size={12} style={{ color: B.orange }} />
-              <span className="text-xs font-bold" style={{ fontFamily: NUNITO, color: B.orange }}>
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>
                 Adaptive — không phải thứ tự cố định
               </span>
             </div>
@@ -415,29 +482,34 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-center space-y-5"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              gap: 20,
+            }}
           >
-            <div className="flex justify-center gap-2 mb-2">
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 8 }}>
               {[0, 0.2, 0.4].map((d) => (
                 <motion.div
                   key={d}
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: B.blue }}
+                  style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: B.blue }}
                   animate={{ y: [0, -10, 0] }}
                   transition={{ duration: 1.1, repeat: Infinity, delay: d }}
                 />
               ))}
             </div>
-            <p className="text-xl font-bold" style={{ fontFamily: NUNITO, color: B.text }}>
+            <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 20, margin: 0 }}>
               Đang xây dựng bản đồ tri thức
             </p>
-            <p className="text-sm" style={{ fontFamily: INTER, color: B.textMuted }}>
+            <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, margin: 0 }}>
               12 câu hỏi đã được phân tích…
             </p>
-            <div className="w-56 mx-auto h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E5E7EB" }}>
+            <div style={{ width: 220, height: 6, borderRadius: 9999, overflow: "hidden", backgroundColor: "#E5E7EB" }}>
               <motion.div
-                className="h-full rounded-full"
-                style={{ backgroundColor: B.blue }}
+                style={{ height: "100%", borderRadius: 9999, backgroundColor: B.blue }}
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
                 transition={{ duration: 1.7, ease: "easeInOut" }}
@@ -494,42 +566,40 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
       <PitchBar active={pitchMode} duration={6500} onComplete={onComplete} />
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px]" style={{ minHeight: "calc(100vh - 78px)" }}>
-        <div className="p-4 sm:p-8 flex items-center justify-center">
-          <div className="w-full max-w-[580px] aspect-square">
+      <div className="map-step-container">
+        <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "100%", maxWidth: 580, aspectRatio: "1/1" }}>
             <KnowledgeMap animateIn showTarget />
           </div>
         </div>
 
         <motion.div initial={{ opacity: 0, x: 24 }} animate={panelIn ? { opacity: 1, x: 0 } : {}}
           transition={{ duration: 0.55, ease: "easeOut" }}
-          className="border-t lg:border-t-0 lg:border-l flex flex-col justify-center gap-6 p-7 lg:p-8"
-          style={{ borderColor: B.grayBorder, backgroundColor: B.white }}>
+          className="right-panel">
 
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-medium" style={{ fontFamily: MONO, color: B.textMuted }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: B.textMuted }}>
                 {pitchMode ? 12 : vm.questions_asked} câu hỏi
               </span>
               <span style={{ color: "#D1D5DB" }}>→</span>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-6xl font-extrabold tabular-nums" style={{ fontFamily: NUNITO, color: B.text }}>{skillCount}</span>
-              <span className="text-lg font-semibold" style={{ fontFamily: NUNITO, color: B.textMuted }}>kỹ năng được vẽ</span>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+              <span style={{ fontSize: 56, fontWeight: 800, fontFamily: NUNITO, color: B.text }}>{skillCount}</span>
+              <span style={{ fontSize: 18, fontWeight: 600, fontFamily: NUNITO, color: B.textMuted }}>kỹ năng được vẽ</span>
             </div>
           </div>
 
           <motion.div initial={{ opacity: 0 }} animate={skillCount >= Math.floor(totalSkills * 0.6) ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
-            className="space-y-3">
+            style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {breakdown.map((row) => (
               <div key={row.label}
-                className={`flex justify-between items-center text-sm ${row.dim ? "pt-2 border-t" : ""}`}
-                style={row.dim ? { borderColor: B.grayBorder } : undefined}>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: row.color }} />
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14, borderTop: row.dim ? `1px solid ${B.grayBorder}` : undefined, paddingTop: row.dim ? 8 : undefined }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: row.color }} />
                   <span style={{ fontFamily: INTER, color: B.textMid }}>{row.label}</span>
                 </div>
-                <span className="font-semibold" style={{ fontFamily: MONO, color: row.accent ? B.orange : row.dim ? B.textLight : B.text }}>
+                <span style={{ fontWeight: 600, fontFamily: MONO, color: row.accent ? B.orange : row.dim ? B.textLight : B.text }}>
                   {row.value}
                 </span>
               </div>
@@ -537,24 +607,40 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={skillCount >= totalSkills ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.5 }} className="rounded-2xl p-4 space-y-2"
-            style={{ backgroundColor: B.orangeLight, border: `1.5px solid rgba(245,158,11,0.25)` }}>
-            <div className="flex items-center gap-2">
+            transition={{ duration: 0.5 }} style={{ borderRadius: 16, padding: 16, display: "flex", flexDirection: "column", gap: 8, backgroundColor: B.orangeLight, border: `1.5px solid rgba(245,158,11,0.25)` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Zap size={14} style={{ color: B.orange }} />
-              <span className="text-xs font-bold" style={{ fontFamily: NUNITO, color: B.orange }}>Điểm tập trung được xác định</span>
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>Điểm tập trung được xác định</span>
             </div>
-            <p className="font-bold" style={{ fontFamily: NUNITO, color: B.text }}>
+            <p style={{ fontWeight: 700, fontFamily: NUNITO, color: B.text, fontSize: 16, margin: 0 }}>
               {pitchMode ? "Cụm Phân số" : recommendationName}
             </p>
-            <p className="text-xs leading-relaxed" style={{ color: B.textMid, fontFamily: INTER }}>
+            <p style={{ fontSize: 12, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
               {pitchMode ? "Tính đẳng trị là gốc rễ — giải quyết nó sẽ mở khóa 6 kỹ năng liên kết" : "Giải quyết nó sẽ mở khóa các kỹ năng liên kết"}
             </p>
           </motion.div>
 
           <motion.button initial={{ opacity: 0 }} animate={skillCount >= totalSkills ? { opacity: 1 } : {}}
             transition={{ duration: 0.4, delay: 0.3 }} onClick={onComplete}
-            className="w-full rounded-full py-4 font-bold transition-all hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
-            style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO, fontSize: "1rem" }}>
+            style={{
+              width: "100%",
+              borderRadius: 9999,
+              padding: "16px 0",
+              fontWeight: 700,
+              fontSize: 16,
+              backgroundColor: B.blue,
+              color: B.white,
+              fontFamily: NUNITO,
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              boxShadow: "0 4px 12px rgba(61,114,248,0.15)",
+              transition: "all 0.2s",
+            }}
+          >
             Bắt đầu bài học mục tiêu <ArrowRight size={18} />
           </motion.button>
         </motion.div>
@@ -594,60 +680,57 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.45 }}>
       <PitchBar active={pitchMode} duration={6000} onComplete={onComplete} />
-      <div className="flex flex-col items-center justify-center px-4 py-12" style={{ minHeight: "calc(100vh - 78px)" }}>
-        <div className="w-full max-w-xl space-y-6">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs font-bold px-3 py-1.5 rounded-full"
-              style={{ fontFamily: NUNITO, backgroundColor: B.orangeLight, color: B.orange }}>
+      <div className="learn-container">
+        <div className="learn-wrapper">
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: NUNITO, fontSize: 12, fontWeight: 700, padding: "6px 12px", borderRadius: 9999, backgroundColor: B.orangeLight, color: B.orange }}>
               {subtitle}
             </span>
-            <span className="text-xs" style={{ color: B.textMuted, fontFamily: INTER }}>Mở khóa 6 kỹ năng liên kết</span>
+            <span style={{ fontSize: 12, color: B.textMuted, fontFamily: INTER }}>Mở khóa 6 kỹ năng liên kết</span>
           </div>
 
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <StepCircle n={1} done />
-              <h2 className="text-2xl font-extrabold" style={{ fontFamily: NUNITO, color: B.text }}>
+              <h2 style={{ fontSize: 24, fontWeight: 800, fontFamily: NUNITO, color: B.text, margin: 0 }}>
                 {title}
               </h2>
             </div>
             {concept && (
-              <p className="pl-9 text-base leading-relaxed" style={{ color: B.textMid, fontFamily: INTER }}>
+              <p style={{ paddingLeft: 36, fontSize: 16, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
                 {concept}
               </p>
             )}
           </div>
 
-          <div className="rounded-2xl p-6 space-y-4 border shadow-sm"
-            style={{ backgroundColor: B.white, borderColor: B.grayBorder }}>
+          <div className="learn-visual-card">
             {workedExample.length > 0 && !pitchMode ? (
               <>
-                <p className="text-xs font-semibold" style={{ fontFamily: NUNITO, color: B.textMuted }}>Ví dụ minh họa:</p>
-                <div className="space-y-3">
+                <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, margin: 0 }}>Ví dụ minh họa:</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {workedExample.map((step, i) => (
-                    <div key={i} className="flex items-start gap-2.5">
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                        style={{ backgroundColor: B.blueLight, color: B.blue, fontFamily: NUNITO }}>
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <div style={{ width: 20, height: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: B.blueLight, color: B.blue, fontSize: 11, fontWeight: 700, fontFamily: NUNITO, flexShrink: 0 }}>
                         {i + 1}
                       </div>
-                      <p className="text-sm leading-relaxed" style={{ color: B.textMid, fontFamily: INTER }}>{step}</p>
+                      <p style={{ fontSize: 14, lineHeight: 1.45, color: B.textMid, fontFamily: INTER, margin: 0 }}>{step}</p>
                     </div>
                   ))}
                 </div>
               </>
             ) : (
               <>
-                <p className="text-xs font-semibold" style={{ fontFamily: NUNITO, color: B.textMuted }}>
+                <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, margin: 0 }}>
                   Tất cả đều biểu diễn cùng một giá trị:
                 </p>
-                <div className="space-y-3">
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   <FractionBar n={1} d={2} color={B.blue} label="1/2" />
                   <FractionBar n={2} d={4} color={B.blue} label="2/4" />
                   <FractionBar n={3} d={6} color={B.blue} label="3/6" />
                 </div>
-                <div className="pt-3 border-t flex items-start gap-2.5" style={{ borderColor: B.grayBorder }}>
-                  <Check size={15} className="shrink-0 mt-0.5" style={{ color: B.green }} />
-                  <p className="text-sm leading-relaxed" style={{ color: B.textMid, fontFamily: INTER }}>
+                <div style={{ borderTop: `1px solid ${B.grayBorder}`, paddingTop: 12, display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <Check size={15} style={{ color: B.green, flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 14, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
                     Nhân (hoặc chia) cả tử số và mẫu số cho cùng một số → phân số vẫn đẳng trị.
                   </p>
                 </div>
@@ -656,19 +739,18 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
           </div>
 
           {practicePrompt && (
-            <div className="rounded-2xl p-5 border shadow-sm"
-              style={{ backgroundColor: B.blueLight, borderColor: "rgba(61,114,248,0.15)" }}>
-              <p className="text-xs font-bold mb-3" style={{ fontFamily: NUNITO, color: B.blue }}>
+            <div style={{ borderRadius: 16, padding: 20, backgroundColor: B.blueLight, borderWidth: 1, borderStyle: "solid", borderColor: "rgba(61,114,248,0.15)", display: "flex", flexDirection: "column", gap: 12 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.blue, margin: 0 }}>
                 Tại sao cần cho bài toán {pitchMode ? "3/4 + 1/2" : (rec?.code ?? "kỹ năng mục tiêu")}
               </p>
-              <div className="flex items-center gap-3 flex-wrap text-sm" style={{ fontFamily: INTER, color: B.textMid }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: 14, fontFamily: INTER, color: B.textMid }}>
                 <span>{practicePrompt}</span>
                 {isFractionLesson && (
-                  <div className="flex items-center gap-2">
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Frac n={1} d={2} className="text-base" />
                     <span style={{ color: B.textLight }}>=</span>
                     <Frac n={2} d={4} className="text-base" />
-                    <span className="text-xs ml-1" style={{ fontFamily: MONO, color: B.textMuted }}>(×2)</span>
+                    <span style={{ fontSize: 11, fontFamily: MONO, color: B.textMuted }}>(×2)</span>
                   </div>
                 )}
               </div>
@@ -676,8 +758,25 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
           )}
 
           <button onClick={onComplete}
-            className="w-full rounded-full py-4 font-bold transition-all hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
-            style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO, fontSize: "1rem" }}>
+            style={{
+              width: "100%",
+              borderRadius: 9999,
+              padding: "16px 0",
+              fontWeight: 700,
+              fontSize: 16,
+              backgroundColor: B.blue,
+              color: B.white,
+              fontFamily: NUNITO,
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              boxShadow: "0 4px 12px rgba(61,114,248,0.15)",
+              transition: "all 0.2s",
+            }}
+          >
             Kiểm tra hiểu bài <ArrowRight size={18} />
           </button>
         </div>
@@ -768,9 +867,9 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.45 }}
-      className="flex flex-col items-center justify-center px-4" style={{ minHeight: "calc(100vh - 72px)" }}>
-      <div className="w-full max-w-md space-y-5">
-        <div className="flex items-center gap-2">
+      className="mastery-container">
+      <div className="mastery-wrapper">
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <StepCircle n={1} />
           <span className="text-xs font-bold px-3 py-1.5 rounded-full"
             style={{ fontFamily: NUNITO, backgroundColor: B.blueLight, color: B.blue }}>
@@ -778,24 +877,24 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
           </span>
         </div>
 
-        <div className="rounded-2xl p-7 border shadow-sm" style={{ backgroundColor: B.white, borderColor: B.grayBorder }}>
-          <p className="text-sm mb-5" style={{ color: B.textMuted, fontFamily: INTER }}>
+        <div className="question-card" style={{ padding: 28, marginBottom: 0 }}>
+          <p style={{ fontSize: 14, color: B.textMuted, fontFamily: INTER, margin: "0 0 20px" }}>
             {pitchMode ? "Phân số nào đẳng trị với" : (mastery?.prompt ?? "Kiểm tra xem bài học đã hiệu quả chưa:")}
           </p>
           {pitchMode ? (
-            <div className="flex items-center gap-3">
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <Frac n={2} d={3} className="text-3xl" />
-              <span className="text-2xl" style={{ color: "#D1D5DB" }}>?</span>
+              <span style={{ fontSize: 24, color: "#D1D5DB" }}>?</span>
             </div>
           ) : (
-            <p className="text-lg font-bold" style={{ color: B.text, fontFamily: INTER }}>
+            <p style={{ fontSize: 18, fontWeight: 700, color: B.text, fontFamily: INTER, margin: 0, lineHeight: 1.5 }}>
               {mastery?.prompt || "Nhập đáp án cho câu hỏi học được."}
             </p>
           )}
         </div>
 
         {isMCQ ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="mcq-grid">
             {MCQ_OPTIONS.map((opt) => {
               const isSel = selected === opt.id;
               let borderColor: string = B.grayBorder;
@@ -806,27 +905,37 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
               else if (!submitted && isSel) { borderColor = B.blue; bg = B.blueLight; textColor = B.blue; }
               return (
                 <button key={opt.id} onClick={() => !submitted && setSelected(opt.id)}
-                  className="rounded-2xl p-5 text-center border-2 transition-all shadow-sm"
-                  style={{ borderColor, backgroundColor: bg, cursor: submitted ? "default" : "pointer",
-                    boxShadow: !submitted && isSel ? `0 0 0 3px ${B.blueLight}` : undefined }}>
-                  <span className="text-2xl font-extrabold" style={{ fontFamily: NUNITO, color: textColor }}>{opt.label}</span>
-                  {submitted && opt.correct && <div className="flex justify-center mt-2"><Check size={16} style={{ color: B.green }} /></div>}
+                  style={{
+                    borderRadius: 16,
+                    padding: 20,
+                    textAlign: "center",
+                    borderWidth: 2,
+                    borderStyle: "solid",
+                    borderColor,
+                    backgroundColor: bg,
+                    cursor: submitted ? "default" : "pointer",
+                    boxShadow: !submitted && isSel ? `0 0 0 3px ${B.blueLight}` : undefined,
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <span style={{ fontSize: 24, fontWeight: 850, fontFamily: NUNITO, color: textColor }}>{opt.label}</span>
+                  {submitted && opt.correct && <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}><Check size={16} style={{ color: B.green }} /></div>}
                 </button>
               );
             })}
           </div>
         ) : (
-          <div className="rounded-2xl p-7 border-2 shadow-sm text-center"
-            style={{ backgroundColor: B.white, borderColor: submitted ? (openCorrect ? B.green : B.red) : isOpenReady ? B.blue : B.grayBorder, transition: "border-color 0.2s" }}>
-            <p className="text-xs font-semibold mb-5" style={{ fontFamily: NUNITO, color: B.textMuted }}>Nhập đáp án của bạn</p>
-            <div className="flex justify-center mb-4">
+          <div className="answer-widget-card"
+            style={{ borderColor: submitted ? (openCorrect ? B.green : B.red) : isOpenReady ? B.blue : B.grayBorder, borderWidth: 2, borderStyle: "solid", margin: 0 }}>
+            <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20, margin: "0 0 20px" }}>Nhập đáp án của bạn</p>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               {realWidgetType === "fraction" ? (
                 <FractionWidget num={fracState.num} den={fracState.den} onNumChange={(v) => setFracState(s => ({ ...s, num: v }))} onDenChange={(v) => setFracState(s => ({ ...s, den: v }))} onSubmit={!submitted ? handleOpenSubmit : undefined} disabled={submitted || submitting} size="lg" />
               ) : (
                 <MathAnswerWidget widgetType={realWidgetType} disabled={submitted || submitting} onSubmit={!submitted ? handleOpenSubmit : undefined} textState={textState} onTextChange={setTextState} />
               )}
             </div>
-            <p className="text-xs" style={{ fontFamily: MONO, color: B.textLight }}>
+            <p style={{ fontFamily: MONO, color: B.textLight, fontSize: 12, margin: 0 }}>
               {realWidgetType === "fraction" ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
             </p>
           </div>
@@ -835,11 +944,20 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
         <AnimatePresence>
           {submitted && (
             <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl p-4 border text-sm leading-relaxed font-medium"
-              style={{ fontFamily: INTER,
+              style={{
+                borderRadius: 16,
+                padding: 16,
+                borderWidth: 1,
+                borderStyle: "solid",
+                fontSize: 14,
+                lineHeight: 1.5,
+                fontWeight: 500,
+                fontFamily: INTER,
                 backgroundColor: (isMCQ ? mcqCorrect : openCorrect) ? B.greenLight : B.redLight,
                 borderColor: (isMCQ ? mcqCorrect : openCorrect) ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)",
-                color: (isMCQ ? mcqCorrect : openCorrect) ? B.green : B.red }}>
+                color: (isMCQ ? mcqCorrect : openCorrect) ? B.green : B.red
+              }}
+            >
               {(isMCQ ? mcqCorrect : openCorrect)
                 ? (mastery?.hint ? `Chính xác! ${mastery.hint}` : "Chính xác! 2/3 = 4/6 vì cả tử số và mẫu số đều nhân với 2.")
                 : (mastery?.hint ? `Chưa đúng. ${mastery.hint}` : "Chưa đúng. Hãy ôn lại bài học và thử lại.")}
@@ -849,8 +967,22 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
 
         {!submitted ? (
           <button onClick={isMCQ ? handleMCQSubmit : handleOpenSubmit} disabled={isMCQ ? selected === null : !isOpenReady || submitting}
-            className="w-full rounded-full py-4 font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-25 disabled:cursor-not-allowed shadow-sm"
-            style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO, fontSize: "1rem" }}>
+            style={{
+              width: "100%",
+              borderRadius: 9999,
+              padding: "16px 0",
+              fontWeight: 700,
+              fontSize: 16,
+              backgroundColor: B.blue,
+              color: B.white,
+              fontFamily: NUNITO,
+              border: "none",
+              cursor: (isMCQ ? selected !== null : isOpenReady) && !submitting ? "pointer" : "not-allowed",
+              opacity: (isMCQ ? selected !== null : isOpenReady) && !submitting ? 1 : 0.25,
+              boxShadow: "0 4px 12px rgba(61,114,248,0.15)",
+              transition: "all 0.2s",
+            }}
+          >
             Nộp bài
           </button>
         ) : (
@@ -858,8 +990,25 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
             const ans = isMCQ ? MCQ_OPTIONS.find((o) => o.id === selected)?.label ?? "" : realWidgetType === "fraction" ? serializeFraction(fracState) : textState;
             handleComplete(ans);
           }} disabled={submitting}
-            className="w-full rounded-full py-4 font-bold border-2 transition-all hover:opacity-80 flex items-center justify-center gap-2"
-            style={{ borderColor: B.blue, backgroundColor: B.white, color: B.blue, fontFamily: NUNITO, fontSize: "1rem" }}>
+            style={{
+              width: "100%",
+              borderRadius: 9999,
+              padding: "16px 0",
+              fontWeight: 700,
+              fontSize: 16,
+              backgroundColor: B.white,
+              color: B.blue,
+              fontFamily: NUNITO,
+              border: `2px solid ${B.blue}`,
+              cursor: submitting ? "not-allowed" : "pointer",
+              opacity: submitting ? 0.5 : 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              transition: "all 0.2s",
+            }}
+          >
             {(isMCQ ? mcqCorrect : openCorrect) ? "Xem tiến độ của tôi" : "Tiếp tục"} <ArrowRight size={18} />
           </button>
         )}
@@ -905,34 +1054,32 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
   const displayChanges = changes.length > 0 ? changes : [
     { label: "Tính đẳng trị", from: "Khoảng trống", to: "Đang phát triển" },
     { label: "Rút gọn",       from: "Khoảng trống", to: "Có thể tiếp cận" },
-    { label: "Cộng/trừ p.s.", from: "Khoảng trống", to: "Có thể tiếp cận" },
+    { label: "Cộng/trừ phân số", from: "Khoảng trống", to: "Có thể tiếp cận" },
   ];
 
   const upgradedCount = outcomeNodeIds.size || displayChanges.length;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
-      className="grid grid-cols-1 lg:grid-cols-[1fr_360px]" style={{ minHeight: "calc(100vh - 72px)" }}>
-      <div className="p-4 sm:p-8 flex items-center justify-center">
-        <div className="w-full max-w-[580px] aspect-square">
+      className="outcome-container">
+      <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "100%", maxWidth: 580, aspectRatio: "1/1" }}>
           <KnowledgeMap showTarget outcome />
         </div>
       </div>
 
       <motion.div initial={{ opacity: 0, x: 24 }} animate={show ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.55 }}
-        className="border-t lg:border-t-0 lg:border-l flex flex-col justify-center gap-6 p-7 lg:p-8"
-        style={{ borderColor: B.grayBorder, backgroundColor: B.white }}>
+        className="right-panel">
         <div>
-          <p className="text-xs font-semibold mb-1" style={{ fontFamily: MONO, color: B.textMuted }}>Buổi học hoàn tất</p>
-          <h2 className="text-2xl font-extrabold" style={{ fontFamily: NUNITO, color: B.text }}>Bản đồ của bạn đã cập nhật</h2>
+          <p style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: B.textMuted, margin: "0 0 4px" }}>Buổi học hoàn tất</p>
+          <h2 style={{ fontFamily: NUNITO, fontSize: 24, fontWeight: 800, color: B.text, margin: 0 }}>Bản đồ của bạn đã cập nhật</h2>
         </div>
 
-        <div className="space-y-0">
+        <div style={{ display: "flex", flexDirection: "column" }}>
           {displayChanges.map((c, i) => (
-            <div key={i} className="flex items-center justify-between py-3.5 border-b last:border-0"
-              style={{ borderColor: B.grayBorder }}>
-              <span className="text-sm font-semibold" style={{ fontFamily: NUNITO, color: B.text }}>{c.label}</span>
-              <div className="flex items-center gap-1.5 text-xs font-medium" style={{ fontFamily: MONO }}>
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: i < displayChanges.length - 1 ? `1px solid ${B.grayBorder}` : undefined }}>
+              <span style={{ fontSize: 14, fontWeight: 700, fontFamily: NUNITO, color: B.text }}>{c.label}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 650, fontFamily: MONO }}>
                 <span style={{ color: B.orange }}>{c.from}</span>
                 <span style={{ color: B.textLight }}>→</span>
                 <span style={{ color: B.green }}>{c.to}</span>
@@ -941,25 +1088,57 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
           ))}
         </div>
 
-        <div className="rounded-2xl p-4 border" style={{ backgroundColor: B.blueLight, borderColor: "rgba(61,114,248,0.2)" }}>
-          <div className="flex items-center gap-2 mb-2">
+        <div style={{ borderRadius: 16, padding: 16, border: `1px solid rgba(61,114,248,0.2)`, backgroundColor: B.blueLight }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
             <Zap size={14} style={{ color: B.blue }} />
-            <span className="text-xs font-bold" style={{ fontFamily: NUNITO, color: B.blue }}>{upgradedCount} kỹ năng được nâng cấp</span>
+            <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.blue }}>{upgradedCount} kỹ năng được nâng cấp</span>
           </div>
-          <p className="text-sm leading-relaxed" style={{ color: B.textMid, fontFamily: INTER }}>
+          <p style={{ fontSize: 14, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
             Các kỹ năng liên kết đang dần gần tầm với. Wizzdom đã cập nhật bản đồ cá nhân của bạn.
           </p>
         </div>
 
-        <div className="flex gap-3">
+        <div style={{ display: "flex", gap: 12 }}>
           <button onClick={onRestart}
-            className="flex-1 rounded-full py-3.5 border-2 font-bold text-sm transition-all hover:opacity-80 flex items-center justify-center gap-2"
-            style={{ borderColor: B.grayBorder, color: B.textMuted, fontFamily: NUNITO }}>
+            style={{
+              flex: 1,
+              borderRadius: 9999,
+              padding: "14px 0",
+              fontWeight: 700,
+              fontSize: 14,
+              backgroundColor: B.white,
+              color: B.textMuted,
+              border: `2px solid ${B.grayBorder}`,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              transition: "all 0.2s",
+            }}
+          >
             <RotateCcw size={14} /> Xem lại demo
           </button>
           <button onClick={onNext}
-            className="flex-1 rounded-full py-3.5 font-bold text-sm transition-all hover:opacity-90 flex items-center justify-center gap-2 shadow-sm"
-            style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO }}>
+            style={{
+              flex: 1,
+              borderRadius: 9999,
+              padding: "14px 0",
+              fontWeight: 700,
+              fontSize: 14,
+              backgroundColor: B.blue,
+              color: B.white,
+              fontFamily: NUNITO,
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              boxShadow: "0 4px 12px rgba(61,114,248,0.15)",
+              transition: "all 0.2s",
+            }}
+          >
             Kỹ năng tiếp theo <ArrowRight size={14} />
           </button>
         </div>
@@ -1019,37 +1198,213 @@ export default function AlgebraAssessmentPage() {
   const currentStep = PHASE_TO_STEP[phase];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: B.bg, fontFamily: INTER }}>
+    <div className="loop-container">
+      {/* CSS Layout style tag injection */}
+      <style>{`
+        .loop-container {
+          min-height: 100vh;
+          background-color: #F5F7FF;
+          font-family: 'Inter', sans-serif;
+          display: flex;
+          flex-direction: column;
+        }
+        .header-wrapper {
+          height: 72px;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+          display: flex;
+          align-items: center;
+          padding: 0 20px;
+          gap: 16px;
+          background-color: #FFFFFF;
+        }
+        @media (min-width: 640px) {
+          .header-wrapper {
+            padding: 0 32px;
+          }
+        }
+        .step-bar-container {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          overflow-x: auto;
+        }
+        .student-chip {
+          display: none;
+        }
+        @media (min-width: 640px) {
+          .student-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+        }
+
+        /* AssessStep */
+        .assess-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 0 16px;
+          min-height: calc(100vh - 75px);
+        }
+        .assess-content {
+          width: 100%;
+          max-width: 448px;
+        }
+        .progress-bar-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 32px;
+          width: 100%;
+        }
+        .question-card {
+          background-color: #FFFFFF;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          border-radius: 16px;
+          padding: 28px;
+          margin-bottom: 20px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .answer-widget-card {
+          background-color: #FFFFFF;
+          border-radius: 16px;
+          padding: 28px;
+          margin-bottom: 12px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          text-align: center;
+          transition: border-color 0.2s;
+        }
+
+        /* MapStep & OutcomeStep */
+        .map-step-container {
+          display: grid;
+          grid-template-columns: 1fr;
+          min-height: calc(100vh - 78px);
+        }
+        @media (min-width: 1024px) {
+          .map-step-container {
+            grid-template-columns: 1fr 360px;
+          }
+        }
+        .right-panel {
+          border-top: 1px solid rgba(0, 0, 0, 0.08);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 24px;
+          padding: 28px;
+          background-color: #FFFFFF;
+        }
+        @media (min-width: 1024px) {
+          .right-panel {
+            border-top: 0;
+            border-left: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 32px;
+          }
+        }
+
+        /* LearnStep */
+        .learn-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 48px 16px;
+          min-height: calc(100vh - 78px);
+        }
+        .learn-wrapper {
+          width: 100%;
+          max-width: 576px;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+        .learn-visual-card {
+          background-color: #FFFFFF;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          border-radius: 16px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* MasteryStep */
+        .mastery-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 48px 16px;
+          min-height: calc(100vh - 72px);
+        }
+        .mastery-wrapper {
+          width: 100%;
+          max-width: 448px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .mcq-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        /* OutcomeStep */
+        .outcome-container {
+          display: grid;
+          grid-template-columns: 1fr;
+          min-height: calc(100vh - 72px);
+        }
+        @media (min-width: 1024px) {
+          .outcome-container {
+            grid-template-columns: 1fr 360px;
+          }
+        }
+      `}</style>
+
       {/* Header */}
-      <header className="h-[72px] border-b flex items-center px-5 sm:px-8 gap-4"
-        style={{ backgroundColor: B.white, borderColor: B.grayBorder }}>
+      <header className="header-wrapper">
         <WizzdomLogo />
 
-        <div className="flex-1 flex justify-center overflow-x-auto">
+        <div className="step-bar-container">
           <StepBar current={currentStep} />
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           {/* Pitch mode toggle */}
           <button onClick={togglePitch}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-all hover:opacity-80"
             style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              borderRadius: 9999,
+              fontSize: 12,
+              fontWeight: 700,
+              border: "none",
+              cursor: "pointer",
               backgroundColor: pitchMode ? B.blue : B.blueLight,
               color: pitchMode ? B.white : B.blue,
               fontFamily: NUNITO,
+              transition: "all 0.2s",
             }}
             title={pitchMode ? "Tắt chế độ demo" : "Bật chế độ demo tự động"}>
             {pitchMode ? <Pause size={12} /> : <Play size={12} />}
-            <span className="hidden sm:inline">Demo</span>
+            <span>Demo</span>
           </button>
 
           {/* Student chip */}
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="student-chip">
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-              style={{ backgroundColor: B.blueLight, color: B.blue, fontFamily: NUNITO }}>
+              style={{ backgroundColor: B.blueLight, color: B.blue, fontFamily: NUNITO, width: 28, height: 28, borderRadius: "50%" }}>
               {sessionId ? sessionId.slice(0, 1).toUpperCase() : "M"}
             </div>
-            <span className="text-xs font-medium" style={{ fontFamily: MONO, color: B.textMuted }}>
+            <span style={{ fontSize: 12, fontWeight: 500, fontFamily: MONO, color: B.textMuted }}>
               {pitchMode ? "Demo" : sessionId ? `#${sessionId.slice(-4)}` : "Minh · 8A"}
             </span>
           </div>
@@ -1057,23 +1412,25 @@ export default function AlgebraAssessmentPage() {
       </header>
 
       {/* Pages Container */}
-      <AnimatePresence mode="wait">
-        {phase === "assess" && (
-          <AssessStep key="assess" pitchMode={pitchMode} onComplete={handleAssessComplete} />
-        )}
-        {phase === "map" && result && (
-          <MapStep key="map" result={result} pitchMode={pitchMode} onComplete={handleMapComplete} />
-        )}
-        {phase === "lesson" && result && (
-          <LearnStep key="lesson" result={result} pitchMode={pitchMode} onComplete={handleLearnComplete} />
-        )}
-        {phase === "mastery" && result && (
-          <MasteryStep key="mastery" result={result} pitchMode={pitchMode} onComplete={handleMasteryComplete} />
-        )}
-        {phase === "outcome" && result && postResult && (
-          <OutcomeStep key="outcome" preResult={result} postResult={postResult} onRestart={handleRestart} onNext={handleNext} />
-        )}
-      </AnimatePresence>
+      <div style={{ flex: 1 }}>
+        <AnimatePresence mode="wait">
+          {phase === "assess" && (
+            <AssessStep key="assess" pitchMode={pitchMode} onComplete={handleAssessComplete} />
+          )}
+          {phase === "map" && result && (
+            <MapStep key="map" result={result} pitchMode={pitchMode} onComplete={handleMapComplete} />
+          )}
+          {phase === "lesson" && result && (
+            <LearnStep key="lesson" result={result} pitchMode={pitchMode} onComplete={handleLearnComplete} />
+          )}
+          {phase === "mastery" && result && (
+            <MasteryStep key="mastery" result={result} pitchMode={pitchMode} onComplete={handleMasteryComplete} />
+          )}
+          {phase === "outcome" && result && postResult && (
+            <OutcomeStep key="outcome" preResult={result} postResult={postResult} onRestart={handleRestart} onNext={handleNext} />
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
