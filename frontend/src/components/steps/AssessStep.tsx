@@ -82,6 +82,11 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
       setMaxQuestions(12);
     };
 
+    if (pitchMode) {
+      useMockFallback();
+      return;
+    }
+
     createAssessmentV2Session({ max_questions: 12 })
       .then((res) => {
         setSessionId(res.session_id);
@@ -92,11 +97,7 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
         }
       })
       .catch((err) => {
-        if (pitchMode) {
-          useMockFallback();
-        } else {
-          setError(err.message);
-        }
+        setError(err.message);
       });
   }, [pitchMode]);
 
