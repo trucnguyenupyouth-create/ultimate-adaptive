@@ -458,44 +458,77 @@ const SHOWCASE_WIDGETS = [
 export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ backgroundColor: "rgba(17,24,39,0.35)", backdropFilter: "blur(6px)" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(17,24,39,0.35)",
+        backdropFilter: "blur(6px)",
+        padding: 16,
+      }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <motion.div
-        initial={{ opacity: 0, y: 48 }} animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 48 }} transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-        className="w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl overflow-y-auto"
-        style={{ backgroundColor: B.white, maxHeight: "92vh" }}
+        initial={{ opacity: 0, y: 48 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 48 }}
+        transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+        style={{
+          width: "100%",
+          maxWidth: 672,
+          backgroundColor: B.white,
+          borderRadius: 24,
+          overflow: "hidden",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: "92vh",
+        }}
       >
-        <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: B.grayBorder }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: `1px solid ${B.grayBorder}` }}>
           <div>
-            <p className="text-xs font-bold mb-0.5" style={{ fontFamily: MONO, color: B.blue }}>Math Input System</p>
-            <h3 className="text-xl font-extrabold" style={{ fontFamily: NUNITO, color: B.text }}>Bộ widget nhập toán học</h3>
+            <p style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: B.blue, margin: "0 0 2px" }}>Math Input System</p>
+            <h3 style={{ fontFamily: NUNITO, fontSize: 20, fontWeight: 800, color: B.text, margin: 0 }}>Bộ widget nhập toán học</h3>
           </div>
-          <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center hover:opacity-70" style={{ backgroundColor: B.gray }}>
+          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "none", backgroundColor: B.gray, cursor: "pointer", transition: "opacity 0.2s" }} className="hover:opacity-70">
             <X size={16} style={{ color: B.textMuted }} />
           </button>
         </div>
-        <div className="px-6 py-3.5" style={{ backgroundColor: B.blueLight }}>
-          <p className="text-sm leading-relaxed" style={{ fontFamily: INTER, color: B.textMid }}>
-            Học sinh nhập toán như viết trên vở — không cần học cú pháp máy tính.
+
+        {/* Tagline banner */}
+        <div style={{ padding: "14px 24px", backgroundColor: B.blueLight }}>
+          <p style={{ fontFamily: INTER, fontSize: 14, lineHeight: 1.5, color: B.textMid, margin: 0 }}>
+            Học sinh nhập toán như viết trên vở — không cần học cú pháp máy tính. Mỗi loại biểu thức có widget riêng, keyboard-friendly và touch-friendly.
           </p>
         </div>
-        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        {/* Grid */}
+        <div style={{ padding: 20, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, overflowY: "auto" }}>
           {SHOWCASE_WIDGETS.map(({ id, label, context, Component }) => (
-            <div key={id} className="rounded-2xl p-5 border" style={{ backgroundColor: B.bg, borderColor: B.grayBorder }}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ fontFamily: NUNITO, backgroundColor: B.blueLight, color: B.blue }}>{label}</span>
+            <div key={id} style={{ borderRadius: 16, padding: 20, borderWidth: 1, borderStyle: "solid", borderColor: B.grayBorder, backgroundColor: B.bg, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontFamily: NUNITO, fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 9999, backgroundColor: B.blueLight, color: B.blue }}>
+                  {label}
+                </span>
               </div>
-              <p className="text-xs mb-4" style={{ fontFamily: INTER, color: B.textMuted }}>{context}</p>
-              <div className="flex justify-center py-1"><Component /></div>
+              <p style={{ fontFamily: INTER, fontSize: 12, color: B.textMuted, margin: 0 }}>{context}</p>
+              <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
+                <Component />
+              </div>
             </div>
           ))}
         </div>
-        <div className="px-6 pb-6 text-center">
-          <p className="text-xs" style={{ fontFamily: INTER, color: B.textLight }}>
+
+        {/* Footer */}
+        <div style={{ padding: "0 24px 20px", textAlign: "center" }}>
+          <p style={{ fontFamily: INTER, fontSize: 11, color: B.textLight, margin: 0 }}>
             Tab · Shift+Tab · ↑↓ → để điều hướng · Enter để nộp · inputMode=numeric trên mobile
           </p>
         </div>
