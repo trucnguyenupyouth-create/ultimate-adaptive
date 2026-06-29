@@ -5,7 +5,7 @@
 // Supports: animateIn, showTarget (pulse), outcome (green flash)
 
 import { useEffect, useState } from "react";
-import { B, MONO, type SkillStrength } from "@/components/wizzdom/design-tokens";
+import { B, INTER, MONO, NUNITO, type SkillStrength } from "@/components/wizzdom/design-tokens";
 import type { Skill } from "@/lib/map-data";
 import { SKILLS as DEFAULT_SKILLS, EDGES as DEFAULT_EDGES } from "@/lib/map-data";
 
@@ -194,5 +194,311 @@ export function KnowledgeMap({
         );
       })}
     </svg>
+  );
+}
+
+type ProofEdgeTone = "default" | "blocker" | "affected" | "updated";
+
+interface PitchProofMapProps {
+  skills: Skill[];
+  edges: [number, number][];
+  targetNodeId: number;
+  outcomeNodeIds?: Set<number>;
+  outcome?: boolean;
+}
+
+const PROOF_NODE_SIZE = {
+  height: 86,
+};
+
+function proofEdgeId(a: number, b: number) {
+  return `${a}-${b}`;
+}
+
+function proofY(y: number) {
+  return 16 + y * 0.72;
+}
+
+function proofEdgeTone(a: number, b: number, outcome: boolean, outcomeNodeIds: Set<number>): ProofEdgeTone {
+  const id = proofEdgeId(a, b);
+  if (outcome && (outcomeNodeIds.has(a) || outcomeNodeIds.has(b))) return "updated";
+  if (["102-103", "103-105"].includes(id)) return "blocker";
+  if (["103-106", "103-107", "105-107", "105-108"].includes(id)) return "affected";
+  return "default";
+}
+
+function proofNodeTheme(skill: Skill, isTarget: boolean, isUpdated: boolean) {
+  if (isUpdated) {
+    return {
+      chip: "UPDATED",
+      background: B.greenLight,
+      border: B.green,
+      color: B.green,
+      shadow: "0 14px 28px rgba(16,185,129,0.18)",
+    };
+  }
+  if (isTarget) {
+    return {
+      chip: "READY TO LEARN",
+      background: B.orangeLight,
+      border: B.orange,
+      color: B.orange,
+      shadow: "0 14px 28px rgba(245,158,11,0.18)",
+    };
+  }
+  if (skill.strength === "strong") {
+    return {
+      chip: "CONFIRMED",
+      background: B.blueLight,
+      border: B.blue,
+      color: B.blue,
+      shadow: "0 12px 24px rgba(61,114,248,0.12)",
+    };
+  }
+  if (skill.strength === "weak") {
+    return {
+      chip: "GAP FOUND",
+      background: B.orangeLight,
+      border: B.orange,
+      color: B.orange,
+      shadow: "0 14px 28px rgba(245,158,11,0.16)",
+    };
+  }
+  if (skill.strength === "medium") {
+    return {
+      chip: "DEVELOPING",
+      background: B.white,
+      border: B.blueMid,
+      color: B.blueDark,
+      shadow: "0 10px 22px rgba(61,114,248,0.1)",
+    };
+  }
+  return {
+    chip: "AFFECTED",
+    background: "#F8FAFC",
+    border: "#CBD5E1",
+    color: "#64748B",
+    shadow: "none",
+  };
+}
+
+function proofEdgeStyle(tone: ProofEdgeTone) {
+  if (tone === "updated") return { stroke: B.green, width: 3, dash: "", opacity: 0.95 };
+  if (tone === "blocker") return { stroke: B.orange, width: 3, dash: "", opacity: 0.95 };
+  if (tone === "affected") return { stroke: "#94A3B8", width: 2, dash: "7 6", opacity: 0.7 };
+  return { stroke: "#CBD5E1", width: 1.4, dash: "", opacity: 0.55 };
+}
+
+function proofNodeLabel(skill: Skill) {
+  return skill.label.replace(/\n/g, " ");
+}
+
+export function PitchProofMap({
+  skills,
+  edges,
+  targetNodeId,
+  outcomeNodeIds = new Set<number>(),
+  outcome = false,
+}: PitchProofMapProps) {
+  const getSkill = (id: number) => skills.find((skill) => skill.id === id);
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        minHeight: 560,
+        borderRadius: 28,
+        border: `1px solid ${B.grayBorder}`,
+        background: `linear-gradient(135deg, ${B.white} 0%, #F8FAFF 58%, ${B.blueLight} 100%)`,
+        boxShadow: "0 18px 50px rgba(17,24,39,0.08)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 18,
+          borderRadius: 22,
+          backgroundImage:
+            "linear-gradient(rgba(148,163,184,0.11) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.11) 1px, transparent 1px)",
+          backgroundSize: "34px 34px",
+        }}
+      />
+
+      <div style={{ position: "absolute", top: 22, left: 24, right: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+        <div>
+          <p style={{ margin: "0 0 4px", fontFamily: MONO, fontSize: 11, fontWeight: 800, color: B.blue, letterSpacing: 0, textTransform: "uppercase" }}>
+            Grade 6 fractions knowledge graph
+          </p>
+          <p style={{ margin: 0, fontFamily: NUNITO, fontSize: 24, fontWeight: 900, color: B.text, lineHeight: 1.05 }}>
+            One wrong answer traces to a prerequisite blocker
+          </p>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end", maxWidth: 430 }}>
+          {[
+            { label: "Confirmed strong", color: B.blue, bg: B.blueLight },
+            { label: "Gap found", color: B.orange, bg: B.orangeLight },
+            { label: "Possibly affected", color: "#64748B", bg: "#F8FAFC" },
+            { label: "Ready to learn", color: B.orange, bg: B.orangeLight },
+            { label: "Updated after mastery", color: B.green, bg: B.greenLight },
+          ].map((item) => (
+            <span
+              key={item.label}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 9px",
+                borderRadius: 9999,
+                backgroundColor: item.bg,
+                color: item.color,
+                border: `1px solid ${item.color}26`,
+                fontFamily: NUNITO,
+                fontSize: 11,
+                fontWeight: 850,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span style={{ width: 8, height: 8, borderRadius: 9999, backgroundColor: item.color }} />
+              {item.label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <svg
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}
+      >
+        <defs>
+          <marker id="proof-arrow-default" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#CBD5E1" />
+          </marker>
+          <marker id="proof-arrow-orange" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 Z" fill={B.orange} />
+          </marker>
+          <marker id="proof-arrow-green" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 Z" fill={B.green} />
+          </marker>
+        </defs>
+        {edges.map(([a, b]) => {
+          const source = getSkill(a);
+          const target = getSkill(b);
+          if (!source || !target) return null;
+          const tone = proofEdgeTone(a, b, outcome, outcomeNodeIds);
+          const style = proofEdgeStyle(tone);
+          const marker = tone === "updated" ? "url(#proof-arrow-green)"
+            : tone === "blocker" ? "url(#proof-arrow-orange)"
+            : "url(#proof-arrow-default)";
+          return (
+            <line
+              key={proofEdgeId(a, b)}
+              x1={source.x}
+              y1={proofY(source.y)}
+              x2={target.x}
+              y2={proofY(target.y)}
+              stroke={style.stroke}
+              strokeWidth={style.width}
+              strokeDasharray={style.dash}
+              opacity={style.opacity}
+              markerEnd={marker}
+            />
+          );
+        })}
+      </svg>
+
+      {skills.map((skill) => {
+        const isTarget = skill.id === targetNodeId && !outcome;
+        const isUpdated = outcome && outcomeNodeIds.has(skill.id);
+        const theme = proofNodeTheme(skill, isTarget, isUpdated);
+        const isMuted = skill.strength === "inferred" && !isUpdated;
+        return (
+          <div
+            key={skill.id}
+            style={{
+              position: "absolute",
+              left: `${skill.x}%`,
+              top: `${proofY(skill.y)}%`,
+              transform: "translate(-50%, -50%)",
+              width: "clamp(132px, 16vw, 176px)",
+              minHeight: PROOF_NODE_SIZE.height,
+              padding: "12px 13px",
+              borderRadius: 18,
+              border: `2px solid ${theme.border}`,
+              backgroundColor: theme.background,
+              boxShadow: theme.shadow,
+              opacity: isMuted ? 0.7 : 1,
+              zIndex: isTarget || isUpdated || skill.strength === "weak" ? 3 : 2,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+              <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 800, color: theme.color, lineHeight: 1.1 }}>
+                {skill.code}
+              </span>
+            </div>
+            <p style={{ margin: "0 0 9px", fontFamily: NUNITO, fontSize: 15, fontWeight: 900, color: B.text, lineHeight: 1.12 }}>
+              {proofNodeLabel(skill)}
+            </p>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "4px 8px",
+                borderRadius: 9999,
+                backgroundColor: B.white,
+                color: theme.color,
+                border: `1px solid ${theme.border}33`,
+                fontFamily: MONO,
+                fontSize: 9,
+                fontWeight: 900,
+                letterSpacing: 0,
+              }}
+            >
+              {theme.chip}
+            </span>
+          </div>
+        );
+      })}
+
+      <div
+        style={{
+          position: "absolute",
+          left: 24,
+          bottom: 20,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          maxWidth: "calc(100% - 48px)",
+        }}
+      >
+        {[
+          "Real curriculum nodes",
+          "Real KC codes",
+          "Open-ended item bank",
+          "Misconception-linked grading",
+          "Coach action generated",
+        ].map((signal) => (
+          <span
+            key={signal}
+            style={{
+              padding: "7px 10px",
+              borderRadius: 9999,
+              backgroundColor: "rgba(255,255,255,0.88)",
+              border: `1px solid ${B.grayBorder}`,
+              color: B.textMid,
+              fontFamily: INTER,
+              fontSize: 11,
+              fontWeight: 750,
+              boxShadow: "0 8px 18px rgba(17,24,39,0.05)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {signal}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }

@@ -202,6 +202,30 @@ const responses: AssessmentV2TranscriptStep[] = [
   },
 ];
 
+export const PITCH_GRAPH_PROOF = {
+  evidence: {
+    item: "Calculate: 1/2 + 1/3",
+    student_answer: "2/5",
+    expected_answer: "5/6",
+    detected_pattern: "Added numerator to numerator and denominator to denominator.",
+    inferred_blocker: "Needs common denominator before adding unlike fractions.",
+    affected_skills: [
+      "Compare unlike fractions",
+      "Subtract unlike fractions",
+      "Divide fractions",
+    ],
+  },
+  proof_steps: [
+    "Open-ended answer",
+    "Deterministic checker",
+    "Misconception match",
+    "Prerequisite edge trace",
+    "Next lesson selected",
+  ],
+  coach_action: "Assign 6 common-denominator exercises; watch for cross-addition error.",
+  parent_translation: "The blocker is not effort; it is a prerequisite gap affecting fraction operations.",
+};
+
 export const PITCH_RESULT: AssessmentV2Result = {
   session_id: "pitch-real-g6-algebra",
   session_code: "REAL-DEMO",

@@ -6,8 +6,8 @@ export const DEMO_OUTCOME_NODE_IDS = new Set([103, 105]);
 export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   {
     id: 101,
-    x: 16,
-    y: 38,
+    x: 15,
+    y: 24,
     label: "Valid\nfractions",
     strength: "strong",
     code: "G6-MATH-NHAN-BIET-PHAN-1",
@@ -16,7 +16,7 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   {
     id: 102,
     x: 36,
-    y: 28,
+    y: 24,
     label: "Fraction\nproperty",
     strength: "medium",
     code: "G6-MATH-TINH-CHAT-CO",
@@ -24,8 +24,8 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 103,
-    x: 56,
-    y: 38,
+    x: 57,
+    y: 24,
     label: "Common\ndenominator",
     strength: "weak",
     code: "G6-MATH-QUY-DONG-MAU",
@@ -33,8 +33,8 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 104,
-    x: 34,
-    y: 62,
+    x: 36,
+    y: 53,
     label: "Add like\ndenominators",
     strength: "strong",
     code: "G6-MATH-CONG-HAI-PHAN",
@@ -42,8 +42,8 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 105,
-    x: 72,
-    y: 58,
+    x: 75,
+    y: 44,
     label: "Add unlike\ndenominators",
     strength: "weak",
     code: "G6-MATH-CONG-HAI-PHAN-1",
@@ -52,7 +52,7 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   {
     id: 106,
     x: 84,
-    y: 32,
+    y: 24,
     label: "Compare unlike\nfractions",
     strength: "inferred",
     code: "G6-MATH-SO-SANH-HAI-1",
@@ -60,8 +60,8 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 107,
-    x: 70,
-    y: 78,
+    x: 58,
+    y: 64,
     label: "Subtract unlike\nfractions",
     strength: "inferred",
     code: "G6-MAMATMATHMAT",
@@ -69,8 +69,8 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 108,
-    x: 88,
-    y: 72,
+    x: 86,
+    y: 64,
     label: "Divide\nfractions",
     strength: "inferred",
     code: "G6-MATH-CHIA-HAI-PHAN",
@@ -78,8 +78,8 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 109,
-    x: 18,
-    y: 70,
+    x: 15,
+    y: 64,
     label: "Negative\nintegers",
     strength: "medium",
     code: "G6-MATH-NHAN-BIET-DOC",

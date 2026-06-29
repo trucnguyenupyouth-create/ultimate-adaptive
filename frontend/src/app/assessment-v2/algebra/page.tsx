@@ -9,7 +9,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check, RotateCcw, Zap, Play, Pause, HelpCircle } from "lucide-react";
 import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
-import { KnowledgeMap } from "@/components/wizzdom/KnowledgeMap";
+import { KnowledgeMap, PitchProofMap } from "@/components/wizzdom/KnowledgeMap";
 import {
   FractionWidget, MathAnswerWidget, MathWidgetShowcase,
   isFractionReady, serializeFraction,
@@ -23,13 +23,12 @@ import {
   createAssessmentV2Session, submitAssessmentV2Response, submitAssessmentV2Mastery,
 } from "@/lib/assessment-v2-api";
 import { adaptSummaryToSkills, findTargetNodeId, findOutcomeNodeIds } from "@/lib/map-adapter";
-import { PITCH_RESULT, PITCH_POST_MASTERY, PITCH_ASSESS_QUESTION } from "@/lib/pitch-mock-data";
+import { PITCH_RESULT, PITCH_POST_MASTERY, PITCH_ASSESS_QUESTION, PITCH_GRAPH_PROOF } from "@/lib/pitch-mock-data";
 import {
   DEMO_FRACTION_EDGES,
   DEMO_FRACTION_MAP_POST,
   DEMO_FRACTION_MAP_PRE,
   DEMO_OUTCOME_NODE_IDS,
-  DEMO_PREREQUISITE_FLOW,
   DEMO_TARGET_NODE_ID,
 } from "@/lib/demo-map-data";
 
@@ -589,21 +588,29 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-      <PitchBar active={pitchMode} duration={6500} onComplete={onComplete} />
-      <div className="map-step-container">
-        <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ width: "100%", maxWidth: 580, aspectRatio: "1/1" }}>
-            <KnowledgeMap
-              skills={adaptedSkills}
-              edges={pitchMode ? DEMO_FRACTION_EDGES : undefined}
-              targetNodeId={targetNodeId}
-              animateIn
-              showTarget
-            />
+      <PitchBar active={pitchMode} duration={pitchMode ? 9500 : 6500} onComplete={onComplete} />
+      <div className={`map-step-container ${pitchMode ? "pitch-proof-grid" : ""}`}>
+        <div style={{ padding: pitchMode ? 22 : 16, display: "flex", alignItems: pitchMode ? "flex-start" : "center", justifyContent: "center" }}>
+          <div style={{ width: "100%", maxWidth: pitchMode ? 980 : 580, aspectRatio: pitchMode ? undefined : "1/1" }}>
+            {pitchMode ? (
+              <PitchProofMap
+                skills={DEMO_FRACTION_MAP_PRE}
+                edges={DEMO_FRACTION_EDGES}
+                targetNodeId={DEMO_TARGET_NODE_ID}
+              />
+            ) : (
+              <KnowledgeMap
+                skills={adaptedSkills}
+                edges={undefined}
+                targetNodeId={targetNodeId}
+                animateIn
+                showTarget
+              />
+            )}
           </div>
         </div>
 
-        <motion.div initial={{ opacity: 0, x: 24 }} animate={panelIn ? { opacity: 1, x: 0 } : {}}
+        <motion.div initial={pitchMode ? { opacity: 1, x: 0 } : { opacity: 0, x: 24 }} animate={pitchMode ? { opacity: 1, x: 0 } : panelIn ? { opacity: 1, x: 0 } : {}}
           transition={{ duration: 0.55, ease: "easeOut" }}
           className="right-panel">
 
@@ -637,32 +644,46 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
           </motion.div>
 
           {pitchMode && (
-            <motion.div initial={{ opacity: 0 }} animate={skillCount >= Math.floor(totalSkills * 0.75) ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
-              style={{ borderRadius: 16, padding: 14, border: `1px solid ${B.grayBorder}`, backgroundColor: B.white }}>
-              <p style={{ fontFamily: MONO, fontSize: 10, fontWeight: 800, color: B.textMuted, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 0 }}>
-                Prerequisite flow
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {DEMO_PREREQUISITE_FLOW.map((node, index) => (
-                  <div key={node.id} style={{ display: "grid", gridTemplateColumns: "18px 1fr", gap: 8, alignItems: "start" }}>
-                    <span style={{ width: 18, height: 18, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: MONO, fontSize: 9, fontWeight: 800, color: index === 2 ? B.white : B.textMuted, backgroundColor: index === 2 ? B.orange : "#EEF2FF" }}>
-                      {index + 1}
-                    </span>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: 0, fontFamily: MONO, fontSize: 10, fontWeight: 800, color: index === 2 ? B.orange : B.textMuted }}>
-                        {node.code}
-                      </p>
-                      <p style={{ margin: "2px 0 0", fontFamily: NUNITO, fontSize: 12, fontWeight: 800, color: B.text, lineHeight: 1.25 }}>
-                        {node.fullName}
-                      </p>
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={skillCount >= Math.floor(totalSkills * 0.72) ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
+                style={{ borderRadius: 18, padding: 16, border: `1px solid ${B.grayBorder}`, backgroundColor: B.white, display: "flex", flexDirection: "column", gap: 12 }}>
+                <p style={{ fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.blue, margin: 0, textTransform: "uppercase", letterSpacing: 0 }}>
+                  Why Wizzdom knows this
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {PITCH_GRAPH_PROOF.proof_steps.map((step, index) => (
+                    <div key={step} style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                      <span style={{ width: 20, height: 20, borderRadius: 9999, display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: index < 3 ? B.blueLight : B.orangeLight, color: index < 3 ? B.blue : B.orange, fontFamily: MONO, fontSize: 10, fontWeight: 900 }}>
+                        {index + 1}
+                      </span>
+                      <span style={{ fontFamily: NUNITO, fontSize: 13, fontWeight: 850, color: B.text }}>
+                        {step}
+                      </span>
                     </div>
-                    {index < DEMO_PREREQUISITE_FLOW.length - 1 && (
-                      <div style={{ gridColumn: "1 / 3", paddingLeft: 8, color: B.textLight, fontSize: 12, lineHeight: 1 }}>↓</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0 }} animate={skillCount >= Math.floor(totalSkills * 0.85) ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
+                style={{ borderRadius: 18, padding: 16, border: `1px solid rgba(245,158,11,0.25)`, backgroundColor: B.orangeLight, display: "flex", flexDirection: "column", gap: 10 }}>
+                <p style={{ fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.orange, margin: 0, textTransform: "uppercase", letterSpacing: 0 }}>
+                  Evidence trail
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "88px 1fr", gap: "7px 10px", alignItems: "start" }}>
+                  {[
+                    ["Item", PITCH_GRAPH_PROOF.evidence.item],
+                    ["Answer", PITCH_GRAPH_PROOF.evidence.student_answer],
+                    ["Pattern", PITCH_GRAPH_PROOF.evidence.detected_pattern],
+                    ["Blocker", PITCH_GRAPH_PROOF.evidence.inferred_blocker],
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ display: "contents" }}>
+                      <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.textMuted }}>{label}</span>
+                      <span style={{ fontFamily: INTER, fontSize: 12, lineHeight: 1.35, color: B.text, fontWeight: label === "Answer" ? 850 : 600 }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </>
           )}
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={skillCount >= totalSkills ? { opacity: 1, y: 0 } : {}}
@@ -677,6 +698,15 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
             <p style={{ fontSize: 12, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
               {pitchMode ? "The missed item points to a prerequisite: common denominators before adding unlike fractions." : "Giải quyết nó sẽ mở khóa các kỹ năng liên kết"}
             </p>
+            {pitchMode && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 2 }}>
+                {PITCH_GRAPH_PROOF.evidence.affected_skills.map((skill) => (
+                  <span key={skill} style={{ padding: "5px 8px", borderRadius: 9999, backgroundColor: B.white, border: `1px solid ${B.grayBorder}`, fontFamily: INTER, fontSize: 11, fontWeight: 700, color: B.textMid }}>
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           <motion.button initial={{ opacity: 0 }} animate={skillCount >= totalSkills ? { opacity: 1 } : {}}
@@ -1121,17 +1151,27 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
-      className="outcome-container">
-      <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: "100%", maxWidth: 580, aspectRatio: "1/1" }}>
-          <KnowledgeMap
-            skills={postSkills}
-            edges={isPitchResult ? DEMO_FRACTION_EDGES : undefined}
-            targetNodeId={targetNodeId}
-            outcomeNodeIds={outcomeNodeIds}
-            showTarget
-            outcome
-          />
+      className={`outcome-container ${isPitchResult ? "pitch-proof-grid" : ""}`}>
+      <div style={{ padding: isPitchResult ? 22 : 16, display: "flex", alignItems: isPitchResult ? "flex-start" : "center", justifyContent: "center" }}>
+        <div style={{ width: "100%", maxWidth: isPitchResult ? 980 : 580, aspectRatio: isPitchResult ? undefined : "1/1" }}>
+          {isPitchResult ? (
+            <PitchProofMap
+              skills={DEMO_FRACTION_MAP_POST}
+              edges={DEMO_FRACTION_EDGES}
+              targetNodeId={DEMO_TARGET_NODE_ID}
+              outcomeNodeIds={DEMO_OUTCOME_NODE_IDS}
+              outcome
+            />
+          ) : (
+            <KnowledgeMap
+              skills={postSkills}
+              edges={undefined}
+              targetNodeId={targetNodeId}
+              outcomeNodeIds={outcomeNodeIds}
+              showTarget
+              outcome
+            />
+          )}
         </div>
       </div>
 
@@ -1164,6 +1204,24 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
             {isPitchResult ? "The prerequisite lesson moved connected skills closer to reach. Wizzdom updated the learner's map." : "Các kỹ năng liên kết đang dần gần tầm với. Wizzdom đã cập nhật bản đồ cá nhân của bạn."}
           </p>
         </div>
+
+        {isPitchResult && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              ["Coach action", PITCH_GRAPH_PROOF.coach_action],
+              ["Parent translation", PITCH_GRAPH_PROOF.parent_translation],
+            ].map(([label, value]) => (
+              <div key={label} style={{ borderRadius: 16, padding: 15, border: `1px solid ${B.grayBorder}`, backgroundColor: B.white }}>
+                <p style={{ margin: "0 0 6px", fontFamily: MONO, fontSize: 10, fontWeight: 900, color: label === "Coach action" ? B.blue : B.orange, textTransform: "uppercase", letterSpacing: 0 }}>
+                  {label}
+                </p>
+                <p style={{ margin: 0, fontFamily: INTER, fontSize: 13, lineHeight: 1.45, fontWeight: 650, color: B.textMid }}>
+                  {value}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div style={{ display: "flex", gap: 12 }}>
           <button onClick={onRestart}
@@ -1355,6 +1413,10 @@ export default function AlgebraAssessmentPage() {
           .map-step-container {
             grid-template-columns: 1fr 360px;
           }
+          .map-step-container.pitch-proof-grid,
+          .outcome-container.pitch-proof-grid {
+            grid-template-columns: minmax(0, 1fr) 390px;
+          }
         }
         .right-panel {
           border-top: 1px solid rgba(0, 0, 0, 0.08);
@@ -1370,6 +1432,10 @@ export default function AlgebraAssessmentPage() {
             border-top: 0;
             border-left: 1px solid rgba(0, 0, 0, 0.08);
             padding: 32px;
+          }
+          .pitch-proof-grid .right-panel {
+            padding: 28px;
+            gap: 18px;
           }
         }
 
@@ -1431,6 +1497,9 @@ export default function AlgebraAssessmentPage() {
         @media (min-width: 1024px) {
           .outcome-container {
             grid-template-columns: 1fr 360px;
+          }
+          .outcome-container.pitch-proof-grid {
+            grid-template-columns: minmax(0, 1fr) 390px;
           }
         }
       `}</style>
