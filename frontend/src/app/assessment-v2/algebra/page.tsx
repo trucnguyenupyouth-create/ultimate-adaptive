@@ -52,6 +52,184 @@ interface AssessStepProps {
 
 type AssessPhase = "question" | "adapting" | "processing";
 
+function DiagnosticReasoningTrace({ stage }: { stage: "pattern" | "graph" }) {
+  const isGraphStage = stage === "graph";
+  const proof = PITCH_GRAPH_PROOF.evidence;
+  const steps = [
+    { label: "Answer checked", active: true },
+    { label: "Misconception matched", active: true },
+    { label: "KC located", active: isGraphStage },
+    { label: "Prerequisites traced", active: isGraphStage },
+    { label: "Practice selected", active: isGraphStage },
+  ];
+
+  return (
+    <motion.div
+      key={`diagnostic-${stage}`}
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.35 }}
+      style={{
+        width: "100%",
+        maxWidth: 860,
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr)",
+        gap: 18,
+      }}
+    >
+      <div
+        style={{
+          borderRadius: 24,
+          border: `1px solid ${B.grayBorder}`,
+          backgroundColor: B.white,
+          boxShadow: "0 18px 45px rgba(15, 23, 42, 0.08)",
+          padding: 24,
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 0.95fr) minmax(0, 1.1fr)",
+          gap: 20,
+          alignItems: "stretch",
+        }}
+      >
+        <div
+          style={{
+            borderRadius: 20,
+            backgroundColor: "#F8FAFF",
+            border: `1px solid ${B.grayBorder}`,
+            padding: 20,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            gap: 18,
+          }}
+        >
+          <div>
+            <p style={{ margin: "0 0 8px", fontFamily: MONO, fontSize: 11, fontWeight: 900, color: B.blue, textTransform: "uppercase", letterSpacing: 0 }}>
+              Open-ended evidence
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <Frac n={1} d={2} className="text-xl" />
+              <span style={{ color: B.textLight, fontSize: 20 }}>+</span>
+              <Frac n={1} d={3} className="text-xl" />
+              <span style={{ color: B.textLight, fontSize: 20 }}>=</span>
+              <span style={{ color: B.orange }}>
+                <Frac n={2} d={5} className="text-xl" />
+              </span>
+            </div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0.2 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 10,
+            }}
+          >
+            {[
+              ["Numerators", "1 + 1 → 2"],
+              ["Denominators", "2 + 3 → 5"],
+            ].map(([label, value]) => (
+              <div key={label} style={{ borderRadius: 16, padding: "12px 14px", backgroundColor: B.orangeLight, border: "1px solid rgba(245,158,11,0.28)" }}>
+                <p style={{ margin: "0 0 4px", fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.orange, textTransform: "uppercase", letterSpacing: 0 }}>{label}</p>
+                <p style={{ margin: 0, fontFamily: NUNITO, fontSize: 18, fontWeight: 900, color: B.text }}>{value}</p>
+              </div>
+            ))}
+          </motion.div>
+
+          <p style={{ margin: 0, fontFamily: INTER, fontSize: 13, lineHeight: 1.5, color: B.textMid }}>
+            Pattern detected: <strong style={{ color: B.text }}>{proof.detected_pattern}</strong>
+          </p>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div
+            style={{
+              borderRadius: 20,
+              padding: 18,
+              border: `1.5px solid ${isGraphStage ? "rgba(245,158,11,0.4)" : B.grayBorder}`,
+              backgroundColor: isGraphStage ? B.orangeLight : B.white,
+            }}
+          >
+            <p style={{ margin: "0 0 8px", fontFamily: MONO, fontSize: 11, fontWeight: 900, color: isGraphStage ? B.orange : B.textMuted, textTransform: "uppercase", letterSpacing: 0 }}>
+              Misconception → knowledge node
+            </p>
+            <p style={{ margin: "0 0 12px", fontFamily: NUNITO, fontSize: 22, lineHeight: 1.1, fontWeight: 950, color: B.text }}>
+              Needs common denominator before adding unlike fractions
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {["G6-MATH-QUY-DONG-MAU", "Likely blocker", "Prerequisite trace"].map((chip, index) => (
+                <span key={chip} style={{ padding: "6px 10px", borderRadius: 9999, backgroundColor: index === 1 ? B.orange : B.white, color: index === 1 ? B.white : B.textMid, border: index === 1 ? "none" : `1px solid ${B.grayBorder}`, fontFamily: index === 0 ? MONO : NUNITO, fontSize: 11, fontWeight: 900 }}>
+                  {chip}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+            {proof.affected_skills.map((skill, index) => (
+              <motion.div
+                key={skill}
+                initial={{ opacity: 0.3, y: 8 }}
+                animate={{ opacity: isGraphStage ? 1 : 0.38, y: isGraphStage ? 0 : 8 }}
+                transition={{ duration: 0.35, delay: isGraphStage ? index * 0.08 : 0 }}
+                style={{
+                  minHeight: 86,
+                  borderRadius: 16,
+                  padding: 12,
+                  border: `1px solid ${B.grayBorder}`,
+                  backgroundColor: isGraphStage ? "#F8FAFC" : B.white,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <p style={{ margin: 0, fontFamily: NUNITO, fontSize: 13, lineHeight: 1.18, fontWeight: 900, color: B.text }}>
+                  {skill}
+                </p>
+                <span style={{ alignSelf: "flex-start", padding: "4px 7px", borderRadius: 9999, backgroundColor: B.white, border: `1px solid ${B.grayBorder}`, fontFamily: MONO, fontSize: 9, fontWeight: 900, color: B.textMuted }}>
+                  POSSIBLY AFFECTED
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+        {steps.map((step, index) => (
+          <motion.div
+            key={step.label}
+            initial={{ opacity: 0.35 }}
+            animate={{ opacity: step.active ? 1 : 0.38 }}
+            transition={{ duration: 0.25, delay: index * 0.04 }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "8px 10px",
+              borderRadius: 9999,
+              backgroundColor: step.active ? B.blueLight : B.white,
+              border: `1px solid ${step.active ? "rgba(61,114,248,0.22)" : B.grayBorder}`,
+              color: step.active ? B.blue : B.textLight,
+              fontFamily: NUNITO,
+              fontSize: 12,
+              fontWeight: 850,
+            }}
+          >
+            <span style={{ width: 18, height: 18, borderRadius: 9999, display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: step.active ? B.blue : "#E5E7EB", color: B.white, fontFamily: MONO, fontSize: 9, fontWeight: 900 }}>
+              {step.active ? <Check size={11} /> : index + 1}
+            </span>
+            {step.label}
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
   const [phase, setPhase] = useState<AssessPhase>("question");
   const [showWidgets, setShowWidgets] = useState(false);
@@ -135,15 +313,17 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
 
   const advance = useCallback(
     (result?: AssessmentV2Result, sid?: string) => {
+      const adaptDelay = pitchMode ? 2300 : 950;
+      const completeDelay = pitchMode ? 5200 : 950 + 1800;
       setPhase("adapting");
-      setTimeout(() => setPhase("processing"), 950);
+      setTimeout(() => setPhase("processing"), adaptDelay);
       setTimeout(() => {
         if (pitchMode) {
           onComplete(PITCH_RESULT, "pitch-demo");
         } else if (result && sid) {
           onComplete(result, sid);
         }
-      }, 950 + 1800);
+      }, completeDelay);
     },
     [pitchMode, onComplete]
   );
@@ -446,99 +626,107 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
 
         {/* Adapting State */}
         {phase === "adapting" && (
-          <motion.div
-            key="adapt"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              gap: 16,
-              maxWidth: 280,
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 8 }}>
-              {[0, 0.15, 0.3].map((d) => (
-                <motion.div
-                  key={d}
-                  style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.orange }}
-                  animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 0.9, repeat: Infinity, delay: d }}
-                />
-              ))}
-            </div>
-            <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 18, margin: 0 }}>
-              {pitchMode ? "Choosing the next best question" : "Đang điều chỉnh câu tiếp theo"}
-            </p>
-            <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-              {pitchMode ? "The answer has been analyzed." : "Câu trả lời của bạn đã được phân tích."}
-              <br />{pitchMode ? "The engine is selecting the most informative next step." : "Hệ thống đang chọn câu hỏi phù hợp nhất tiếp theo."}
-            </p>
-            <div
+          pitchMode ? (
+            <DiagnosticReasoningTrace stage="pattern" />
+          ) : (
+            <motion.div
+              key="adapt"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35 }}
               style={{
-                display: "inline-flex",
+                display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
-                gap: 8,
-                padding: "6px 12px",
-                borderRadius: 9999,
-                backgroundColor: B.orangeLight,
+                justifyContent: "center",
+                textAlign: "center",
+                gap: 16,
+                maxWidth: 280,
               }}
             >
-              <Zap size={12} style={{ color: B.orange }} />
-              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>
-                {pitchMode ? "Adaptive, not a fixed sequence" : "Adaptive — không phải thứ tự cố định"}
-              </span>
-            </div>
-          </motion.div>
+              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 8 }}>
+                {[0, 0.15, 0.3].map((d) => (
+                  <motion.div
+                    key={d}
+                    style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.orange }}
+                    animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 0.9, repeat: Infinity, delay: d }}
+                  />
+                ))}
+              </div>
+              <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 18, margin: 0 }}>
+                Đang điều chỉnh câu tiếp theo
+              </p>
+              <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+                Câu trả lời của bạn đã được phân tích.
+                <br />Hệ thống đang chọn câu hỏi phù hợp nhất tiếp theo.
+              </p>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "6px 12px",
+                  borderRadius: 9999,
+                  backgroundColor: B.orangeLight,
+                }}
+              >
+                <Zap size={12} style={{ color: B.orange }} />
+                <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>
+                  Adaptive — không phải thứ tự cố định
+                </span>
+              </div>
+            </motion.div>
+          )
         )}
 
         {/* Processing State */}
         {phase === "processing" && (
-          <motion.div
-            key="proc"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              gap: 20,
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 8 }}>
-              {[0, 0.2, 0.4].map((d) => (
+          pitchMode ? (
+            <DiagnosticReasoningTrace stage="graph" />
+          ) : (
+            <motion.div
+              key="proc"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                gap: 20,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 8 }}>
+                {[0, 0.2, 0.4].map((d) => (
+                  <motion.div
+                    key={d}
+                    style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: B.blue }}
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 1.1, repeat: Infinity, delay: d }}
+                  />
+                ))}
+              </div>
+              <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 20, margin: 0 }}>
+                Đang xây dựng bản đồ tri thức
+              </p>
+              <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, margin: 0 }}>
+                12 câu hỏi đã được phân tích…
+              </p>
+              <div style={{ width: 220, height: 6, borderRadius: 9999, overflow: "hidden", backgroundColor: "#E5E7EB" }}>
                 <motion.div
-                  key={d}
-                  style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: B.blue }}
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 1.1, repeat: Infinity, delay: d }}
+                  style={{ height: "100%", borderRadius: 9999, backgroundColor: B.blue }}
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1.7, ease: "easeInOut" }}
                 />
-              ))}
-            </div>
-            <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 20, margin: 0 }}>
-              {pitchMode ? "Building the knowledge map" : "Đang xây dựng bản đồ tri thức"}
-            </p>
-            <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, margin: 0 }}>
-              {pitchMode ? "The diagnostic evidence has been analyzed..." : "12 câu hỏi đã được phân tích…"}
-            </p>
-            <div style={{ width: 220, height: 6, borderRadius: 9999, overflow: "hidden", backgroundColor: "#E5E7EB" }}>
-              <motion.div
-                style={{ height: "100%", borderRadius: 9999, backgroundColor: B.blue }}
-                initial={{ width: "0%" }}
-                animate={{ width: "100%" }}
-                transition={{ duration: 1.7, ease: "easeInOut" }}
-              />
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
+          )
         )}
       </AnimatePresence>
 
