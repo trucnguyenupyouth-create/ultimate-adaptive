@@ -208,7 +208,7 @@ interface PitchProofMapProps {
 }
 
 const PROOF_NODE_SIZE = {
-  height: 86,
+  height: 70,
 };
 
 function proofEdgeId(a: number, b: number) {
@@ -283,10 +283,10 @@ function proofNodeTheme(skill: Skill, isTarget: boolean, isUpdated: boolean) {
 }
 
 function proofEdgeStyle(tone: ProofEdgeTone) {
-  if (tone === "updated") return { stroke: B.green, width: 3, dash: "", opacity: 0.95 };
-  if (tone === "blocker") return { stroke: B.orange, width: 3, dash: "", opacity: 0.95 };
-  if (tone === "affected") return { stroke: "#94A3B8", width: 2, dash: "7 6", opacity: 0.7 };
-  return { stroke: "#CBD5E1", width: 1.4, dash: "", opacity: 0.55 };
+  if (tone === "updated") return { stroke: B.green, width: 0.55, dash: "", opacity: 0.8 };
+  if (tone === "blocker") return { stroke: B.orange, width: 0.55, dash: "", opacity: 0.86 };
+  if (tone === "affected") return { stroke: "#94A3B8", width: 0.35, dash: "1.2 1", opacity: 0.42 };
+  return { stroke: "#CBD5E1", width: 0.28, dash: "", opacity: 0.34 };
 }
 
 function proofNodeLabel(skill: Skill) {
@@ -307,7 +307,7 @@ export function PitchProofMap({
       style={{
         position: "relative",
         width: "100%",
-        minHeight: 560,
+        minHeight: 520,
         borderRadius: 28,
         border: `1px solid ${B.grayBorder}`,
         background: `linear-gradient(135deg, ${B.white} 0%, #F8FAFF 58%, ${B.blueLight} 100%)`,
@@ -372,26 +372,13 @@ export function PitchProofMap({
         preserveAspectRatio="none"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}
       >
-        <defs>
-          <marker id="proof-arrow-default" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-            <path d="M0,0 L8,4 L0,8 Z" fill="#CBD5E1" />
-          </marker>
-          <marker id="proof-arrow-orange" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
-            <path d="M0,0 L9,4.5 L0,9 Z" fill={B.orange} />
-          </marker>
-          <marker id="proof-arrow-green" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
-            <path d="M0,0 L9,4.5 L0,9 Z" fill={B.green} />
-          </marker>
-        </defs>
         {edges.map(([a, b]) => {
           const source = getSkill(a);
           const target = getSkill(b);
           if (!source || !target) return null;
           const tone = proofEdgeTone(a, b, outcome, outcomeNodeIds);
           const style = proofEdgeStyle(tone);
-          const marker = tone === "updated" ? "url(#proof-arrow-green)"
-            : tone === "blocker" ? "url(#proof-arrow-orange)"
-            : "url(#proof-arrow-default)";
+          if (tone === "default" && !["101-102", "104-105"].includes(proofEdgeId(a, b))) return null;
           return (
             <line
               key={proofEdgeId(a, b)}
@@ -403,7 +390,7 @@ export function PitchProofMap({
               strokeWidth={style.width}
               strokeDasharray={style.dash}
               opacity={style.opacity}
-              markerEnd={marker}
+              strokeLinecap="round"
             />
           );
         })}
@@ -414,6 +401,7 @@ export function PitchProofMap({
         const isUpdated = outcome && outcomeNodeIds.has(skill.id);
         const theme = proofNodeTheme(skill, isTarget, isUpdated);
         const isMuted = skill.strength === "inferred" && !isUpdated;
+        const isCompact = isMuted && !isUpdated;
         return (
           <div
             key={skill.id}
@@ -422,36 +410,36 @@ export function PitchProofMap({
               left: `${skill.x}%`,
               top: `${proofY(skill.y)}%`,
               transform: "translate(-50%, -50%)",
-              width: "clamp(132px, 16vw, 176px)",
-              minHeight: PROOF_NODE_SIZE.height,
-              padding: "12px 13px",
-              borderRadius: 18,
-              border: `2px solid ${theme.border}`,
+              width: isCompact ? "clamp(112px, 12vw, 140px)" : "clamp(122px, 13vw, 158px)",
+              minHeight: isCompact ? 56 : PROOF_NODE_SIZE.height,
+              padding: isCompact ? "10px 11px" : "11px 12px",
+              borderRadius: isCompact ? 16 : 18,
+              border: `${isCompact ? 1.5 : 2}px solid ${theme.border}`,
               backgroundColor: theme.background,
               boxShadow: theme.shadow,
-              opacity: isMuted ? 0.7 : 1,
+              opacity: isMuted ? 0.78 : 1,
               zIndex: isTarget || isUpdated || skill.strength === "weak" ? 3 : 2,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
-              <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 800, color: theme.color, lineHeight: 1.1 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: isCompact ? 5 : 7 }}>
+              <span style={{ fontFamily: MONO, fontSize: isCompact ? 8 : 8.5, fontWeight: 800, color: theme.color, lineHeight: 1.1 }}>
                 {skill.code}
               </span>
             </div>
-            <p style={{ margin: "0 0 9px", fontFamily: NUNITO, fontSize: 15, fontWeight: 900, color: B.text, lineHeight: 1.12 }}>
+            <p style={{ margin: isCompact ? "0 0 7px" : "0 0 8px", fontFamily: NUNITO, fontSize: isCompact ? 13 : 14, fontWeight: 900, color: B.text, lineHeight: 1.08 }}>
               {proofNodeLabel(skill)}
             </p>
             <span
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                padding: "4px 8px",
+                padding: isCompact ? "3px 7px" : "4px 8px",
                 borderRadius: 9999,
                 backgroundColor: B.white,
                 color: theme.color,
                 border: `1px solid ${theme.border}33`,
                 fontFamily: MONO,
-                fontSize: 9,
+                fontSize: 8,
                 fontWeight: 900,
                 letterSpacing: 0,
               }}

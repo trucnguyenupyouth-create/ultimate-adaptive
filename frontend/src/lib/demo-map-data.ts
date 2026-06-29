@@ -6,7 +6,7 @@ export const DEMO_OUTCOME_NODE_IDS = new Set([103, 105]);
 export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   {
     id: 101,
-    x: 15,
+    x: 14,
     y: 24,
     label: "Valid\nfractions",
     strength: "strong",
@@ -15,7 +15,7 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 102,
-    x: 36,
+    x: 34,
     y: 24,
     label: "Fraction\nproperty",
     strength: "medium",
@@ -24,7 +24,7 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 103,
-    x: 57,
+    x: 54,
     y: 24,
     label: "Common\ndenominator",
     strength: "weak",
@@ -42,7 +42,7 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 105,
-    x: 75,
+    x: 73,
     y: 44,
     label: "Add unlike\ndenominators",
     strength: "weak",
@@ -51,8 +51,8 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 106,
-    x: 84,
-    y: 24,
+    x: 86,
+    y: 26,
     label: "Compare unlike\nfractions",
     strength: "inferred",
     code: "G6-MATH-SO-SANH-HAI-1",
@@ -60,17 +60,17 @@ export const DEMO_FRACTION_MAP_PRE: Skill[] = [
   },
   {
     id: 107,
-    x: 58,
-    y: 64,
+    x: 57,
+    y: 66,
     label: "Subtract unlike\nfractions",
     strength: "inferred",
-    code: "G6-MAMATMATHMAT",
+    code: "G6-MATH-TRU-HAI-PHAN",
     fullName: "Subtract fractions with unlike denominators",
   },
   {
     id: 108,
     x: 86,
-    y: 64,
+    y: 66,
     label: "Divide\nfractions",
     strength: "inferred",
     code: "G6-MATH-CHIA-HAI-PHAN",
