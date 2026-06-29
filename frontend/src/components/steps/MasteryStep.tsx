@@ -1,11 +1,12 @@
 "use client";
 // ─── MasteryStep ──────────────────────────────────────────────────────────────
-// Full-width two-column: mastery check (left) · knowledge evidence (right)
-// MCQ only in pitch mode; real mode always uses open widget from API
+// Single-column centered layout matching reference layout:
+//   Step indicator → Question Card → Answer Input (MCQ grid or open card) → Feedback Box → Action Button
+// Styled with Tailwind classes exactly matching reference proportions
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Check, BadgeCheck } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
 import { StepCircle, Frac } from "@/components/wizzdom/MathDisplay";
 import {
@@ -14,13 +15,19 @@ import {
 } from "@/components/wizzdom/MathWidgets";
 import { submitAssessmentV2Mastery } from "@/lib/assessment-v2-api";
 import type { AssessmentV2Result } from "@/lib/assessment-v2-api";
-import { PITCH_MCQ } from "@/lib/pitch-mock-data";
 
 interface MasteryStepProps {
   result: AssessmentV2Result;
   pitchMode: boolean;
   onComplete: (updatedResult: AssessmentV2Result) => void;
 }
+
+const MCQ_OPTIONS = [
+  { id: 0, label: "4/9", correct: false },
+  { id: 1, label: "4/6", correct: true },
+  { id: 2, label: "3/4", correct: false },
+  { id: 3, label: "6/4", correct: false },
+];
 
 export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
   const mastery = result.learning_loop?.lesson?.mastery;
@@ -54,7 +61,7 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
     }
   }, [pitchMode, result, onComplete]);
 
-  // Pitch mode: auto-select correct MCQ + auto-advance
+  // Demo auto-advance simulation
   useEffect(() => {
     if (!pitchMode) return;
     const t1 = setTimeout(() => setSelected(1), 1000);
@@ -66,7 +73,7 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
   const handleMCQSubmit = () => { if (selected !== null) setSubmitted(true); };
 
   const handleOpenSubmit = () => {
-    let answer: string;
+    let answer = "";
     if (realWidgetType === "fraction") {
       if (!isFractionReady(fracState)) return;
       answer = serializeFraction(fracState);
@@ -87,11 +94,7 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
     ? isFractionReady(fracState)
     : textState.trim().length > 0;
 
-  const mcqCorrect = isMCQ && selected !== null && PITCH_MCQ[selected].correct;
-
-  // Build skill summary rows from result
-  const reviewSkills = result.summary?.skills_to_review?.slice(0, 4) ?? [];
-  const strongSkills = result.summary?.strong_areas?.slice(0, 3) ?? [];
+  const mcqCorrect = isMCQ && selected !== null && MCQ_OPTIONS[selected].correct;
 
   return (
     <motion.div
@@ -99,231 +102,169 @@ export function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps)
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.45 }}
-      style={{ minHeight: "calc(100vh - 68px)", padding: 36 }}
+      className="flex flex-col items-center justify-center px-4"
+      style={{ minHeight: "calc(100vh - 72px)" }}
     >
-      <div
-        style={{
-          maxWidth: 1100,
-          width: "100%",
-          margin: "0 auto",
-          background: "rgba(255,255,255,0.92)",
-          border: `1px solid ${B.grayBorder}`,
-          borderRadius: 28,
-          boxShadow: "0 24px 70px rgba(38,82,181,0.10)",
-          padding: 32,
-          display: "grid",
-          gridTemplateColumns: "minmax(0,1.05fr) minmax(320px,0.95fr)",
-          gap: 36,
-          alignItems: "start",
-          minHeight: 480,
-        }}
-      >
-        {/* Left: mastery check */}
-        <div style={{ display: "grid", gap: 24 }}>
-          {/* Eyebrow */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 7, width: "fit-content", color: B.blue, background: B.blueLight, border: `1px solid rgba(61,114,248,0.2)`, borderRadius: 999, padding: "7px 13px", fontWeight: 800, fontSize: 13, fontFamily: NUNITO }}>
-            <BadgeCheck size={15} /> Kiểm tra thành thạo
-          </div>
+      <div className="w-full max-w-md space-y-5">
+        
+        {/* Step Indicator */}
+        <div className="flex items-center gap-2">
+          <StepCircle n={1} />
+          <span
+            className="text-xs font-bold px-3 py-1.5 rounded-full"
+            style={{ fontFamily: NUNITO, backgroundColor: B.blueLight, color: B.blue }}
+          >
+            Kiểm tra thành thạo · 1 câu
+          </span>
+        </div>
 
-          {/* Heading */}
-          <div>
-            <h2 style={{ fontFamily: NUNITO, color: B.text, fontSize: 32, fontWeight: 800, margin: "0 0 10px", lineHeight: 1.1 }}>
-              Kiểm tra xem bài học đã hiệu quả chưa.
-            </h2>
-            <p style={{ color: B.textMuted, fontFamily: INTER, fontSize: 15, lineHeight: 1.6, margin: 0 }}>
-              Câu hỏi này hẹp hơn phần chẩn đoán — nó xác nhận kỹ năng mục tiêu trước khi cập nhật bản đồ.
-            </p>
-          </div>
-
-          {/* Mastery box */}
-          <div style={{ background: B.white, border: `1px solid ${B.grayBorder}`, borderRadius: 24, padding: 24, display: "grid", gap: 18 }}>
-            {/* Question prompt */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <StepCircle n={1} />
-              <p style={{ fontFamily: INTER, color: B.text, fontSize: 16, fontWeight: 600, margin: 0 }}>
-                {mastery?.prompt ?? (pitchMode ? "Phân số nào đẳng trị với" : "Trả lời câu hỏi dưới đây:")}
-              </p>
+        {/* Question Card */}
+        <div
+          className="rounded-2xl p-7 border shadow-sm"
+          style={{ backgroundColor: B.white, borderColor: B.grayBorder }}
+        >
+          <p className="text-sm mb-5" style={{ color: B.textMuted, fontFamily: INTER }}>
+            {pitchMode ? "Phân số nào đẳng trị với" : (mastery?.prompt ?? "Kiểm tra xem bài học đã hiệu quả chưa:")}
+          </p>
+          
+          {pitchMode ? (
+            <div className="flex items-center gap-3">
+              <Frac n={2} d={3} className="text-3xl" />
+              <span className="text-2xl" style={{ color: "#D1D5DB" }}>?</span>
             </div>
+          ) : (
+            <p className="text-lg font-bold" style={{ color: B.text, fontFamily: INTER }}>
+              {mastery?.prompt || "Nhập đáp án cho câu hỏi học được."}
+            </p>
+          )}
+        </div>
 
-            {/* Pitch: show fraction visual */}
-            {pitchMode && !mastery?.prompt && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 36 }}>
-                <Frac n={2} d={3} className="text-xl" />
-                <span style={{ color: "#D1D5DB", fontSize: 20 }}>?</span>
-              </div>
-            )}
-
-            {/* MCQ options — pitch mode only */}
-            {isMCQ && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                {PITCH_MCQ.map((opt) => {
-                  const isSel = selected === opt.id;
-                  let borderColor: string = B.grayBorder;
-                  let bg: string = B.white;
-                  let textColor: string = B.text;
-                  if (submitted && opt.correct) { borderColor = B.green; bg = B.greenLight; textColor = B.green; }
-                  else if (submitted && isSel && !opt.correct) { borderColor = B.red; bg = B.redLight; textColor = B.red; }
-                  else if (!submitted && isSel) { borderColor = B.blue; bg = B.blueLight; textColor = B.blue; }
-                  return (
-                    <button key={opt.id}
-                      onClick={() => !submitted && setSelected(opt.id)}
-                      style={{
-                        borderRadius: 20, padding: "20px 12px", textAlign: "center", border: `2px solid ${borderColor}`,
-                        backgroundColor: bg, cursor: submitted ? "default" : "pointer",
-                        boxShadow: !submitted && isSel ? `0 0 0 3px ${B.blueLight}` : "none",
-                        transition: "all 0.15s",
-                      }}
-                    >
-                      <span style={{ fontSize: 24, fontWeight: 800, fontFamily: NUNITO, color: textColor }}>{opt.label}</span>
-                      {submitted && opt.correct && (
-                        <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}>
-                          <Check size={16} style={{ color: B.green }} />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Open widget — real mode */}
-            {!isMCQ && (
-              <div style={{
-                borderRadius: 20, padding: 24, border: `2px solid ${submitted ? (openCorrect ? B.green : B.red) : isOpenReady ? B.blue : B.grayBorder}`,
-                backgroundColor: B.white, textAlign: "center", transition: "border-color 0.2s",
-              }}>
-                <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20 }}>Nhập đáp án của bạn</p>
-                <div style={{ display: "flex", justifyContent: "center" }}>
-                  {realWidgetType === "fraction" ? (
-                    <FractionWidget
-                      num={fracState.num} den={fracState.den}
-                      onNumChange={(v) => setFracState((s) => ({ ...s, num: v }))}
-                      onDenChange={(v) => setFracState((s) => ({ ...s, den: v }))}
-                      onSubmit={!submitted ? handleOpenSubmit : undefined}
-                      disabled={submitted || submitting}
-                    />
-                  ) : (
-                    <MathAnswerWidget
-                      widgetType={realWidgetType}
-                      textState={textState}
-                      onTextChange={setTextState}
-                      onSubmit={!submitted ? handleOpenSubmit : undefined}
-                      disabled={submitted || submitting}
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Feedback */}
-            <AnimatePresence>
-              {submitted && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
+        {/* MCQ option buttons */}
+        {isMCQ && (
+          <div className="grid grid-cols-2 gap-3">
+            {MCQ_OPTIONS.map((opt) => {
+              const isSel = selected === opt.id;
+            let borderColor: string = B.grayBorder;
+            let bg: string = B.white;
+            let textColor: string = B.text;
+            if (submitted && opt.correct) { borderColor = B.green; bg = B.greenLight; textColor = B.green; }
+            else if (submitted && isSel && !opt.correct) { borderColor = B.red; bg = B.redLight; textColor = B.red; }
+            else if (!submitted && isSel) { borderColor = B.blue; bg = B.blueLight; textColor = B.blue; }
+              
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => !submitted && setSelected(opt.id)}
+                  className="rounded-2xl p-5 text-center border-2 transition-all shadow-sm"
                   style={{
-                    borderRadius: 16, padding: 14, fontSize: 14, lineHeight: 1.5, fontWeight: 500, fontFamily: INTER,
-                    backgroundColor: (isMCQ ? mcqCorrect : openCorrect) ? B.greenLight : B.redLight,
-                    border: `1px solid ${(isMCQ ? mcqCorrect : openCorrect) ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`,
-                    color: (isMCQ ? mcqCorrect : openCorrect) ? B.green : B.red,
+                    borderColor,
+                    backgroundColor: bg,
+                    cursor: submitted ? "default" : "pointer",
+                    boxShadow: !submitted && isSel ? `0 0 0 3px ${B.blueLight}` : undefined
                   }}
                 >
-                  {(isMCQ ? mcqCorrect : openCorrect)
-                    ? (mastery?.hint ? `Chính xác! ${mastery.hint}` : "Chính xác!")
-                    : `Chưa đúng. ${mastery?.hint ?? ""}`
-                  }
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Actions */}
-            {!submitted ? (
-              <button
-                onClick={isMCQ ? handleMCQSubmit : handleOpenSubmit}
-                disabled={isMCQ ? selected === null : !isOpenReady || submitting}
-                style={{
-                  borderRadius: 999, padding: "16px 0", fontWeight: 700, fontSize: 16,
-                  backgroundColor: B.blue, color: B.white, fontFamily: NUNITO,
-                  border: "none", cursor: (isMCQ ? selected !== null : isOpenReady) && !submitting ? "pointer" : "not-allowed",
-                  opacity: (isMCQ ? selected !== null : isOpenReady) && !submitting ? 1 : 0.3,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 4px 16px rgba(61,114,248,0.25)",
-                }}
-              >
-                Nộp bài
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  const ans = isMCQ
-                    ? PITCH_MCQ.find((o) => o.id === selected)?.label ?? ""
-                    : realWidgetType === "fraction" ? serializeFraction(fracState) : textState;
-                  handleComplete(ans);
-                }}
-                disabled={submitting}
-                style={{
-                  borderRadius: 999, padding: "16px 0", fontWeight: 700, fontSize: 16,
-                  border: `2px solid ${B.blue}`, backgroundColor: B.white, color: B.blue, fontFamily: NUNITO,
-                  cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  opacity: submitting ? 0.5 : 1,
-                }}
-              >
-                {(isMCQ ? mcqCorrect : openCorrect) ? "Xem tiến độ của tôi" : "Tiếp tục"} <ArrowRight size={18} />
-              </button>
-            )}
+                  <span className="text-2xl font-extrabold" style={{ fontFamily: NUNITO, color: textColor }}>
+                    {opt.label}
+                  </span>
+                  {submitted && opt.correct && (
+                    <div className="flex justify-center mt-2">
+                      <Check size={16} style={{ color: B.green }} />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
-        </div>
+        )}
 
-        {/* Right: evidence panel */}
-        <div style={{ display: "grid", gap: 20 }}>
-          {/* Skills to review */}
-          {reviewSkills.length > 0 && (
-            <div style={{ background: B.white, border: `1px solid ${B.grayBorder}`, borderRadius: 24, padding: 22, display: "grid", gap: 14 }}>
-              <h3 style={{ fontFamily: NUNITO, color: B.text, fontSize: 15, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.orange, display: "inline-block" }} />
-                Kỹ năng cần ôn tập
-              </h3>
-              <div style={{ display: "grid", gap: 8 }}>
-                {reviewSkills.map((row) => (
-                  <div key={row.kc_id} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 10, alignItems: "center", border: `1px solid ${B.grayBorder}`, borderRadius: 14, padding: 12, background: "#FFFBF0" }}>
-                    <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.orange, display: "inline-block" }} />
-                    <p style={{ fontFamily: INTER, color: B.text, fontSize: 13, margin: 0, fontWeight: 500 }}>{row.name}</p>
-                    <span style={{ fontFamily: MONO, color: B.textMuted, fontSize: 11, fontWeight: 700 }}>{Math.round(row.p_mastery * 100)}%</span>
-                  </div>
-                ))}
-              </div>
+        {/* Open widget card (real mode) */}
+        {!isMCQ && (
+          <div
+            className="rounded-2xl p-7 border-2 shadow-sm text-center"
+            style={{
+              backgroundColor: B.white,
+              borderColor: submitted ? (openCorrect ? B.green : B.red) : isOpenReady ? B.blue : B.grayBorder,
+              transition: "border-color 0.2s"
+            }}
+          >
+            <p className="text-xs font-semibold mb-5" style={{ fontFamily: NUNITO, color: B.textMuted }}>
+              Nhập đáp án của bạn
+            </p>
+            <div className="flex justify-center mb-4">
+              {realWidgetType === "fraction" ? (
+                <FractionWidget
+                  num={fracState.num}
+                  den={fracState.den}
+                  onNumChange={(v) => setFracState((s) => ({ ...s, num: v }))}
+                  onDenChange={(v) => setFracState((s) => ({ ...s, den: v }))}
+                  onSubmit={!submitted ? handleOpenSubmit : undefined}
+                  disabled={submitted || submitting}
+                  size="lg"
+                />
+              ) : (
+                <MathAnswerWidget
+                  widgetType={realWidgetType}
+                  disabled={submitted || submitting}
+                  onSubmit={!submitted ? handleOpenSubmit : undefined}
+                  textState={textState}
+                  onTextChange={setTextState}
+                />
+              )}
             </div>
-          )}
+            <p className="text-xs" style={{ fontFamily: MONO, color: B.textLight }}>
+              {realWidgetType === "fraction" ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
+            </p>
+          </div>
+        )}
 
-          {/* Strong areas */}
-          {strongSkills.length > 0 && (
-            <div style={{ background: B.white, border: `1px solid ${B.grayBorder}`, borderRadius: 24, padding: 22, display: "grid", gap: 14 }}>
-              <h3 style={{ fontFamily: NUNITO, color: B.text, fontSize: 15, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.green, display: "inline-block" }} />
-                Kỹ năng đã thành thạo
-              </h3>
-              <div style={{ display: "grid", gap: 8 }}>
-                {strongSkills.map((row) => (
-                  <div key={row.kc_id} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 10, alignItems: "center", border: `1px solid rgba(16,185,129,0.2)`, borderRadius: 14, padding: 12, background: B.greenLight }}>
-                    <Check size={13} style={{ color: B.green }} />
-                    <p style={{ fontFamily: INTER, color: B.text, fontSize: 13, margin: 0, fontWeight: 500 }}>{row.name}</p>
-                    <span style={{ fontFamily: MONO, color: B.green, fontSize: 11, fontWeight: 700 }}>{Math.round(row.p_mastery * 100)}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {/* Feedback box */}
+        <AnimatePresence>
+          {submitted && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl p-4 border text-sm leading-relaxed font-medium"
+              style={{
+                fontFamily: INTER,
+                backgroundColor: (isMCQ ? mcqCorrect : openCorrect) ? B.greenLight : B.redLight,
+                borderColor: (isMCQ ? mcqCorrect : openCorrect) ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)",
+                color: (isMCQ ? mcqCorrect : openCorrect) ? B.green : B.red
+              }}
+            >
+              {(isMCQ ? mcqCorrect : openCorrect)
+                ? (mastery?.hint ? `Chính xác! ${mastery.hint}` : "Chính xác! 2/3 = 4/6 vì cả tử số và mẫu số đều nhân với 2.")
+                : (mastery?.hint ? `Chưa đúng. ${mastery.hint}` : "Chưa đúng. Hãy ôn lại bài học và thử lại.")
+              }
+            </motion.div>
           )}
+        </AnimatePresence>
 
-          {/* Fallback when no data */}
-          {reviewSkills.length === 0 && strongSkills.length === 0 && (
-            <div style={{ background: "#f8fbff", border: `1px solid ${B.grayBorder}`, borderRadius: 24, padding: 24 }}>
-              <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-                Sau khi nộp, bản đồ tri thức của bạn sẽ được cập nhật với kết quả kiểm tra thành thạo này.
-              </p>
-            </div>
-          )}
-        </div>
+        {/* CTA buttons */}
+        {!submitted ? (
+          <button
+            onClick={isMCQ ? handleMCQSubmit : handleOpenSubmit}
+            disabled={isMCQ ? selected === null : !isOpenReady || submitting}
+            className="w-full rounded-full py-4 font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-25 disabled:cursor-not-allowed shadow-sm"
+            style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO, fontSize: "1rem" }}
+          >
+            Nộp bài
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              const ans = isMCQ
+                ? MCQ_OPTIONS.find((o) => o.id === selected)?.label ?? ""
+                : realWidgetType === "fraction" ? serializeFraction(fracState) : textState;
+              handleComplete(ans);
+            }}
+            disabled={submitting}
+            className="w-full rounded-full py-4 font-bold border-2 transition-all hover:opacity-80 flex items-center justify-center gap-2"
+            style={{ borderColor: B.blue, backgroundColor: B.white, color: B.blue, fontFamily: NUNITO, fontSize: "1rem" }}
+          >
+            {(isMCQ ? mcqCorrect : openCorrect) ? "Xem tiến độ của tôi" : "Tiếp tục"} <ArrowRight size={18} />
+          </button>
+        )}
+
       </div>
     </motion.div>
   );

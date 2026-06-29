@@ -1,15 +1,15 @@
 "use client";
 // ─── AssessStep ───────────────────────────────────────────────────────────────
-// Single-column stacked layout matching old .question-panel pattern:
-//   topline → question title → question text → answer widget → actions
-// NOT a two-column grid — old ref used single column for questions.
+// Single-column stacked layout matching reference layout:
+//   Progress → Question Card → Answer Widget Card → Actions
+// Styled with Tailwind classes exactly matching reference proportions
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, HelpCircle, Zap, GraduationCap } from "lucide-react";
+import { ArrowRight, HelpCircle, Zap } from "lucide-react";
 import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
 import {
-  FractionWidget, MathAnswerWidget, MathWidgetShowcase,
+  MathAnswerWidget, MathWidgetShowcase,
   isFractionReady, serializeFraction,
   type FractionWidgetState, type WidgetType,
 } from "@/components/wizzdom/MathWidgets";
@@ -39,8 +39,34 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Widget States
   const [fracState, setFracState] = useState<FractionWidgetState>({ num: "", den: "" });
   const [textState, setTextState] = useState("");
+  const [mixedState, setMixedState] = useState({ whole: "", num: "", den: "" });
+  const [powerState, setPowerState] = useState({ base: "", exp: "" });
+  const [sqrtState, setSqrtState] = useState({ val: "" });
+  const [inequalityState, setInequalityState] = useState({ sign: "" });
+  const [coordinateState, setCoordinateState] = useState({ x: "", y: "" });
+
+  const widgetType = ((currentItem?.answer_widget ?? "number") as WidgetType);
+  const isFracWidget = widgetType === "fraction";
+
+  let isReady = false;
+  if (widgetType === "fraction") {
+    isReady = isFractionReady(fracState);
+  } else if (widgetType === "mixed_number") {
+    isReady = mixedState.whole.trim() !== "" && mixedState.num.trim() !== "" && mixedState.den.trim() !== "" && mixedState.den !== "0";
+  } else if (widgetType === "power") {
+    isReady = powerState.base.trim() !== "" && powerState.exp.trim() !== "";
+  } else if (widgetType === "sqrt") {
+    isReady = sqrtState.val.trim() !== "";
+  } else if (widgetType === "inequality_sign") {
+    isReady = inequalityState.sign.trim() !== "";
+  } else if (widgetType === "coordinate") {
+    isReady = coordinateState.x.trim() !== "" && coordinateState.y.trim() !== "";
+  } else {
+    isReady = textState.trim().length > 0;
+  }
 
   const initialized = useRef(false);
 
@@ -48,12 +74,12 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     if (initialized.current) return;
     initialized.current = true;
 
-    if (pitchMode) {
+    const useMockFallback = () => {
+      console.warn("API failed or pitch mode enabled with backend offline. Using mock demo data.");
       setCurrentItem(PITCH_ASSESS_QUESTION as AssessmentV2Item);
       setQuestionNumber(7);
       setMaxQuestions(12);
-      return;
-    }
+    };
 
     createAssessmentV2Session({ max_questions: 12 })
       .then((res) => {
@@ -64,7 +90,13 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
           setQuestionNumber(res.question_number ?? 1);
         }
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => {
+        if (pitchMode) {
+          useMockFallback();
+        } else {
+          setError(err.message);
+        }
+      });
   }, [pitchMode]);
 
   const advance = useCallback(
@@ -72,7 +104,7 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
       setPhase("adapting");
       setTimeout(() => setPhase("processing"), 950);
       setTimeout(() => {
-        if (pitchMode) {
+        if (pitchMode && !sid) {
           import("@/lib/pitch-mock-data").then(({ PITCH_RESULT }) => {
             onComplete(PITCH_RESULT, "pitch-demo");
           });
@@ -84,26 +116,43 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     [pitchMode, onComplete]
   );
 
+  // Demo auto-advance simulation
   useEffect(() => {
-    if (!pitchMode || phase !== "question") return;
-    const t1 = setTimeout(() => setFracState({ num: "5", den: "4" }), 1100);
-    const t2 = setTimeout(() => advance(), 2700);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [pitchMode, phase, advance]);
+    if (!pitchMode || phase !== "question" || !currentItem) return;
+    
+    const fillTimer = setTimeout(() => {
+      const type = (currentItem.answer_widget ?? "number") as WidgetType;
+      if (type === "fraction") setFracState({ num: "5", den: "4" });
+      else if (type === "mixed_number") setMixedState({ whole: "1", num: "1", den: "2" });
+      else if (type === "power") setPowerState({ base: "2", exp: "3" });
+      else if (type === "sqrt") setSqrtState({ val: "16" });
+      else if (type === "inequality_sign") setInequalityState({ sign: "=" });
+      else if (type === "coordinate") setCoordinateState({ x: "3", y: "4" });
+      else setTextState("5");
+    }, 1100);
+
+    const submitTimer = setTimeout(() => {
+      handleSubmit();
+    }, 2700);
+
+    return () => {
+      clearTimeout(fillTimer);
+      clearTimeout(submitTimer);
+    };
+  }, [pitchMode, phase, currentItem]);
 
   const handleSubmit = async () => {
-    if (pitchMode) { advance(); return; }
+    if (pitchMode && !sessionId) { advance(); return; }
     if (!sessionId || !currentItem || submitting) return;
 
-    const widgetType = (currentItem.answer_widget ?? "number") as WidgetType;
-    let answer: string;
-    if (widgetType === "fraction") {
-      if (!isFractionReady(fracState)) return;
-      answer = serializeFraction(fracState);
-    } else {
-      if (!textState.trim()) return;
-      answer = textState;
-    }
+    let answer = "";
+    if (widgetType === "fraction") answer = serializeFraction(fracState);
+    else if (widgetType === "mixed_number") answer = `${mixedState.whole} ${mixedState.num}/${mixedState.den}`;
+    else if (widgetType === "power") answer = `${powerState.base}^${powerState.exp}`;
+    else if (widgetType === "sqrt") answer = `sqrt(${sqrtState.val})`;
+    else if (widgetType === "inequality_sign") answer = inequalityState.sign;
+    else if (widgetType === "coordinate") answer = `(${coordinateState.x},${coordinateState.y})`;
+    else answer = textState;
 
     setSubmitting(true);
     try {
@@ -122,6 +171,11 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
           setQuestionNumber((n) => n + 1);
           setFracState({ num: "", den: "" });
           setTextState("");
+          setMixedState({ whole: "", num: "", den: "" });
+          setPowerState({ base: "", exp: "" });
+          setSqrtState({ val: "" });
+          setInequalityState({ sign: "" });
+          setCoordinateState({ x: "", y: "" });
           setPhase("adapting");
           setTimeout(() => setPhase("question"), 950);
         }
@@ -151,6 +205,11 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
           setQuestionNumber((n) => n + 1);
           setFracState({ num: "", den: "" });
           setTextState("");
+          setMixedState({ whole: "", num: "", den: "" });
+          setPowerState({ base: "", exp: "" });
+          setSqrtState({ val: "" });
+          setInequalityState({ sign: "" });
+          setCoordinateState({ x: "", y: "" });
           setPhase("adapting");
           setTimeout(() => setPhase("question"), 950);
         }
@@ -162,19 +221,14 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     }
   };
 
-  const widgetType = ((currentItem?.answer_widget ?? "number") as WidgetType);
-  const isFracWidget = widgetType === "fraction";
-  const isReady = isFracWidget
-    ? isFractionReady(fracState)
-    : textState.trim().length > 0;
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.4 }}
-      style={{ minHeight: "calc(100vh - 68px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "36px 24px" }}
+      className="flex flex-col items-center justify-center px-4"
+      style={{ minHeight: "calc(100vh - 75px)" }}
     >
       <AnimatePresence mode="wait">
         {phase === "question" && (
@@ -184,170 +238,131 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.45 }}
-            style={{
-              maxWidth: 900,
-              width: "100%",
-              background: "rgba(255,255,255,0.92)",
-              border: "1px solid #dfe7f7",
-              borderRadius: 28,
-              boxShadow: "0 24px 70px rgba(38, 82, 181, 0.13)",
-              padding: 28,
-              display: "grid",
-              gap: 24,
-            }}
+            className="w-full max-w-md"
           >
             {/* Error */}
             {error && (
-              <div style={{ backgroundColor: "#fff1f0", color: "#b42318", border: "1px solid #ffd2cc", padding: "12px 14px", borderRadius: 16, lineHeight: 1.45, fontFamily: INTER, fontSize: 14 }}>
+              <div className="mb-4 rounded-xl p-4 border text-sm leading-relaxed font-medium" style={{ backgroundColor: "#FFF2F2", borderColor: "rgba(239,68,68,0.3)", color: B.red }}>
                 {error} — <button onClick={() => setError(null)} style={{ textDecoration: "underline", background: "none", border: "none", color: "inherit", cursor: "pointer" }}>thử lại</button>
               </div>
             )}
 
-            {/* Topline: progress + KC code chip */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 700, color: "#697386" }}>
-                  Câu {questionNumber} / {maxQuestions}
-                </span>
-                <div style={{ display: "flex", gap: 4, flex: 1 }}>
-                  {Array.from({ length: maxQuestions }, (_, i) => (
-                    <div key={i} style={{ width: 28, height: 5, borderRadius: 999, backgroundColor: i < questionNumber ? B.blue : "#E5E7EB", transition: "background 0.3s" }} />
-                  ))}
-                </div>
+            {/* Progress */}
+            <div className="flex items-center gap-3 mb-8">
+              <span
+                className="text-xs font-bold px-2.5 py-1 rounded-full animate-pulse"
+                style={{ fontFamily: MONO, backgroundColor: B.blueLight, color: B.blue }}
+              >
+                Câu {questionNumber} / {maxQuestions}
+              </span>
+              <div className="flex gap-1 flex-1">
+                {Array.from({ length: maxQuestions }, (_, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 h-1.5 rounded-full transition-colors duration-300"
+                    style={{ backgroundColor: i < questionNumber ? B.blue : "#E5E7EB" }}
+                  />
+                ))}
               </div>
-              {currentItem?.kc_code && (
-                <span style={{ border: "1px solid #cfe0ff", borderRadius: 999, padding: "8px 12px", fontSize: 13, color: "#40506a", background: "#f8fbff", fontFamily: INTER, fontWeight: 600 }}>
-                  {currentItem.kc_code}
-                </span>
+            </div>
+
+            {/* Question card */}
+            <div
+              className="rounded-2xl p-7 mb-5 shadow-sm border"
+              style={{ backgroundColor: B.white, borderColor: B.grayBorder }}
+            >
+              <p className="text-sm mb-5" style={{ fontFamily: INTER, color: B.textMuted }}>
+                {currentItem?.kc_name || (pitchMode ? "Rút gọn biểu thức:" : "Câu hỏi chẩn đoán:")}
+              </p>
+              
+              {pitchMode ? (
+                <div className="flex items-center justify-center gap-4">
+                  <Frac n={3} d={4} className="text-3xl" />
+                  <span className="text-3xl font-light" style={{ color: B.textLight }}>+</span>
+                  <Frac n={1} d={2} className="text-3xl" />
+                  <span className="text-3xl font-light" style={{ color: B.textLight }}>=</span>
+                  <span className="text-3xl font-bold" style={{ color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
+                </div>
+              ) : (
+                <p className="text-lg font-bold text-center" style={{ color: B.text, fontFamily: INTER }}>
+                  {currentItem?.question || "Đang tải câu hỏi..."}
+                </p>
               )}
             </div>
 
-            {/* Question title + context */}
-            <div style={{ display: "grid", gap: 12 }}>
-              {currentItem?.kc_name && (
-                <h2 style={{ margin: 0, color: "#202738", fontSize: 32, lineHeight: 1.06, fontFamily: NUNITO, fontWeight: 800 }}>
-                  {currentItem.kc_name}
-                </h2>
-              )}
-              <p style={{ margin: 0, color: "#697386", fontSize: 14, lineHeight: 1.55, fontFamily: INTER }}>
-                Không có phản hồi ngay — câu hỏi tiếp theo được chọn thích ứng từ bản đồ tri thức.
+            {/* Answer widget card */}
+            <div
+              className="rounded-2xl p-7 mb-3 border-2 shadow-sm text-center"
+              style={{
+                backgroundColor: B.white,
+                borderColor: isReady ? B.blue : B.grayBorder,
+                transition: "border-color 0.2s",
+              }}
+            >
+              <p className="text-xs font-semibold mb-5" style={{ fontFamily: NUNITO, color: B.textMuted }}>
+                Nhập đáp án của bạn
+              </p>
+              <div className="flex justify-center mb-4">
+                <MathAnswerWidget
+                  widgetType={widgetType}
+                  disabled={submitting}
+                  onSubmit={handleSubmit}
+                  fractionState={fracState}
+                  onFractionChange={setFracState}
+                  textState={textState}
+                  onTextChange={setTextState}
+                  mixedState={mixedState}
+                  onMixedChange={setMixedState}
+                  powerState={powerState}
+                  onPowerChange={setPowerState}
+                  sqrtState={sqrtState}
+                  onSqrtChange={setSqrtState}
+                  inequalityState={inequalityState}
+                  onInequalityChange={setInequalityState}
+                  coordinateState={coordinateState}
+                  onCoordinateChange={setCoordinateState}
+                />
+              </div>
+              <p className="text-xs" style={{ fontFamily: MONO, color: B.textLight }}>
+                {isFracWidget ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
               </p>
             </div>
 
-            {/* Question text — large, prominent */}
-            <p style={{ fontSize: 30, lineHeight: 1.32, color: "#202738", margin: 0, fontFamily: INTER, fontWeight: 600 }}>
-              {pitchMode ? "Rút gọn biểu thức:" : (currentItem?.question ?? "Đang tải câu hỏi...")}
-            </p>
-
-            {/* Pitch mode fraction visual */}
-            {pitchMode && (
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <Frac n={3} d={4} className="text-4xl" />
-                <span style={{ fontSize: 32, fontWeight: 300, color: "#697386" }}>+</span>
-                <Frac n={1} d={2} className="text-4xl" />
-                <span style={{ fontSize: 32, fontWeight: 300, color: "#697386" }}>=</span>
-                <span style={{ fontSize: 36, fontWeight: 700, color: "#D1D5DB", fontFamily: NUNITO }}>?</span>
-              </div>
-            )}
-
-            {/* Answer widget — inside a bordered card */}
-            <div style={{
-              padding: 16,
-              borderRadius: 22,
-              background: "#f8fbff",
-              border: `1px solid ${isReady ? B.blue : "#dfe7f7"}`,
-              boxShadow: isReady ? `0 0 0 4px rgba(47, 102, 245, 0.14)` : "none",
-              transition: "border-color 0.2s, box-shadow 0.2s",
-            }}>
-              {isFracWidget ? (
-                <FractionWidget
-                  num={fracState.num} den={fracState.den}
-                  onNumChange={(v) => setFracState((s) => ({ ...s, num: v }))}
-                  onDenChange={(v) => setFracState((s) => ({ ...s, den: v }))}
-                  onSubmit={handleSubmit}
-                  disabled={submitting}
-                  size="lg"
-                />
-              ) : (
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={textState}
-                  onChange={(e) => setTextState(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
-                  disabled={submitting}
-                  autoFocus
-                  placeholder="Nhập đáp án..."
-                  style={{
-                    width: "100%",
-                    border: "1px solid #d6def0",
-                    borderRadius: 18,
-                    padding: "16px 18px",
-                    fontSize: 22,
-                    color: "#202738",
-                    background: "white",
-                    outline: "none",
-                    fontFamily: NUNITO,
-                    fontWeight: 700,
-                  }}
-                />
-              )}
-            </div>
-
             {/* Actions */}
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <div className="flex gap-2 mb-4">
               <button
                 onClick={handleSubmit}
                 disabled={!isReady || submitting}
-                style={{
-                  border: 0, borderRadius: 18, padding: "13px 18px", fontSize: 15, fontWeight: 800,
-                  background: B.blue, color: "white",
-                  boxShadow: "0 16px 34px rgba(47, 102, 245, 0.24)",
-                  cursor: isReady && !submitting ? "pointer" : "not-allowed",
-                  opacity: isReady && !submitting ? 1 : 0.55,
-                  display: "inline-flex", alignItems: "center", gap: 8,
-                  fontFamily: NUNITO,
-                  transition: "transform 0.16s ease, box-shadow 0.16s ease",
-                }}
+                className="flex-1 rounded-full py-4 font-bold text-base transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-25 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+                style={{ backgroundColor: B.blue, color: B.white, fontFamily: NUNITO }}
               >
-                Nộp bài <ArrowRight size={17} />
+                Nộp bài <ArrowRight size={18} />
               </button>
               <button
+                className="px-5 rounded-full border-2 font-semibold text-sm transition-all hover:opacity-70"
+                style={{ borderColor: B.grayBorder, color: B.textMuted, fontFamily: NUNITO, backgroundColor: B.white }}
                 onClick={handleSkip}
                 disabled={submitting}
-                style={{
-                  border: 0, borderRadius: 18, padding: "13px 18px", fontSize: 15, fontWeight: 800,
-                  background: "#edf2fb", color: "#202738",
-                  cursor: "pointer", fontFamily: NUNITO,
-                  display: "inline-flex", alignItems: "center", gap: 8,
-                }}
               >
-                <HelpCircle size={17} /> Không biết
+                Không biết
               </button>
             </div>
 
-            {/* Adaptive hint */}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, width: "fit-content", background: "#FFF8DF", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 999, padding: "6px 12px" }}>
-              <Zap size={12} style={{ color: B.orange }} />
-              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>
-                Adaptive — không phải thứ tự cố định
-              </span>
-            </div>
-
-            {/* Widget showcase link */}
+            {/* Widget library link */}
             <button
               onClick={() => setShowWidgets(true)}
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 0", borderRadius: 999, background: "white", border: "1px solid #cfe0ff", cursor: "pointer" }}
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-full transition-all hover:opacity-70"
+              style={{ backgroundColor: B.blueLight }}
             >
-              <GraduationCap size={13} style={{ color: B.blue }} />
-              <span style={{ fontSize: 12, fontWeight: 600, fontFamily: NUNITO, color: B.blue }}>
+              <HelpCircle size={13} style={{ color: B.blue }} />
+              <span className="text-xs font-semibold" style={{ fontFamily: NUNITO, color: B.blue }}>
                 Xem tất cả loại widget toán học
               </span>
             </button>
           </motion.div>
         )}
 
-        {/* Adapting state */}
+        {/* Adapting State */}
         {phase === "adapting" && (
           <motion.div
             key="adapt"
@@ -355,28 +370,39 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35 }}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 180px)" }}
+            className="text-center space-y-4 max-w-xs"
           >
-            <div style={{ textAlign: "center", maxWidth: 340 }}>
-              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
-                {[0, 0.15, 0.3].map((d) => (
-                  <motion.div key={d} style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: B.orange }}
-                    animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 0.9, repeat: Infinity, delay: d }} />
-                ))}
-              </div>
-              <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 18, marginBottom: 8 }}>
-                Đang điều chỉnh câu tiếp theo
-              </p>
-              <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, lineHeight: 1.6 }}>
-                Câu trả lời của bạn đã được phân tích.<br />
-                Hệ thống đang chọn câu hỏi phù hợp nhất tiếp theo.
-              </p>
+            <div className="flex justify-center gap-2 mb-2">
+              {[0, 0.15, 0.3].map((d) => (
+                <motion.div
+                  key={d}
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: B.orange }}
+                  animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 0.9, repeat: Infinity, delay: d }}
+                />
+              ))}
+            </div>
+            <p className="text-lg font-bold" style={{ fontFamily: NUNITO, color: B.text }}>
+              Đang điều chỉnh câu tiếp theo
+            </p>
+            <p className="text-sm leading-relaxed" style={{ fontFamily: INTER, color: B.textMuted }}>
+              Câu trả lời của bạn đã được phân tích.
+              <br />Hệ thống đang chọn câu hỏi phù hợp nhất tiếp theo.
+            </p>
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
+              style={{ backgroundColor: B.orangeLight }}
+            >
+              <Zap size={12} style={{ color: B.orange }} />
+              <span className="text-xs font-bold" style={{ fontFamily: NUNITO, color: B.orange }}>
+                Adaptive — không phải thứ tự cố định
+              </span>
             </div>
           </motion.div>
         )}
 
-        {/* Processing state */}
+        {/* Processing State */}
         {phase === "processing" && (
           <motion.div
             key="proc"
@@ -384,27 +410,33 @@ export function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 180px)" }}
+            className="text-center space-y-5"
           >
-            <div style={{ textAlign: "center" }}>
-              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
-                {[0, 0.2, 0.4].map((d) => (
-                  <motion.div key={d} style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: B.blue }}
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 1.1, repeat: Infinity, delay: d }} />
-                ))}
-              </div>
-              <p style={{ fontFamily: NUNITO, color: B.text, fontWeight: 700, fontSize: 22, marginBottom: 8 }}>
-                Đang xây dựng bản đồ tri thức
-              </p>
-              <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, marginBottom: 20 }}>
-                {maxQuestions} câu trả lời được phân tích…
-              </p>
-              <div style={{ width: 220, margin: "0 auto", height: 6, borderRadius: 999, overflow: "hidden", backgroundColor: "#E5E7EB" }}>
-                <motion.div style={{ height: "100%", borderRadius: 999, backgroundColor: B.blue }}
-                  initial={{ width: "0%" }} animate={{ width: "100%" }}
-                  transition={{ duration: 1.7, ease: "easeInOut" }} />
-              </div>
+            <div className="flex justify-center gap-2 mb-2">
+              {[0, 0.2, 0.4].map((d) => (
+                <motion.div
+                  key={d}
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: B.blue }}
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 1.1, repeat: Infinity, delay: d }}
+                />
+              ))}
+            </div>
+            <p className="text-xl font-bold" style={{ fontFamily: NUNITO, color: B.text }}>
+              Đang xây dựng bản đồ tri thức
+            </p>
+            <p className="text-sm" style={{ fontFamily: INTER, color: B.textMuted }}>
+              12 câu hỏi đã được phân tích…
+            </p>
+            <div className="w-56 mx-auto h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E5E7EB" }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: B.blue }}
+                initial={{ width: "0%" }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 1.7, ease: "easeInOut" }}
+              />
             </div>
           </motion.div>
         )}
