@@ -7,8 +7,8 @@
 
 import { Check, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
+import { useEffect } from "react";
+import { B, NUNITO, MONO } from "@/components/wizzdom/design-tokens";
 
 // ─── Frac (inline fraction display) ─────────────────────────────────────────
 export function Frac({
@@ -107,7 +107,7 @@ export function WizzdomLogo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
 }
 
 // ─── StepBar ─────────────────────────────────────────────────────────────────
-const STEP_LABELS = ["Assess", "Map", "Learn", "Mastery", "Outcome"];
+const STEP_LABELS = ["Chẩn đoán", "Bản đồ", "Học", "Thành thạo", "Kết quả"];
 
 export function StepBar({ current }: { current: number }) {
   return (
@@ -166,16 +166,11 @@ export function PitchBar({
   duration: number;
   onComplete: () => void;
 }) {
-  const [started, setStarted] = useState(false);
-
   useEffect(() => {
     if (!active) return;
-    setStarted(false);
-    const t1 = setTimeout(() => setStarted(true), 50);
-    const t2 = setTimeout(onComplete, duration);
+    const t = setTimeout(onComplete, duration);
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      clearTimeout(t);
     };
   }, [active, duration, onComplete]);
 
@@ -186,7 +181,7 @@ export function PitchBar({
       <motion.div
         style={{ height: "100%", backgroundColor: B.blue }}
         initial={{ width: "0%" }}
-        animate={started ? { width: "100%" } : {}}
+        animate={{ width: "100%" }}
         transition={{ duration: duration / 1000 - 0.05, ease: "linear" }}
       />
     </div>

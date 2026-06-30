@@ -230,7 +230,7 @@ function proofEdgeTone(a: number, b: number, outcome: boolean, outcomeNodeIds: S
 function proofNodeTheme(skill: Skill, isTarget: boolean, isUpdated: boolean) {
   if (isUpdated) {
     return {
-      chip: "UPDATED",
+      chip: "ĐÃ CẬP NHẬT",
       background: B.greenLight,
       border: B.green,
       color: B.green,
@@ -239,7 +239,7 @@ function proofNodeTheme(skill: Skill, isTarget: boolean, isUpdated: boolean) {
   }
   if (isTarget) {
     return {
-      chip: "READY TO LEARN",
+      chip: "SẴN SÀNG HỌC",
       background: B.orangeLight,
       border: B.orange,
       color: B.orange,
@@ -248,7 +248,7 @@ function proofNodeTheme(skill: Skill, isTarget: boolean, isUpdated: boolean) {
   }
   if (skill.strength === "strong") {
     return {
-      chip: "CONFIRMED",
+      chip: "ĐÃ XÁC NHẬN",
       background: B.blueLight,
       border: B.blue,
       color: B.blue,
@@ -257,7 +257,7 @@ function proofNodeTheme(skill: Skill, isTarget: boolean, isUpdated: boolean) {
   }
   if (skill.strength === "weak") {
     return {
-      chip: "GAP FOUND",
+      chip: "CÓ LỖ HỔNG",
       background: B.orangeLight,
       border: B.orange,
       color: B.orange,
@@ -266,7 +266,7 @@ function proofNodeTheme(skill: Skill, isTarget: boolean, isUpdated: boolean) {
   }
   if (skill.strength === "medium") {
     return {
-      chip: "DEVELOPING",
+      chip: "ĐANG PHÁT TRIỂN",
       background: B.white,
       border: B.blueMid,
       color: B.blueDark,
@@ -274,7 +274,7 @@ function proofNodeTheme(skill: Skill, isTarget: boolean, isUpdated: boolean) {
     };
   }
   return {
-    chip: "AFFECTED",
+    chip: "BỊ ẢNH HƯỞNG",
     background: "#F8FAFC",
     border: "#CBD5E1",
     color: "#64748B",
@@ -329,19 +329,19 @@ export function PitchProofMap({
       <div style={{ position: "absolute", top: 22, left: 24, right: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
         <div>
           <p style={{ margin: "0 0 4px", fontFamily: MONO, fontSize: 11, fontWeight: 800, color: B.blue, letterSpacing: 0, textTransform: "uppercase" }}>
-            Grade 6 fractions knowledge graph
+            Bản đồ kiến thức phân số lớp 6
           </p>
           <p style={{ margin: 0, fontFamily: NUNITO, fontSize: 24, fontWeight: 900, color: B.text, lineHeight: 1.05 }}>
-            One wrong answer traces to a prerequisite blocker
+            Một lỗi sai truy ra lỗ hổng kiến thức tiên quyết
           </p>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end", maxWidth: 430 }}>
           {[
-            { label: "Confirmed strong", color: B.blue, bg: B.blueLight },
-            { label: "Gap found", color: B.orange, bg: B.orangeLight },
-            { label: "Possibly affected", color: "#64748B", bg: "#F8FAFC" },
-            { label: "Ready to learn", color: B.orange, bg: B.orangeLight },
-            { label: "Updated after mastery", color: B.green, bg: B.greenLight },
+            { label: "Đã vững", color: B.blue, bg: B.blueLight },
+            { label: "Có lỗ hổng", color: B.orange, bg: B.orangeLight },
+            { label: "Có thể bị ảnh hưởng", color: "#64748B", bg: "#F8FAFC" },
+            { label: "Sẵn sàng học", color: B.orange, bg: B.orangeLight },
+            { label: "Đã cập nhật sau luyện tập", color: B.green, bg: B.greenLight },
           ].map((item) => (
             <span
               key={item.label}
@@ -462,11 +462,11 @@ export function PitchProofMap({
         }}
       >
         {[
-          "Real curriculum nodes",
-          "Real KC codes",
-          "Open-ended item bank",
-          "Misconception-linked grading",
-          "Coach action generated",
+          "Nút theo chương trình thật",
+          "Mã kiến thức thật",
+          "Ngân hàng câu tự luận",
+          "Chấm theo lỗi sai điển hình",
+          "Sinh hành động cho giáo viên",
         ].map((signal) => (
           <span
             key={signal}

@@ -56,11 +56,11 @@ function DiagnosticReasoningTrace({ stage, onContinue }: { stage: "pattern" | "g
   const isGraphStage = stage === "graph";
   const proof = PITCH_GRAPH_PROOF.evidence;
   const steps = [
-    { label: "Answer checked", active: true },
-    { label: "Misconception matched", active: true },
-    { label: "KC located", active: isGraphStage },
-    { label: "Prerequisites traced", active: isGraphStage },
-    { label: "Practice selected", active: isGraphStage },
+    { label: "Đã chấm đáp án", active: true },
+    { label: "Nhận diện lỗi sai", active: true },
+    { label: "Gắn vào kỹ năng", active: isGraphStage },
+    { label: "Truy vết tiên quyết", active: isGraphStage },
+    { label: "Chọn bài luyện", active: isGraphStage },
   ];
 
   return (
@@ -105,7 +105,7 @@ function DiagnosticReasoningTrace({ stage, onContinue }: { stage: "pattern" | "g
         >
           <div>
             <p style={{ margin: "0 0 8px", fontFamily: MONO, fontSize: 11, fontWeight: 900, color: B.blue, textTransform: "uppercase", letterSpacing: 0 }}>
-              Open-ended evidence
+              Bằng chứng từ câu tự luận
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <Frac n={1} d={2} className="text-xl" />
@@ -129,8 +129,8 @@ function DiagnosticReasoningTrace({ stage, onContinue }: { stage: "pattern" | "g
             }}
           >
             {[
-              ["Numerators", "1 + 1 → 2"],
-              ["Denominators", "2 + 3 → 5"],
+              ["Tử số", "1 + 1 → 2"],
+              ["Mẫu số", "2 + 3 → 5"],
             ].map(([label, value]) => (
               <div key={label} style={{ borderRadius: 16, padding: "12px 14px", backgroundColor: B.orangeLight, border: "1px solid rgba(245,158,11,0.28)" }}>
                 <p style={{ margin: "0 0 4px", fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.orange, textTransform: "uppercase", letterSpacing: 0 }}>{label}</p>
@@ -140,7 +140,7 @@ function DiagnosticReasoningTrace({ stage, onContinue }: { stage: "pattern" | "g
           </motion.div>
 
           <p style={{ margin: 0, fontFamily: INTER, fontSize: 13, lineHeight: 1.5, color: B.textMid }}>
-            Pattern detected: <strong style={{ color: B.text }}>{proof.detected_pattern}</strong>
+            Lỗi sai được nhận diện: <strong style={{ color: B.text }}>{proof.detected_pattern}</strong>
           </p>
         </div>
 
@@ -154,13 +154,13 @@ function DiagnosticReasoningTrace({ stage, onContinue }: { stage: "pattern" | "g
             }}
           >
             <p style={{ margin: "0 0 8px", fontFamily: MONO, fontSize: 11, fontWeight: 900, color: isGraphStage ? B.orange : B.textMuted, textTransform: "uppercase", letterSpacing: 0 }}>
-              Misconception → knowledge node
+              Lỗi sai → nút kiến thức
             </p>
             <p style={{ margin: "0 0 12px", fontFamily: NUNITO, fontSize: 22, lineHeight: 1.1, fontWeight: 950, color: B.text }}>
-              Needs common denominator before adding unlike fractions
+              Cần quy đồng mẫu trước khi cộng phân số khác mẫu
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {["G6-MATH-QUY-DONG-MAU", "Likely blocker", "Prerequisite trace"].map((chip, index) => (
+              {["G6-MATH-QUY-DONG-MAU", "Lỗ hổng khả nghi", "Truy vết tiên quyết"].map((chip, index) => (
                 <span key={chip} style={{ padding: "6px 10px", borderRadius: 9999, backgroundColor: index === 1 ? B.orange : B.white, color: index === 1 ? B.white : B.textMid, border: index === 1 ? "none" : `1px solid ${B.grayBorder}`, fontFamily: index === 0 ? MONO : NUNITO, fontSize: 11, fontWeight: 900 }}>
                   {chip}
                 </span>
@@ -190,7 +190,7 @@ function DiagnosticReasoningTrace({ stage, onContinue }: { stage: "pattern" | "g
                   {skill}
                 </p>
                 <span style={{ alignSelf: "flex-start", padding: "4px 7px", borderRadius: 9999, backgroundColor: B.white, border: `1px solid ${B.grayBorder}`, fontFamily: MONO, fontSize: 9, fontWeight: 900, color: B.textMuted }}>
-                  POSSIBLY AFFECTED
+                  CÓ THỂ BỊ ẢNH HƯỞNG
                 </span>
               </motion.div>
             ))}
@@ -248,7 +248,7 @@ function DiagnosticReasoningTrace({ stage, onContinue }: { stage: "pattern" | "g
           boxShadow: "0 8px 20px rgba(61,114,248,0.18)",
         }}
       >
-        {isGraphStage ? "Show knowledge map" : "Trace to knowledge graph"} <ArrowRight size={17} />
+        {isGraphStage ? "Xem bản đồ kiến thức" : "Truy vết vào bản đồ kiến thức"} <ArrowRight size={17} />
       </button>
     </motion.div>
   );
@@ -457,7 +457,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             {/* Error */}
             {error && (
               <div style={{ marginBottom: 16, borderRadius: 12, padding: 16, border: `1px solid rgba(239,68,68,0.3)`, backgroundColor: "#FFF2F2", fontSize: 14, color: B.red, fontFamily: INTER, fontWeight: 500 }}>
-                {error} — <button onClick={() => setError(null)} style={{ textDecoration: "underline", background: "none", border: "none", color: "inherit", cursor: "pointer" }}>{pitchMode ? "try again" : "thử lại"}</button>
+                {error} — <button onClick={() => setError(null)} style={{ textDecoration: "underline", background: "none", border: "none", color: "inherit", cursor: "pointer" }}>thử lại</button>
               </div>
             )}
 
@@ -474,7 +474,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
                   color: B.blue,
                 }}
               >
-                {pitchMode ? "Question" : "Câu"} {questionNumber} / {maxQuestions}
+                Câu {questionNumber} / {maxQuestions}
               </span>
               <div style={{ display: "flex", gap: 4, flex: 1 }}>
                 {Array.from({ length: maxQuestions }, (_, i) => (
@@ -495,13 +495,13 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
             {/* Question card */}
             <div className="question-card">
               <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, marginBottom: 20, margin: "0 0 20px" }}>
-                {pitchMode ? `${currentItem?.kc_code ?? "G6 Algebra"} · ${currentItem?.kc_name ?? "Diagnostic item"}` : (currentItem?.kc_name || "Câu hỏi chẩn đoán:")}
+                {pitchMode ? `${currentItem?.kc_code ?? "G6 Đại số"} · ${currentItem?.kc_name ?? "Câu hỏi chẩn đoán"}` : (currentItem?.kc_name || "Câu hỏi chẩn đoán:")}
               </p>
               
               {pitchMode ? (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
                   <p style={{ color: B.text, fontFamily: INTER, fontSize: 18, fontWeight: 700, textAlign: "center", lineHeight: 1.5, margin: 0 }}>
-                    Calculate:
+                    Tính:
                   </p>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
                     <Frac n={1} d={2} className="text-3xl" />
@@ -528,7 +528,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
               }}
             >
               <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20, margin: "0 0 20px" }}>
-                {pitchMode ? "Enter your answer" : "Nhập đáp án của bạn"}
+                Nhập đáp án của bạn
               </p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
                 {pitchMode ? (
@@ -556,7 +556,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
                 )}
               </div>
               <p style={{ fontFamily: MONO, color: B.textLight, fontSize: 12, margin: 0 }}>
-                {pitchMode ? "Tab · ↑↓ to move · Enter to submit" : isFracWidget ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
+                {isFracWidget ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
               </p>
             </div>
 
@@ -585,7 +585,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
                   transition: "all 0.2s",
                 }}
               >
-                {pitchMode ? "Submit" : "Nộp bài"} <ArrowRight size={18} />
+                Nộp bài <ArrowRight size={18} />
               </button>
               <button
                 style={{
@@ -603,7 +603,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
                 onClick={handleSkip}
                 disabled={submitting}
               >
-                {pitchMode ? "I don't know" : "Không biết"}
+                Không biết
               </button>
             </div>
 
@@ -629,7 +629,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
               }}
             >
               <HelpCircle size={13} style={{ color: B.blue }} />
-              <span>{pitchMode ? "View math input widgets" : "Xem tất cả loại widget toán học"}</span>
+              <span>Xem tất cả loại widget toán học</span>
             </button>
           </motion.div>
         )}
@@ -764,13 +764,13 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
   const adaptedSkills = pitchMode ? DEMO_FRACTION_MAP_PRE : adaptSummaryToSkills(result.summary);
   const totalSkills = pitchMode ? DEMO_FRACTION_MAP_PRE.length : (vm.skills_directly_tested + vm.skills_inferred);
   const targetNodeId = pitchMode ? DEMO_TARGET_NODE_ID : findTargetNodeId(result.learning_loop?.recommendation?.kc_id);
-  const recommendationName = result.learning_loop?.recommendation?.name ?? (pitchMode ? "Focus skill" : "Kỹ năng trọng tâm");
+  const recommendationName = result.learning_loop?.recommendation?.name ?? "Kỹ năng trọng tâm";
 
   const breakdown = [
-    { color: B.blue,    label: pitchMode ? "Strong" : "Thành thạo",           value: String(result.summary.strong_areas.length) },
-    { color: B.blueMid, label: pitchMode ? "Developing" : "Đang phát triển",  value: String(result.summary.possibly_affected.length) },
-    { color: B.orange,  label: pitchMode ? "Skill gaps" : "Khoảng trống",     value: String(result.summary.skills_to_review.length), accent: true },
-    { color: "#94A3B8", label: pitchMode ? "Inferred" : "Suy luận từ dữ liệu", value: "—", dim: true },
+    { color: B.blue,    label: "Đã vững",           value: String(result.summary.strong_areas.length) },
+    { color: B.blueMid, label: "Đang phát triển",  value: String(result.summary.possibly_affected.length) },
+    { color: B.orange,  label: "Lỗ hổng kỹ năng",     value: String(result.summary.skills_to_review.length), accent: true },
+    { color: "#94A3B8", label: "Suy luận từ dữ liệu", value: "—", dim: true },
   ];
 
   useEffect(() => {
@@ -815,13 +815,13 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
               <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: B.textMuted }}>
-                {vm.questions_asked} {pitchMode ? "questions" : "câu hỏi"}
+                {vm.questions_asked} câu hỏi
               </span>
               <span style={{ color: "#D1D5DB" }}>→</span>
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
               <span style={{ fontSize: 56, fontWeight: 800, fontFamily: NUNITO, color: B.text }}>{skillCount}</span>
-              <span style={{ fontSize: 18, fontWeight: 600, fontFamily: NUNITO, color: B.textMuted }}>{pitchMode ? "skills mapped" : "kỹ năng được vẽ"}</span>
+              <span style={{ fontSize: 18, fontWeight: 600, fontFamily: NUNITO, color: B.textMuted }}>kỹ năng được vẽ</span>
             </div>
           </div>
 
@@ -846,18 +846,18 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
               <motion.div initial={{ opacity: 0 }} animate={skillCount >= Math.floor(totalSkills * 0.85) ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
                 style={{ borderRadius: 18, padding: 16, border: `1px solid rgba(245,158,11,0.25)`, backgroundColor: B.orangeLight, display: "flex", flexDirection: "column", gap: 10 }}>
                 <p style={{ fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.orange, margin: 0, textTransform: "uppercase", letterSpacing: 0 }}>
-                  Evidence trail
+                  Dấu vết chẩn đoán
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "88px 1fr", gap: "7px 10px", alignItems: "start" }}>
                   {[
-                    ["Item", PITCH_GRAPH_PROOF.evidence.item],
-                    ["Answer", PITCH_GRAPH_PROOF.evidence.student_answer],
-                    ["Pattern", PITCH_GRAPH_PROOF.evidence.detected_pattern],
-                    ["Blocker", PITCH_GRAPH_PROOF.evidence.inferred_blocker],
+                    ["Câu hỏi", PITCH_GRAPH_PROOF.evidence.item],
+                    ["Đáp án", PITCH_GRAPH_PROOF.evidence.student_answer],
+                    ["Mẫu lỗi", PITCH_GRAPH_PROOF.evidence.detected_pattern],
+                    ["Lỗ hổng", PITCH_GRAPH_PROOF.evidence.inferred_blocker],
                   ].map(([label, value]) => (
                     <div key={label} style={{ display: "contents" }}>
                       <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.textMuted }}>{label}</span>
-                      <span style={{ fontFamily: INTER, fontSize: 12, lineHeight: 1.35, color: B.text, fontWeight: label === "Answer" ? 850 : 600 }}>{value}</span>
+                      <span style={{ fontFamily: INTER, fontSize: 12, lineHeight: 1.35, color: B.text, fontWeight: label === "Đáp án" ? 850 : 600 }}>{value}</span>
                     </div>
                   ))}
                 </div>
@@ -869,13 +869,13 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
             transition={{ duration: 0.5 }} style={{ borderRadius: 16, padding: 16, display: "flex", flexDirection: "column", gap: 8, backgroundColor: B.orangeLight, border: `1.5px solid rgba(245,158,11,0.25)` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Zap size={14} style={{ color: B.orange }} />
-              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>{pitchMode ? "Focus skill identified" : "Điểm tập trung được xác định"}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.orange }}>Kỹ năng trọng tâm đã xác định</span>
             </div>
             <p style={{ fontWeight: 700, fontFamily: NUNITO, color: B.text, fontSize: 16, margin: 0 }}>
               {recommendationName}
             </p>
             <p style={{ fontSize: 12, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
-              {pitchMode ? "The missed item points to a prerequisite: common denominators before adding unlike fractions." : "Giải quyết nó sẽ mở khóa các kỹ năng liên kết"}
+              Câu sai chỉ ra một kiến thức tiên quyết: cần quy đồng mẫu trước khi cộng phân số khác mẫu.
             </p>
             {pitchMode && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 2 }}>
@@ -909,7 +909,7 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
               transition: "all 0.2s",
             }}
           >
-            {pitchMode ? "Start targeted lesson" : "Bắt đầu bài học mục tiêu"} <ArrowRight size={18} />
+            Bắt đầu bài học mục tiêu <ArrowRight size={18} />
           </motion.button>
         </motion.div>
       </div>
@@ -927,20 +927,20 @@ interface LearnStepProps {
 }
 
 const PITCH_FALLBACK = {
-  title: "Equivalent fractions",
-  subtitle: "Fractions cluster · root prerequisite",
-  concept: "Equivalent fractions represent the same value in different forms.",
-  practicePrompt: "Before adding fractions, find a common denominator:",
+  title: "Phân số bằng nhau",
+  subtitle: "Nhánh phân số · kiến thức nền",
+  concept: "Các phân số bằng nhau biểu diễn cùng một giá trị dưới nhiều dạng khác nhau.",
+  practicePrompt: "Trước khi cộng phân số, cần quy đồng mẫu:",
 };
 
 function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
   const lesson = result.learning_loop?.lesson;
   const rec = result.learning_loop?.recommendation;
 
-  const title = lesson?.title ?? (pitchMode ? PITCH_FALLBACK.title : "Bài học mục tiêu");
-  const subtitle = lesson?.subtitle ?? (pitchMode ? PITCH_FALLBACK.subtitle : (rec?.name ? `${rec.name} · mục tiêu` : "Bài học"));
-  const concept = lesson?.concept ?? (pitchMode ? PITCH_FALLBACK.concept : "");
-  const practicePrompt = lesson?.practice_prompt ?? (pitchMode ? PITCH_FALLBACK.practicePrompt : "");
+  const title = lesson?.title ?? PITCH_FALLBACK.title;
+  const subtitle = lesson?.subtitle ?? (rec?.name ? `${rec.name} · mục tiêu` : PITCH_FALLBACK.subtitle);
+  const concept = lesson?.concept ?? PITCH_FALLBACK.concept;
+  const practicePrompt = lesson?.practice_prompt ?? PITCH_FALLBACK.practicePrompt;
   const workedExample = lesson?.worked_example ?? [];
 
   const isFractionLesson = pitchMode || (rec?.code ?? "").includes("fraction") || (lesson?.title ?? "").toLowerCase().includes("phân số");
@@ -954,7 +954,7 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
             <span style={{ fontFamily: NUNITO, fontSize: 12, fontWeight: 700, padding: "6px 12px", borderRadius: 9999, backgroundColor: B.orangeLight, color: B.orange }}>
               {subtitle}
             </span>
-            <span style={{ fontSize: 12, color: B.textMuted, fontFamily: INTER }}>{pitchMode ? "Unlocks connected skills" : "Mở khóa 6 kỹ năng liên kết"}</span>
+            <span style={{ fontSize: 12, color: B.textMuted, fontFamily: INTER }}>Mở khóa các kỹ năng liên kết</span>
           </div>
 
           <div>
@@ -974,7 +974,7 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
           <div className="learn-visual-card">
             {workedExample.length > 0 ? (
               <>
-                <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, margin: 0 }}>{pitchMode ? "Worked example:" : "Ví dụ minh họa:"}</p>
+                <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, margin: 0 }}>Ví dụ minh họa:</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {workedExample.map((step, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
@@ -989,7 +989,7 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
             ) : (
               <>
                 <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, margin: 0 }}>
-                  {pitchMode ? "All of these represent the same value:" : "Tất cả đều biểu diễn cùng một giá trị:"}
+                  Tất cả đều biểu diễn cùng một giá trị:
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   <FractionBar n={1} d={2} color={B.blue} label="1/2" />
@@ -999,7 +999,7 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
                 <div style={{ borderTop: `1px solid ${B.grayBorder}`, paddingTop: 12, display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <Check size={15} style={{ color: B.green, flexShrink: 0, marginTop: 2 }} />
                   <p style={{ fontSize: 14, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
-                    {pitchMode ? "Multiply or divide both numerator and denominator by the same nonzero number. The value stays the same." : "Nhân (hoặc chia) cả tử số và mẫu số cho cùng một số → phân số vẫn đẳng trị."}
+                    Nhân hoặc chia cả tử số và mẫu số cho cùng một số khác 0 thì giá trị phân số không đổi.
                   </p>
                 </div>
               </>
@@ -1009,7 +1009,7 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
           {practicePrompt && (
             <div style={{ borderRadius: 16, padding: 20, backgroundColor: B.blueLight, borderWidth: 1, borderStyle: "solid", borderColor: "rgba(61,114,248,0.15)", display: "flex", flexDirection: "column", gap: 12 }}>
               <p style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.blue, margin: 0 }}>
-                {pitchMode ? "Why this lesson was selected" : `Tại sao cần cho bài toán ${rec?.code ?? "kỹ năng mục tiêu"}`}
+                Vì sao chọn bài học này
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: 14, fontFamily: INTER, color: B.textMid }}>
                 <span>{practicePrompt}</span>
@@ -1045,7 +1045,7 @@ function LearnStep({ result, pitchMode, onComplete }: LearnStepProps) {
               transition: "all 0.2s",
             }}
           >
-            {pitchMode ? "Check mastery" : "Kiểm tra hiểu bài"} <ArrowRight size={18} />
+            Kiểm tra hiểu bài <ArrowRight size={18} />
           </button>
         </div>
       </div>
@@ -1132,16 +1132,16 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
           <StepCircle n={1} />
           <span className="text-xs font-bold px-3 py-1.5 rounded-full"
             style={{ fontFamily: NUNITO, backgroundColor: B.blueLight, color: B.blue }}>
-            {pitchMode ? "Mastery check · 1 question" : "Kiểm tra thành thạo · 1 câu"}
+            Kiểm tra thành thạo · 1 câu
           </span>
         </div>
 
         <div className="question-card" style={{ padding: 28, marginBottom: 0 }}>
           <p style={{ fontSize: 14, color: B.textMuted, fontFamily: INTER, margin: "0 0 20px" }}>
-            {pitchMode ? "Open-ended mastery item" : (mastery?.prompt ?? "Kiểm tra xem bài học đã hiệu quả chưa:")}
+            Câu tự luận kiểm tra sau học
           </p>
           <p style={{ fontSize: 18, fontWeight: 700, color: B.text, fontFamily: INTER, margin: 0, lineHeight: 1.5 }}>
-            {mastery?.prompt || (pitchMode ? "Enter the answer for the mastery item." : "Nhập đáp án cho câu hỏi học được.")}
+            {mastery?.prompt || "Nhập đáp án cho câu hỏi học được."}
           </p>
         </div>
 
@@ -1179,7 +1179,7 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
         ) : (
           <div className="answer-widget-card"
             style={{ borderColor: submitted ? (openCorrect ? B.green : B.red) : isOpenReady ? B.blue : B.grayBorder, borderWidth: 2, borderStyle: "solid", margin: 0 }}>
-            <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20, margin: "0 0 20px" }}>{pitchMode ? "Enter your answer" : "Nhập đáp án của bạn"}</p>
+            <p style={{ fontFamily: NUNITO, color: B.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 20, margin: "0 0 20px" }}>Nhập đáp án của bạn</p>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               {realWidgetType === "fraction" ? (
                 <FractionWidget num={fracState.num} den={fracState.den} onNumChange={(v) => setFracState(s => ({ ...s, num: v }))} onDenChange={(v) => setFracState(s => ({ ...s, den: v }))} onSubmit={!submitted ? handleOpenSubmit : undefined} disabled={submitted || submitting} size="lg" />
@@ -1188,7 +1188,7 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
               )}
             </div>
             <p style={{ fontFamily: MONO, color: B.textLight, fontSize: 12, margin: 0 }}>
-              {pitchMode ? "Tab · ↑↓ to move · Enter to submit" : realWidgetType === "fraction" ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
+              {realWidgetType === "fraction" ? "Tab · ↑↓ để chuyển ô · Enter để nộp" : "Nhập đáp án và bấm Enter để nộp"}
             </p>
           </div>
         )}
@@ -1211,8 +1211,8 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
               }}
             >
               {(isMCQ ? mcqCorrect : openCorrect)
-                ? (mastery?.hint ? `${pitchMode ? "Correct" : "Chính xác"}! ${mastery.hint}` : pitchMode ? "Correct." : "Chính xác! 2/3 = 4/6 vì cả tử số và mẫu số đều nhân với 2.")
-                : (mastery?.hint ? `${pitchMode ? "Not yet" : "Chưa đúng"}. ${mastery.hint}` : pitchMode ? "Not yet. Review the lesson and try again." : "Chưa đúng. Hãy ôn lại bài học và thử lại.")}
+                ? (mastery?.hint ? `Chính xác! ${mastery.hint}` : "Chính xác.")
+                : (mastery?.hint ? `Chưa đúng. ${mastery.hint}` : "Chưa đúng. Hãy ôn lại bài học và thử lại.")}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1235,7 +1235,7 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
               transition: "all 0.2s",
             }}
           >
-            {pitchMode ? "Submit" : "Nộp bài"}
+            Nộp bài
           </button>
         ) : (
           <button onClick={() => {
@@ -1261,7 +1261,7 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
               transition: "all 0.2s",
             }}
           >
-            {(isMCQ ? mcqCorrect : openCorrect) ? (pitchMode ? "See my progress" : "Xem tiến độ của tôi") : (pitchMode ? "Continue" : "Tiếp tục")} <ArrowRight size={18} />
+            {(isMCQ ? mcqCorrect : openCorrect) ? "Xem tiến độ của tôi" : "Tiếp tục"} <ArrowRight size={18} />
           </button>
         )}
       </div>
@@ -1294,10 +1294,10 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
     const pre = preSkills.find((s) => s.id === post.id);
     if (!pre || pre.strength === post.strength) return;
     const stateLabel: Record<string, string> = {
-      strong: isPitchResult ? "Strong" : "Thành thạo",
-      medium: isPitchResult ? "Developing" : "Đang phát triển",
-      weak: isPitchResult ? "Gap" : "Khoảng trống",
-      inferred: isPitchResult ? "Inferred" : "Suy luận",
+      strong: "Thành thạo",
+      medium: "Đang phát triển",
+      weak: "Khoảng trống",
+      inferred: "Suy luận",
     };
     if (pre.strength === "weak" && post.strength !== "weak") {
       changes.push({ label: post.label.replace(/\n/g, " "), from: stateLabel[pre.strength], to: stateLabel[post.strength] });
@@ -1305,9 +1305,9 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
   });
 
   const displayChanges = changes.length > 0 ? changes : isPitchResult ? [
-    { label: "Common denominator", from: "Gap", to: "Developing" },
-    { label: "Add unlike denominators", from: "Gap", to: "Ready to practice" },
-    { label: "Compare unlike fractions", from: "Inferred", to: "Developing" },
+    { label: "Quy đồng mẫu", from: "Khoảng trống", to: "Đang phát triển" },
+    { label: "Cộng phân số khác mẫu", from: "Khoảng trống", to: "Sẵn sàng luyện tập" },
+    { label: "So sánh phân số khác mẫu", from: "Suy luận", to: "Đang phát triển" },
   ] : [
     { label: "Tính đẳng trị", from: "Khoảng trống", to: "Đang phát triển" },
     { label: "Rút gọn",       from: "Khoảng trống", to: "Có thể tiếp cận" },
@@ -1345,8 +1345,8 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
       <motion.div initial={{ opacity: 0, x: 24 }} animate={show ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.55 }}
         className="right-panel">
         <div>
-          <p style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: B.textMuted, margin: "0 0 4px" }}>{isPitchResult ? "Learning loop complete" : "Buổi học hoàn tất"}</p>
-          <h2 style={{ fontFamily: NUNITO, fontSize: 24, fontWeight: 800, color: B.text, margin: 0 }}>{isPitchResult ? "Knowledge map updated" : "Bản đồ của bạn đã cập nhật"}</h2>
+          <p style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: B.textMuted, margin: "0 0 4px" }}>Hoàn tất learning loop</p>
+          <h2 style={{ fontFamily: NUNITO, fontSize: 24, fontWeight: 800, color: B.text, margin: 0 }}>Bản đồ kiến thức đã cập nhật</h2>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -1365,21 +1365,21 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
         <div style={{ borderRadius: 16, padding: 16, border: `1px solid rgba(61,114,248,0.2)`, backgroundColor: B.blueLight }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
             <Zap size={14} style={{ color: B.blue }} />
-            <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.blue }}>{upgradedCount} {isPitchResult ? "skills updated" : "kỹ năng được nâng cấp"}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, fontFamily: NUNITO, color: B.blue }}>{upgradedCount} kỹ năng được cập nhật</span>
           </div>
           <p style={{ fontSize: 14, lineHeight: 1.5, color: B.textMid, fontFamily: INTER, margin: 0 }}>
-            {isPitchResult ? "The prerequisite lesson moved connected skills closer to reach. Wizzdom updated the learner's map." : "Các kỹ năng liên kết đang dần gần tầm với. Wizzdom đã cập nhật bản đồ cá nhân của bạn."}
+            Bài học tiên quyết giúp các kỹ năng liên kết tiến gần hơn tới tầm với. Wizzdom đã cập nhật bản đồ cá nhân của học sinh.
           </p>
         </div>
 
         {isPitchResult && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
-              ["Coach action", PITCH_GRAPH_PROOF.coach_action],
-              ["Parent translation", PITCH_GRAPH_PROOF.parent_translation],
+              ["Hành động cho giáo viên", PITCH_GRAPH_PROOF.coach_action],
+              ["Diễn giải cho phụ huynh", PITCH_GRAPH_PROOF.parent_translation],
             ].map(([label, value]) => (
               <div key={label} style={{ borderRadius: 16, padding: 15, border: `1px solid ${B.grayBorder}`, backgroundColor: B.white }}>
-                <p style={{ margin: "0 0 6px", fontFamily: MONO, fontSize: 10, fontWeight: 900, color: label === "Coach action" ? B.blue : B.orange, textTransform: "uppercase", letterSpacing: 0 }}>
+                <p style={{ margin: "0 0 6px", fontFamily: MONO, fontSize: 10, fontWeight: 900, color: label === "Hành động cho giáo viên" ? B.blue : B.orange, textTransform: "uppercase", letterSpacing: 0 }}>
                   {label}
                 </p>
                 <p style={{ margin: 0, fontFamily: INTER, fontSize: 13, lineHeight: 1.45, fontWeight: 650, color: B.textMid }}>
@@ -1409,7 +1409,7 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
               transition: "all 0.2s",
             }}
           >
-            <RotateCcw size={14} /> {isPitchResult ? "Replay demo" : "Xem lại demo"}
+            <RotateCcw size={14} /> Xem lại demo
           </button>
           <button onClick={onNext}
             style={{
@@ -1431,7 +1431,7 @@ function OutcomeStep({ preResult, postResult, onRestart, onNext }: OutcomeStepPr
               transition: "all 0.2s",
             }}
           >
-            {isPitchResult ? "Next skill" : "Kỹ năng tiếp theo"} <ArrowRight size={14} />
+            Kỹ năng tiếp theo <ArrowRight size={14} />
           </button>
         </div>
       </motion.div>
@@ -1697,9 +1697,9 @@ export default function AlgebraAssessmentPage() {
               fontFamily: NUNITO,
               transition: "all 0.2s",
             }}
-            title={pitchMode ? "Turn off demo mode" : "Turn on presenter demo mode"}>
+            title={pitchMode ? "Tắt chế độ demo" : "Bật chế độ demo trình bày"}>
             {pitchMode ? <Pause size={12} /> : <Play size={12} />}
-            <span>Demo</span>
+            <span>Trình bày</span>
           </button>
 
           {/* Student chip */}
@@ -1709,7 +1709,7 @@ export default function AlgebraAssessmentPage() {
               {sessionId ? sessionId.slice(0, 1).toUpperCase() : "M"}
             </div>
             <span style={{ fontSize: 12, fontWeight: 500, fontFamily: MONO, color: B.textMuted }}>
-              {pitchMode ? "Demo" : sessionId ? `#${sessionId.slice(-4)}` : "Minh · 8A"}
+              {pitchMode ? "Trình bày" : sessionId ? `#${sessionId.slice(-4)}` : "Minh · 8A"}
             </span>
           </div>
         </div>
