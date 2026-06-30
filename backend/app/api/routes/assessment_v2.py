@@ -42,6 +42,19 @@ async def create_session(body: CreateSessionRequest, db: AsyncSession = Depends(
         raise HTTPException(status_code=422, detail=str(e))
 
 
+@router.get("/sessions")
+async def list_sessions(
+    limit: int = 50,
+    status: str | None = None,
+    db: AsyncSession = Depends(get_db),
+):
+    if limit < 1 or limit > 200:
+        raise HTTPException(status_code=422, detail="limit must be between 1 and 200")
+    if status not in {None, "in_progress", "completed"}:
+        raise HTTPException(status_code=422, detail="status must be in_progress or completed")
+    return await service.list_sessions(db, limit=limit, status=status)
+
+
 @router.get("/sessions/{session_id}")
 async def get_session(session_id: str, db: AsyncSession = Depends(get_db)):
     try:

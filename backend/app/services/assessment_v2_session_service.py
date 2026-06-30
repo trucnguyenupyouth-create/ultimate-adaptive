@@ -405,6 +405,45 @@ async def create_session(db: AsyncSession, max_questions: int = DEFAULT_MAX_QUES
     return _session_response_from_row(row)
 
 
+def _session_metadata_from_row(row: AssessmentV2Session) -> dict[str, Any]:
+    payload = dict(row.payload or {})
+    responses = list(payload.get("responses", []))
+    run = _run_from_payload(payload)
+    summary = _student_summary(run, list(payload.get("nodes", []))) if payload.get("run") else None
+    correct_count = sum(1 for response in responses if (response.get("grading") or {}).get("is_correct") is True)
+    unknown_count = sum(1 for response in responses if response.get("response_type") == "unknown")
+    return {
+        "session_id": str(row.id),
+        "session_code": row.session_code,
+        "status": row.status,
+        "student_label": row.student_label,
+        "max_questions": row.max_questions,
+        "questions_asked": len(responses),
+        "correct_count": correct_count,
+        "unknown_count": unknown_count,
+        "skills_directly_tested": (summary or {}).get("value_metrics", {}).get("skills_directly_tested", 0),
+        "skills_inferred": (summary or {}).get("value_metrics", {}).get("skills_inferred", 0),
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+        "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+        "completed_at": row.completed_at.isoformat() if row.completed_at else None,
+        "recommendation": (_learning_loop(payload, summary or {}).get("recommendation") if summary else None),
+    }
+
+
+async def list_sessions(db: AsyncSession, limit: int = 50, status: str | None = None) -> dict[str, Any]:
+    query = select(AssessmentV2Session)
+    if status:
+        query = query.where(AssessmentV2Session.status == status)
+    query = query.order_by(AssessmentV2Session.created_at.desc()).limit(limit)
+    result = await db.execute(query)
+    rows = result.scalars().all()
+    return {
+        "sessions": [_session_metadata_from_row(row) for row in rows],
+        "limit": limit,
+        "status": status,
+    }
+
+
 async def get_session(db: AsyncSession, session_id: str) -> dict[str, Any]:
     result = await db.execute(select(AssessmentV2Session).where(AssessmentV2Session.id == uuid.UUID(session_id)))
     row = result.scalar_one_or_none()

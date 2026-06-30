@@ -6,6 +6,7 @@
 // Styled using local CSS definitions for 100% reliable layout execution in production.
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check, RotateCcw, Zap, Play, Pause, HelpCircle } from "lucide-react";
 import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
@@ -2191,6 +2192,26 @@ export default function AlgebraAssessmentPage() {
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           {/* Pitch mode toggle */}
+          <Link href="/assessment-v2/history"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              borderRadius: 9999,
+              fontSize: 12,
+              fontWeight: 700,
+              border: `1px solid ${B.grayBorder}`,
+              cursor: "pointer",
+              backgroundColor: B.white,
+              color: B.textMid,
+              fontFamily: NUNITO,
+              textDecoration: "none",
+            }}
+            title="Xem lại lịch sử assessment đã lưu">
+            Lịch sử test
+          </Link>
+
           <button onClick={togglePitch}
             style={{
               display: "flex",

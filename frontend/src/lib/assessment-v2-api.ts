@@ -48,6 +48,28 @@ export interface AssessmentV2Result {
   responses: AssessmentV2TranscriptStep[];
   run: Record<string, unknown>;
   mastery_check?: AssessmentV2MasteryCheck;
+  audit?: {
+    frontier_history?: unknown[];
+    state_transitions?: unknown[];
+    evidence_by_kc?: Record<string, unknown[]>;
+  };
+}
+
+export interface AssessmentV2SessionMeta {
+  session_id: string;
+  session_code: string;
+  status: "in_progress" | "completed";
+  student_label?: string | null;
+  max_questions: number;
+  questions_asked: number;
+  correct_count: number;
+  unknown_count: number;
+  skills_directly_tested: number;
+  skills_inferred: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  completed_at?: string | null;
+  recommendation?: (AssessmentV2SummaryRow & { source_bucket?: string }) | null;
 }
 
 export interface AssessmentV2SummaryRow {
@@ -132,6 +154,16 @@ export async function createAssessmentV2Session(options?: {
   });
 }
 
+export async function listAssessmentV2Sessions(options?: {
+  limit?: number;
+  status?: "in_progress" | "completed";
+}): Promise<{ sessions: AssessmentV2SessionMeta[]; limit: number; status?: string | null }> {
+  const params = new URLSearchParams();
+  params.set("limit", String(options?.limit ?? 50));
+  if (options?.status) params.set("status", options.status);
+  return apiFetch(`/assessment-v2/sessions?${params.toString()}`);
+}
+
 export async function getAssessmentV2Session(sessionId: string): Promise<AssessmentV2SessionResponse | AssessmentV2Result> {
   return apiFetch(`/assessment-v2/sessions/${sessionId}`);
 }
@@ -148,6 +180,10 @@ export async function submitAssessmentV2Response(
 
 export async function getAssessmentV2Result(sessionId: string): Promise<AssessmentV2Result> {
   return apiFetch(`/assessment-v2/sessions/${sessionId}/result`);
+}
+
+export async function getAssessmentV2Review(sessionId: string): Promise<AssessmentV2Result> {
+  return apiFetch(`/assessment-v2/sessions/${sessionId}/review`);
 }
 
 export async function getAssessmentV2LearningLoop(sessionId: string): Promise<{
