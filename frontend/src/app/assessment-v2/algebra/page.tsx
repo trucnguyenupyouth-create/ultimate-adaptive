@@ -42,6 +42,100 @@ const PHASE_TO_STEP: Record<Phase, number> = {
   outcome: 4,
 };
 
+const LIVE_MAX_QUESTIONS = 35;
+
+type WidgetAlias = WidgetType | string | undefined | null;
+
+function normalizeWidgetType(raw: WidgetAlias, checkerType?: string): WidgetType {
+  const value = String(raw || checkerType || "number").toLowerCase().replace(/[\s-]/g, "_");
+  if (["fraction", "fraction_widget", "fraction_equal"].includes(value)) return "fraction";
+  if (["mixed_number", "mixed", "mixed_number_widget"].includes(value)) return "mixed_number";
+  if (["power", "power_widget", "power_tuple", "powertuple", "exponent"].includes(value)) return "power";
+  if (["sqrt", "square_root"].includes(value)) return "sqrt";
+  if (["inequality", "inequality_sign", "comparison_sign"].includes(value)) return "inequality_sign";
+  if (["coordinate", "coordinate_pair"].includes(value)) return "coordinate";
+  if (["decimal", "decimal_equal", "probability", "probability_equal"].includes(value)) return "decimal";
+  if (["raw", "expression", "expression_equivalent", "ordered_list", "set"].includes(value)) return "raw";
+  return "number";
+}
+
+type RunState = {
+  label?: string;
+  p_mastery?: number;
+  probability_band?: string;
+  direct_evidence_count?: number;
+  correct_count?: number;
+  wrong_count?: number;
+  inferred_evidence_count?: number;
+};
+
+type FrontierCandidate = {
+  kc_id?: string;
+  item_id?: string;
+  score?: number;
+  reason?: string;
+  p_mastery?: number;
+  p_correct?: number;
+  gain_if_correct?: number;
+  gain_if_wrong?: number;
+  expected_gain?: number;
+  response_balance?: number;
+  item_quality?: number;
+};
+
+type FrontierEntry = {
+  step?: number;
+  selected_kc?: string;
+  selected_item?: string;
+  reason?: string;
+  top_candidates?: FrontierCandidate[];
+};
+
+type StateTransition = {
+  step?: number;
+  item_id?: string;
+  kc_id?: string;
+  correct?: boolean;
+  changes?: Array<{
+    kc_id?: string;
+    from_p_mastery?: number;
+    to_p_mastery?: number;
+    reason?: string;
+  }>;
+};
+
+function pct(value?: number) {
+  if (typeof value !== "number" || Number.isNaN(value)) return "—";
+  return `${Math.round(value * 100)}%`;
+}
+
+function stateLabel(state?: string) {
+  const labels: Record<string, string> = {
+    tested_mastered: "Đã test · vững",
+    tested_gap: "Đã test · cần ôn",
+    inferred_mastered: "Suy luận · có nền",
+    inferred_gap: "Suy luận · có thể ảnh hưởng",
+    unknown: "Chưa đủ bằng chứng",
+  };
+  return labels[state || ""] || state || "Chưa rõ";
+}
+
+function frontierReasonText(reason?: string) {
+  if (reason === "confirmation_after_breadth") {
+    return "Câu xác nhận: hệ thống đã quét đủ rộng và cần thêm bằng chứng cho một node còn lưng chừng.";
+  }
+  if (reason === "complete_min_direct_evidence") {
+    return "Câu bổ sung để hoàn tất mức bằng chứng trực tiếp tối thiểu cho kỹ năng này.";
+  }
+  return "Câu có điểm thông tin kỳ vọng cao nhất: nếu học sinh đúng hoặc sai, hệ thống có thể cập nhật nhiều kỹ năng liên quan nhất.";
+}
+
+function directAnswerText(step?: { response_type?: string; grading?: { is_correct?: boolean } }) {
+  if (!step) return "chưa có câu trước";
+  if (step.response_type === "unknown") return "học sinh chọn Không biết";
+  return step.grading?.is_correct ? "câu trước đúng" : "câu trước sai";
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // ─── STEP 0: AssessStep Component ─────────────────────────────────────────────
 // ──────────────────────────────────────────────────────────────────────────────
@@ -260,7 +354,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentItem, setCurrentItem] = useState<AssessmentV2Item | null>(null);
   const [questionNumber, setQuestionNumber] = useState(1);
-  const [maxQuestions, setMaxQuestions] = useState(12);
+  const [maxQuestions, setMaxQuestions] = useState(LIVE_MAX_QUESTIONS);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -273,7 +367,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
   const [inequalityState, setInequalityState] = useState({ sign: "" });
   const [coordinateState, setCoordinateState] = useState({ x: "", y: "" });
 
-  const widgetType = ((currentItem?.answer_widget ?? "number") as WidgetType);
+  const widgetType = normalizeWidgetType(currentItem?.answer_widget, currentItem?.checker_type);
   const isFracWidget = widgetType === "fraction";
 
   // Check Readiness
@@ -316,7 +410,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
     if (initialized.current) return;
     initialized.current = true;
 
-    createAssessmentV2Session({ max_questions: 12 })
+    createAssessmentV2Session({ max_questions: LIVE_MAX_QUESTIONS })
       .then((res) => {
         if (!active) return;
         setSessionId(res.session_id);
@@ -725,7 +819,7 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
                 Đang xây dựng bản đồ tri thức
               </p>
               <p style={{ fontFamily: INTER, color: B.textMuted, fontSize: 14, margin: 0 }}>
-                12 câu hỏi đã được phân tích…
+                {maxQuestions} câu hỏi tối đa đã được phân tích…
               </p>
               <div style={{ width: 220, height: 6, borderRadius: 9999, overflow: "hidden", backgroundColor: "#E5E7EB" }}>
                 <motion.div
@@ -744,6 +838,179 @@ function AssessStep({ pitchMode, onComplete }: AssessStepProps) {
         {showWidgets && <MathWidgetShowcase onClose={() => setShowWidgets(false)} />}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+function AcademicAssessmentReview({ result }: { result: AssessmentV2Result }) {
+  const run = (result.run || {}) as {
+    states?: Record<string, RunState>;
+    frontier_history?: FrontierEntry[];
+    state_transitions?: StateTransition[];
+    evidence_by_kc?: Record<string, Array<Record<string, unknown>>>;
+    tested_order?: string[];
+  };
+  const frontier = run.frontier_history ?? [];
+  const transitions = run.state_transitions ?? [];
+  const states = run.states ?? {};
+  const responses = result.responses ?? [];
+
+  const nodeRows = [
+    ...result.summary.strong_areas,
+    ...result.summary.skills_to_review,
+    ...result.summary.possibly_affected,
+    ...result.summary.not_enough_evidence,
+    ...result.summary.ready_to_learn,
+  ];
+  const nodeById = new Map<string, { code?: string; name?: string }>();
+  nodeRows.forEach((row) => nodeById.set(row.kc_id, { code: row.code, name: row.name }));
+  responses.forEach((step) => {
+    nodeById.set(step.item.kc_id, { code: step.item.kc_code, name: step.item.kc_name });
+  });
+
+  const responseByKc = new Map(responses.map((step) => [step.item.kc_id, step]));
+
+  const explainNode = (kcId: string, state?: RunState) => {
+    const direct = responseByKc.get(kcId);
+    if (direct) {
+      const correctness = direct.response_type === "unknown" ? "học sinh chọn Không biết" : direct.grading?.is_correct ? "trả lời đúng" : "trả lời sai";
+      return `Node này có bằng chứng trực tiếp ở câu ${direct.step}: ${correctness}. Xác suất mastery hiện tại là ${pct(state?.p_mastery)}, nên hệ thống xếp là “${stateLabel(state?.label)}”.`;
+    }
+    const change = transitions
+      .flatMap((transition) => (transition.changes ?? []).map((c) => ({ ...c, transition })))
+      .reverse()
+      .find((entry) => entry.kc_id === kcId);
+    if (change?.reason?.includes("ancestor_boost")) {
+      const source = nodeById.get(change.transition.kc_id || "");
+      return `Suy luận tăng vì học sinh làm đúng một kỹ năng khó hơn hoặc nằm phía sau trong graph: ${source?.code ?? change.transition.kc_id}. Theo edge tiên quyết, nếu kỹ năng sau có tín hiệu tốt thì các nền tảng trước đó được cộng thêm bằng chứng.`;
+    }
+    if (change?.reason?.includes("descendant_decay")) {
+      const source = nodeById.get(change.transition.kc_id || "");
+      return `Suy luận giảm vì học sinh gặp vấn đề ở node tiên quyết ${source?.code ?? change.transition.kc_id}. Các node phụ thuộc phía sau bị đánh dấu “có thể bị ảnh hưởng”, không phải kết luận chắc chắn là không biết.`;
+    }
+    if (change?.reason?.includes("strong_open")) {
+      return "Node này được cập nhật bởi một câu open-ended đã được academic review và có mapping mạnh tới kỹ năng liên quan.";
+    }
+    return "Chưa có đủ bằng chứng trực tiếp hoặc suy luận rõ ràng cho node này trong lượt test hiện tại.";
+  };
+
+  const nodeGroups = [
+    { title: "Đã xác nhận vững", rows: result.summary.strong_areas, color: B.green, bg: B.greenLight },
+    { title: "Kỹ năng cần review", rows: result.summary.skills_to_review, color: B.red, bg: B.redLight },
+    { title: "Có thể bị ảnh hưởng", rows: result.summary.possibly_affected, color: B.orange, bg: B.orangeLight },
+    { title: "Sẵn sàng học tiếp", rows: result.summary.ready_to_learn, color: B.blue, bg: B.blueLight },
+    { title: "Chưa đủ bằng chứng", rows: result.summary.not_enough_evidence, color: B.textMuted, bg: "#F8FAFC" },
+  ].filter((group) => group.rows.length > 0);
+
+  return (
+    <section className="academic-review">
+      <div className="academic-review-header">
+        <div>
+          <p style={{ margin: "0 0 6px", fontFamily: MONO, fontSize: 11, fontWeight: 900, color: B.blue, textTransform: "uppercase", letterSpacing: 0 }}>
+            Academic assessment review
+          </p>
+          <h2 style={{ margin: 0, fontFamily: NUNITO, fontSize: 28, fontWeight: 950, color: B.text }}>
+            Biên bản câu hỏi và trạng thái node
+          </h2>
+        </div>
+        <div className="academic-metrics">
+          {[
+            ["Câu đã hỏi", result.summary.value_metrics.questions_asked],
+            ["Node test trực tiếp", result.summary.value_metrics.skills_directly_tested],
+            ["Node suy luận", result.summary.value_metrics.skills_inferred],
+          ].map(([label, value]) => (
+            <div key={label} className="academic-metric-card">
+              <strong>{value}</strong>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="academic-review-grid">
+        <div className="academic-panel">
+          <h3>1. Chuỗi câu hỏi đã hỏi</h3>
+          <div className="question-timeline">
+            {responses.map((step, index) => {
+              const frontierEntry = frontier.find((entry) => entry.selected_item === step.item.item_id) ?? frontier[index];
+              const selected = frontierEntry?.top_candidates?.find((candidate) => candidate.item_id === step.item.item_id) ?? frontierEntry?.top_candidates?.[0];
+              const previous = index > 0 ? responses[index - 1] : undefined;
+              const correctness = step.response_type === "unknown" ? "Không biết" : step.grading?.is_correct ? "Đúng" : "Sai";
+              const tone = step.response_type === "unknown" ? B.orange : step.grading?.is_correct ? B.green : B.red;
+              return (
+                <article key={`${step.step}-${step.item.item_id}`} className="timeline-card">
+                  <div className="timeline-card-top">
+                    <span className="step-badge">#{step.step}</span>
+                    <div>
+                      <p className="kc-code">{step.item.kc_code ?? step.item.kc_id}</p>
+                      <h4>{step.item.kc_name ?? "Kỹ năng chưa đặt tên"}</h4>
+                    </div>
+                    <span className="result-chip" style={{ color: tone, backgroundColor: `${tone}18`, borderColor: `${tone}44` }}>
+                      {correctness}
+                    </span>
+                  </div>
+
+                  <p className="question-text">{step.item.question}</p>
+                  <div className="answer-grid">
+                    <span>Đáp án học sinh</span>
+                    <strong>{step.response_type === "unknown" ? "Không biết" : step.answer || "—"}</strong>
+                    <span>Checker</span>
+                    <strong>{step.grading?.matched_rule ?? step.item.checker_type ?? "—"}</strong>
+                    <span>Misconception</span>
+                    <strong>{step.grading?.diagnosed_misconception || "Không phát hiện mẫu lỗi cụ thể"}</strong>
+                  </div>
+
+                  <div className="why-box">
+                    <strong>Vì sao hỏi câu này?</strong>
+                    <p>
+                      {index === 0
+                        ? "Đây là điểm vào của assessment: engine chọn node có khả năng chia nhánh kiến thức tốt nhất trong graph và có item usable."
+                        : `Sau khi ${directAnswerText(previous)}, engine chọn câu này vì nó đang là frontier tốt nhất để làm rõ vùng kiến thức tiếp theo.`}
+                    </p>
+                    <p>
+                      {frontierReasonText(frontierEntry?.reason)}
+                      {selected ? ` Expected gain ${selected.expected_gain ?? "—"}, balance ${selected.response_balance ?? "—"}, item quality ${selected.item_quality ?? "—"}.` : ""}
+                    </p>
+                    <p>
+                      Nếu đúng, câu này chủ yếu giúp xác nhận node hiện tại và các prerequisite trước nó; nếu sai hoặc “Không biết”, nó giúp phát hiện node này và các kỹ năng phụ thuộc phía sau có thể bị ảnh hưởng.
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="academic-panel">
+          <h3>2. Trạng thái node sau assessment</h3>
+          <div className="node-state-list">
+            {nodeGroups.map((group) => (
+              <div key={group.title} className="node-state-group">
+                <div className="node-state-heading" style={{ color: group.color }}>
+                  <span style={{ backgroundColor: group.color }} />
+                  {group.title}
+                </div>
+                {group.rows.map((row) => {
+                  const state = states[row.kc_id] ?? { label: row.state, p_mastery: row.p_mastery };
+                  return (
+                    <div key={`${group.title}-${row.kc_id}`} className="node-state-card" style={{ backgroundColor: group.bg }}>
+                      <div className="node-state-card-top">
+                        <div>
+                          <p className="kc-code">{row.code ?? row.kc_id}</p>
+                          <strong>{row.name ?? "Kỹ năng chưa đặt tên"}</strong>
+                        </div>
+                        <span>{pct(row.p_mastery)}</span>
+                      </div>
+                      <p>{stateLabel(row.state)}</p>
+                      <p>{explainNode(row.kc_id, state)}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -913,6 +1180,7 @@ function MapStep({ result, pitchMode, onComplete }: MapStepProps) {
           </motion.button>
         </motion.div>
       </div>
+      {!pitchMode && <AcademicAssessmentReview result={result} />}
     </motion.div>
   );
 }
@@ -1073,13 +1341,14 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
   const mastery = result.learning_loop?.lesson?.mastery;
 
   const isMCQ = false;
-  const realWidgetType = ((mastery?.answer_widget ?? "number") as WidgetType);
+  const realWidgetType = normalizeWidgetType(mastery?.answer_widget);
 
   const [selected, setSelected] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [fracState, setFracState] = useState<FractionWidgetState>({ num: "", den: "" });
   const [textState, setTextState] = useState("");
+  const [powerState, setPowerState] = useState({ base: "", exp: "" });
   const [openCorrect, setOpenCorrect] = useState<boolean | null>(null);
 
   const handleComplete = useCallback(async (answer: string) => {
@@ -1105,6 +1374,9 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
     if (realWidgetType === "fraction") {
       if (!isFractionReady(fracState)) return;
       answer = serializeFraction(fracState);
+    } else if (realWidgetType === "power") {
+      if (!powerState.base.trim() || !powerState.exp.trim()) return;
+      answer = `${powerState.base}^${powerState.exp}`;
     } else {
       if (!textState.trim()) return;
       answer = textState;
@@ -1120,6 +1392,8 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
 
   const isOpenReady = realWidgetType === "fraction"
     ? isFractionReady(fracState)
+    : realWidgetType === "power"
+      ? powerState.base.trim() !== "" && powerState.exp.trim() !== ""
     : textState.trim().length > 0;
 
   const mcqCorrect = isMCQ && selected !== null && MCQ_OPTIONS[selected].correct;
@@ -1184,7 +1458,15 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
               {realWidgetType === "fraction" ? (
                 <FractionWidget num={fracState.num} den={fracState.den} onNumChange={(v) => setFracState(s => ({ ...s, num: v }))} onDenChange={(v) => setFracState(s => ({ ...s, den: v }))} onSubmit={!submitted ? handleOpenSubmit : undefined} disabled={submitted || submitting} size="lg" />
               ) : (
-                <MathAnswerWidget widgetType={realWidgetType} disabled={submitted || submitting} onSubmit={!submitted ? handleOpenSubmit : undefined} textState={textState} onTextChange={setTextState} />
+                <MathAnswerWidget
+                  widgetType={realWidgetType}
+                  disabled={submitted || submitting}
+                  onSubmit={!submitted ? handleOpenSubmit : undefined}
+                  textState={textState}
+                  onTextChange={setTextState}
+                  powerState={powerState}
+                  onPowerChange={setPowerState}
+                />
               )}
             </div>
             <p style={{ fontFamily: MONO, color: B.textLight, fontSize: 12, margin: 0 }}>
@@ -1239,7 +1521,13 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
           </button>
         ) : (
           <button onClick={() => {
-            const ans = isMCQ ? MCQ_OPTIONS.find((o) => o.id === selected)?.label ?? "" : realWidgetType === "fraction" ? serializeFraction(fracState) : textState;
+            const ans = isMCQ
+              ? MCQ_OPTIONS.find((o) => o.id === selected)?.label ?? ""
+              : realWidgetType === "fraction"
+                ? serializeFraction(fracState)
+                : realWidgetType === "power"
+                  ? `${powerState.base}^${powerState.exp}`
+                  : textState;
             handleComplete(ans);
           }} disabled={submitting}
             style={{
@@ -1600,9 +1888,231 @@ export default function AlgebraAssessmentPage() {
             border-left: 1px solid rgba(0, 0, 0, 0.08);
             padding: 32px;
           }
-          .pitch-proof-grid .right-panel {
+        .pitch-proof-grid .right-panel {
             padding: 28px;
             gap: 18px;
+          }
+        }
+
+        /* Academic Review */
+        .academic-review {
+          width: min(1180px, calc(100% - 32px));
+          margin: 24px auto 56px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .academic-review-header {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .academic-metrics {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .academic-metric-card {
+          min-width: 112px;
+          border-radius: 16px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          background: #FFFFFF;
+          padding: 12px 14px;
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+        }
+        .academic-metric-card strong {
+          display: block;
+          font-family: ${NUNITO};
+          font-size: 24px;
+          font-weight: 950;
+          color: ${B.text};
+          line-height: 1;
+        }
+        .academic-metric-card span {
+          display: block;
+          margin-top: 5px;
+          font-family: ${INTER};
+          font-size: 12px;
+          color: ${B.textMuted};
+        }
+        .academic-review-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+          gap: 18px;
+          align-items: start;
+        }
+        .academic-panel {
+          border-radius: 24px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          background: #FFFFFF;
+          padding: 22px;
+          box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+        }
+        .academic-panel h3 {
+          margin: 0 0 16px;
+          font-family: ${NUNITO};
+          font-size: 20px;
+          font-weight: 950;
+          color: ${B.text};
+        }
+        .question-timeline,
+        .node-state-list {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+        .timeline-card {
+          border-radius: 18px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          background: #F8FAFC;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .timeline-card-top,
+        .node-state-card-top {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .step-badge {
+          width: 36px;
+          height: 36px;
+          border-radius: 12px;
+          background: ${B.blue};
+          color: #FFFFFF;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-family: ${MONO};
+          font-size: 13px;
+          font-weight: 900;
+          flex-shrink: 0;
+        }
+        .kc-code {
+          margin: 0 0 4px;
+          font-family: ${MONO};
+          font-size: 11px;
+          font-weight: 900;
+          color: ${B.blue};
+          letter-spacing: 0;
+        }
+        .timeline-card h4 {
+          margin: 0;
+          font-family: ${NUNITO};
+          font-size: 16px;
+          font-weight: 950;
+          color: ${B.text};
+          line-height: 1.15;
+        }
+        .result-chip {
+          border-radius: 9999px;
+          border: 1px solid;
+          padding: 5px 9px;
+          font-family: ${NUNITO};
+          font-size: 12px;
+          font-weight: 900;
+          white-space: nowrap;
+        }
+        .question-text {
+          margin: 0;
+          font-family: ${INTER};
+          font-size: 14px;
+          line-height: 1.55;
+          font-weight: 650;
+          color: ${B.text};
+        }
+        .answer-grid {
+          display: grid;
+          grid-template-columns: 132px minmax(0, 1fr);
+          gap: 7px 12px;
+          border-radius: 14px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          background: #FFFFFF;
+          padding: 12px;
+          font-family: ${INTER};
+          font-size: 12px;
+        }
+        .answer-grid span {
+          color: ${B.textMuted};
+        }
+        .answer-grid strong {
+          color: ${B.text};
+          overflow-wrap: anywhere;
+        }
+        .why-box {
+          border-radius: 14px;
+          border: 1px solid rgba(61, 114, 248, 0.16);
+          background: ${B.blueLight};
+          padding: 12px;
+        }
+        .why-box strong {
+          display: block;
+          margin-bottom: 6px;
+          font-family: ${NUNITO};
+          font-size: 13px;
+          font-weight: 950;
+          color: ${B.blue};
+        }
+        .why-box p {
+          margin: 6px 0 0;
+          font-family: ${INTER};
+          font-size: 12px;
+          line-height: 1.55;
+          color: ${B.textMid};
+        }
+        .node-state-group {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .node-state-heading {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-family: ${NUNITO};
+          font-size: 13px;
+          font-weight: 950;
+        }
+        .node-state-heading span {
+          width: 9px;
+          height: 9px;
+          border-radius: 9999px;
+          display: inline-block;
+        }
+        .node-state-card {
+          border-radius: 16px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          padding: 14px;
+        }
+        .node-state-card strong {
+          display: block;
+          font-family: ${NUNITO};
+          font-size: 14px;
+          line-height: 1.2;
+          font-weight: 950;
+          color: ${B.text};
+        }
+        .node-state-card-top > span {
+          font-family: ${MONO};
+          font-size: 13px;
+          font-weight: 900;
+          color: ${B.text};
+        }
+        .node-state-card p {
+          margin: 8px 0 0;
+          font-family: ${INTER};
+          font-size: 12px;
+          line-height: 1.5;
+          color: ${B.textMid};
+        }
+        @media (max-width: 980px) {
+          .academic-review-grid {
+            grid-template-columns: 1fr;
           }
         }
 
