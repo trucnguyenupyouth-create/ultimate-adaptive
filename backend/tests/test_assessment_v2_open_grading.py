@@ -127,3 +127,27 @@ def test_probability_equivalence_accepts_fraction_decimal_percent():
 
     assert grade_open_response(content, "0.25").is_correct is True
     assert grade_open_response(content, "25%").is_correct is True
+
+
+def test_coordinate_pair_checker_accepts_parenthesized_pair():
+    content = {
+        "answer_type": "coordinate",
+        "checker_type": "coordinate_pair_equal",
+        "accepted_answers": ["(0,-4)"],
+    }
+
+    result = grade_open_response(content, "0; -4")
+
+    assert result.is_correct is True
+    assert result.matched_rule == "coordinate_pair_equal"
+
+
+def test_ordered_pair_list_checker_preserves_order():
+    content = {
+        "answer_type": "ordered_pair_list",
+        "checker_type": "ordered_pair_list_equal",
+        "accepted_answers": ["(0,-4);(2,0)"],
+    }
+
+    assert grade_open_response(content, "(0,-4); (2,0)").is_correct is True
+    assert grade_open_response(content, "(2,0); (0,-4)").is_correct is False

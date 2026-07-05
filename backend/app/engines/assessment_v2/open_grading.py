@@ -134,6 +134,32 @@ def _to_power_tuple(value: Any) -> tuple[Fraction, Fraction] | None:
     return base_value, exponent_value
 
 
+def _to_coordinate_pair(value: Any) -> tuple[Fraction, Fraction] | None:
+    text = _strip_wrappers(value).replace(" ", "")
+    parts = [part for part in re.split(r"[,;]", text) if part]
+    if len(parts) != 2:
+        return None
+    x_value = _to_fraction(parts[0])
+    y_value = _to_fraction(parts[1])
+    if x_value is None or y_value is None:
+        return None
+    return x_value, y_value
+
+
+def _to_ordered_pair_list(value: Any) -> list[tuple[Fraction, Fraction]] | None:
+    text = normalize_math_key(value).replace(" ", "")
+    pairs = re.findall(r"\(([^()]+)\)", text)
+    if not pairs:
+        pairs = [part for part in text.split("|") if part]
+    result: list[tuple[Fraction, Fraction]] = []
+    for raw_pair in pairs:
+        pair = _to_coordinate_pair(raw_pair)
+        if pair is None:
+            return None
+        result.append(pair)
+    return result or None
+
+
 _OPS: dict[str, tuple[int, str, Any]] = {
     "+": (1, "left", operator.add),
     "-": (1, "left", operator.sub),
@@ -370,6 +396,20 @@ def grade_open_response(content: dict, student_answer: Any) -> OpenGradeResult:
             exp_parts = [part.strip() for part in re.split(r"[,;<>]", _strip_wrappers(expected)) if part.strip()]
             if got_parts and got_parts == exp_parts:
                 return OpenGradeResult(True, 0.98, "ordered_list_equal", answer_key)
+
+    if effective_type in {"coordinate", "coordinatepair", "coordinatepairequal"}:
+        got_pair = _to_coordinate_pair(student_answer)
+        for expected in accepted:
+            exp_pair = _to_coordinate_pair(expected)
+            if got_pair is not None and exp_pair is not None and got_pair == exp_pair:
+                return OpenGradeResult(True, 1.0, "coordinate_pair_equal", answer_key)
+
+    if effective_type in {"orderedpairlist", "orderedpairlistequal"}:
+        got_pairs = _to_ordered_pair_list(student_answer)
+        for expected in accepted:
+            exp_pairs = _to_ordered_pair_list(expected)
+            if got_pairs is not None and exp_pairs is not None and got_pairs == exp_pairs:
+                return OpenGradeResult(True, 0.98, "ordered_pair_list_equal", answer_key)
 
     if effective_type in {"set", "list", "setequal"}:
         got_parts = sorted(part.strip() for part in re.split(r"[,;]", _strip_wrappers(student_answer)) if part.strip())

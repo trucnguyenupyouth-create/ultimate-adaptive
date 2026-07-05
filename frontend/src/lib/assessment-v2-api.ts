@@ -21,6 +21,10 @@ export interface AssessmentV2Item {
   answer_type?: string;
   answer_widget?: string;
   checker_type?: string;
+  target_exam_path?: string;
+  item_role?: string;
+  item_family?: string;
+  surface_signature?: string;
   difficulty_label?: string;
   is_diagnostic_anchor?: boolean;
   progress_hint?: string;
@@ -52,6 +56,47 @@ export interface AssessmentV2Result {
     frontier_history?: unknown[];
     state_transitions?: unknown[];
     evidence_by_kc?: Record<string, unknown[]>;
+    teacher_review?: {
+      selection_steps?: Array<{
+        step?: number;
+        item_id?: string;
+        kc_id?: string;
+        kc_code?: string;
+        kc_name?: string;
+        target_exam_path?: string;
+        item_role?: string;
+        item_family?: string;
+        correct?: boolean;
+        response_type?: string;
+        selection_reason?: string;
+        selector_policy?: string;
+        deep_dive_reason?: string;
+        expected_gain?: number;
+        gain_if_correct?: number;
+        gain_if_wrong?: number;
+        candidate_pool?: Record<string, unknown>;
+        skipped_candidates?: unknown[];
+      }>;
+      node_explanations?: Record<string, {
+        kc_id: string;
+        kc_code?: string;
+        kc_name?: string;
+        final_state?: string;
+        p_mastery?: number;
+        probability_band?: string;
+        direct_evidence_count?: number;
+        inferred_evidence_count?: number;
+        reason_text?: string;
+        direct_step?: number | null;
+      }>;
+      path_summaries?: Array<{
+        target_exam_path: string;
+        tested_nodes: string[];
+        likely_blockers: string[];
+        ready_to_learn: string[];
+        selection_steps: number;
+      }>;
+    };
   };
 }
 

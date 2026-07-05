@@ -156,11 +156,21 @@ export interface V2ReviewItem {
   review_history?: V2ReviewHistoryEntry[];
   pilot_status?: "not_ready" | "ready_for_pilot" | "retired" | string;
   review_action?: "accept" | "revise" | "replace" | "needs_checker" | "needs_widget" | string;
-  answer_widget?: "number" | "fraction" | "decimal" | "power" | "expression" | "ordered_list" | "set" | "probability" | string;
+  answer_widget?: "number" | "fraction" | "decimal" | "power" | "expression" | "ordered_list" | "set" | "probability" | "coordinate_pair" | "ordered_pair_list" | string;
   checker_type?: string;
   replacement_of?: string | null;
   review_notes?: string;
   pilot_blockers?: string[];
+  official_assessment_scope?: string;
+  item_role?: "anchor" | "misconception" | "confirmation" | "transfer" | "bridge" | "readiness" | string;
+  item_family?: string;
+  surface_signature?: string;
+  parameter_set?: string;
+  target_exam_path?: string;
+  official_quality?: {
+    errors?: string[];
+    warnings?: string[];
+  };
 }
 
 export interface V2ReviewSummary {
@@ -354,6 +364,12 @@ export async function updateV2ReviewItem(
     review_notes?: string;
     difficulty_label?: string;
     is_diagnostic_anchor?: boolean;
+    official_assessment_scope?: string;
+    item_role?: string;
+    item_family?: string;
+    surface_signature?: string;
+    parameter_set?: string;
+    target_exam_path?: string;
   }
 ): Promise<V2ReviewItem> {
   return apiFetch(`/question-gen/v2-review/items/${reviewId}`, {

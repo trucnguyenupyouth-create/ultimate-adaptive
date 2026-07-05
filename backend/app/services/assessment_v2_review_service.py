@@ -19,6 +19,12 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.engines.assessment_v2.item_quality import (
+    OFFICIAL_ITEM_ROLES,
+    infer_surface_signature,
+    risk_tags_for_official_item,
+    validate_official_item,
+)
 from app.models.models import AssessmentV2ItemReview
 
 
@@ -28,7 +34,18 @@ STORE_PATH = ROOT / "data" / "assessment_v2_review" / "review_items.json"
 VALID_DECISIONS = {"needs_review", "accepted", "rejected", "revise"}
 VALID_PILOT_STATUSES = {"not_ready", "ready_for_pilot", "retired"}
 VALID_REVIEW_ACTIONS = {"accept", "revise", "replace", "needs_checker", "needs_widget"}
-SUPPORTED_WIDGETS = {"number", "fraction", "decimal", "power", "expression", "ordered_list", "set", "probability"}
+SUPPORTED_WIDGETS = {
+    "number",
+    "fraction",
+    "decimal",
+    "power",
+    "expression",
+    "ordered_list",
+    "set",
+    "probability",
+    "coordinate_pair",
+    "ordered_pair_list",
+}
 SUPPORTED_CHECKERS = {
     "numeric_equal",
     "fraction_equal",
@@ -38,6 +55,8 @@ SUPPORTED_CHECKERS = {
     "ordered_list_equal",
     "set_equal",
     "probability_equal",
+    "coordinate_pair_equal",
+    "ordered_pair_list_equal",
     "rubric_manual",
 }
 ITEM_PAYLOAD_PATCH_KEYS = {
@@ -58,6 +77,12 @@ ITEM_PAYLOAD_PATCH_KEYS = {
     "review_notes",
     "difficulty_label",
     "is_diagnostic_anchor",
+    "official_assessment_scope",
+    "item_role",
+    "item_family",
+    "surface_signature",
+    "parameter_set",
+    "target_exam_path",
 }
 
 REPLACEMENT_SUGGESTIONS: dict[str, dict[str, Any]] = {
@@ -181,6 +206,12 @@ def _risk_tags_for_item(item: dict[str, Any]) -> list[str]:
         tags.append("fragile_text_grader")
     if re.search(r"nêu lí do|nêu lý do|giải thích|vì sao", question):
         tags.append("reasoning_hard_to_auto_grade")
+    if enriched_tags := [
+        tag
+        for tag in risk_tags_for_official_item(item)
+        if tag not in {"missing_common_wrong_patterns", "missing_requires_kcs"}
+    ]:
+        tags.extend(enriched_tags)
 
     return list(dict.fromkeys(tags))
 
@@ -211,6 +242,12 @@ def enrich_review_item(item: dict[str, Any]) -> dict[str, Any]:
     enriched["pilot_status"] = enriched.get("pilot_status") or _default_pilot_status(enriched)
     enriched["review_action"] = enriched.get("review_action") or _default_review_action(enriched)
     enriched["review_notes"] = enriched.get("review_notes") or enriched.get("review_comment") or ""
+    enriched["surface_signature"] = enriched.get("surface_signature") or infer_surface_signature(str(enriched.get("question") or ""))
+    enriched["item_role"] = enriched.get("item_role") or ""
+    enriched["item_family"] = enriched.get("item_family") or ""
+    enriched["parameter_set"] = enriched.get("parameter_set") or ""
+    enriched["target_exam_path"] = enriched.get("target_exam_path") or ""
+    enriched["official_quality"] = validate_official_item(enriched, strict_metadata=bool(enriched.get("official_assessment_scope")))
     enriched["grader_readiness"] = "ready" if enriched["recommended_review_action"] == "ready_for_algorithm" else "blocked"
     enriched["pilot_blockers"] = _pilot_blockers(enriched)
     return enriched
@@ -225,6 +262,8 @@ def _default_answer_widget(item: dict[str, Any]) -> str:
         return "ordered_list"
     if "xác suất" in question or "xac suat" in question:
         return "probability"
+    if "tọa độ" in question or "toa do" in question or "điểm" in question and "(" in question:
+        return "coordinate_pair"
     if answer_type in {"fraction", "ratio"}:
         return "fraction"
     if answer_type in {"decimal"}:
@@ -247,6 +286,10 @@ def _default_checker_type(item: dict[str, Any]) -> str:
         return "ordered_list_equal"
     if widget == "probability":
         return "probability_equal"
+    if widget == "coordinate_pair":
+        return "coordinate_pair_equal"
+    if widget == "ordered_pair_list":
+        return "ordered_pair_list_equal"
     if widget == "expression":
         return "expression_equivalent"
     if widget == "set":
@@ -484,6 +527,8 @@ async def update_review_item_db(db: AsyncSession, review_id: str, patch: dict[st
             raise ValueError(f"Invalid pilot_status: {value}")
         if key == "review_action" and value not in VALID_REVIEW_ACTIONS:
             raise ValueError(f"Invalid review_action: {value}")
+        if key == "item_role" and value and value not in OFFICIAL_ITEM_ROLES:
+            raise ValueError(f"Invalid item_role: {value}")
         if key == "answer_widget" and value not in SUPPORTED_WIDGETS:
             raise ValueError(f"Invalid answer_widget: {value}")
         if key == "checker_type" and value not in SUPPORTED_CHECKERS:

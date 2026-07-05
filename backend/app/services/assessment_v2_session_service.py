@@ -150,6 +150,7 @@ def _run_from_payload(payload: dict[str, Any]) -> DiagnosticRun:
         evidence_by_kc=dict(payload.get("run", {}).get("evidence_by_kc", {})),
         frontier_history=list(payload.get("run", {}).get("frontier_history", [])),
         state_transitions=list(payload.get("run", {}).get("state_transitions", [])),
+        particle_state=payload.get("run", {}).get("particle_state"),
     )
 
 
@@ -164,6 +165,10 @@ def _serialize_item(item: DiagnosticItem, nodes_by_id: dict[str, dict[str, Any]]
         "answer_type": content.get("answer_type"),
         "answer_widget": content.get("answer_widget"),
         "checker_type": content.get("checker_type"),
+        "target_exam_path": content.get("target_exam_path"),
+        "item_role": content.get("item_role"),
+        "item_family": content.get("item_family"),
+        "surface_signature": content.get("surface_signature"),
         "difficulty_label": item.difficulty_label,
         "is_diagnostic_anchor": item.is_diagnostic_anchor,
         "progress_hint": "This adaptive check may finish before the maximum question count.",
@@ -645,9 +650,157 @@ async def submit_mastery_response(
 
 async def get_review(db: AsyncSession, session_id: str) -> dict[str, Any]:
     result = await get_result(db, session_id)
+    payload_result = await db.execute(select(AssessmentV2Session).where(AssessmentV2Session.id == uuid.UUID(session_id)))
+    row = payload_result.scalar_one_or_none()
+    payload = dict(row.payload or {}) if row is not None else {}
+    teacher_review = _teacher_review_payload(result, payload)
     result["audit"] = {
         "frontier_history": result["run"].get("frontier_history", []),
         "state_transitions": result["run"].get("state_transitions", []),
         "evidence_by_kc": result["run"].get("evidence_by_kc", {}),
+        "teacher_review": teacher_review,
     }
     return result
+
+
+def _teacher_review_payload(result: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    nodes = {node["id"]: node for node in payload.get("nodes", [])}
+    run = result.get("run", {})
+    responses = result.get("responses", [])
+    frontier_history = run.get("frontier_history", [])
+    state_transitions = run.get("state_transitions", [])
+    states = run.get("states", {})
+
+    frontier_by_item = {
+        entry.get("selected_item"): entry
+        for entry in frontier_history
+        if entry.get("selected_item")
+    }
+    changes_by_kc: dict[str, list[dict[str, Any]]] = {}
+    for transition in state_transitions:
+        for change in transition.get("changes", []) or []:
+            kc_id = str(change.get("kc_id") or "")
+            if kc_id:
+                changes_by_kc.setdefault(kc_id, []).append({**change, "source_kc": transition.get("kc_id"), "source_item": transition.get("item_id")})
+
+    selection_steps = []
+    for response in responses:
+        item = response.get("item") or {}
+        frontier = frontier_by_item.get(item.get("item_id")) or {}
+        candidate = next(
+            (row for row in frontier.get("top_candidates", []) or [] if row.get("item_id") == item.get("item_id")),
+            (frontier.get("top_candidates") or [{}])[0],
+        )
+        selection_steps.append({
+            "step": response.get("step"),
+            "item_id": item.get("item_id"),
+            "kc_id": item.get("kc_id"),
+            "kc_code": item.get("kc_code"),
+            "kc_name": item.get("kc_name"),
+            "target_exam_path": item.get("target_exam_path"),
+            "item_role": item.get("item_role"),
+            "item_family": item.get("item_family"),
+            "correct": (response.get("grading") or {}).get("is_correct"),
+            "response_type": response.get("response_type"),
+            "selection_reason": _selection_reason_text(frontier, candidate, response),
+            "selector_policy": frontier.get("selector_policy"),
+            "deep_dive_reason": frontier.get("deep_dive_reason"),
+            "expected_gain": candidate.get("expected_gain"),
+            "gain_if_correct": candidate.get("gain_if_correct"),
+            "gain_if_wrong": candidate.get("gain_if_wrong"),
+            "candidate_pool": frontier.get("candidate_pool"),
+            "skipped_candidates": frontier.get("skipped_candidates", []),
+        })
+
+    node_explanations = {}
+    response_by_kc = {
+        (response.get("item") or {}).get("kc_id"): response
+        for response in responses
+    }
+    for kc_id, state in states.items():
+        node = nodes.get(kc_id, {})
+        response = response_by_kc.get(kc_id)
+        changes = changes_by_kc.get(kc_id, [])
+        node_explanations[kc_id] = {
+            "kc_id": kc_id,
+            "kc_code": node.get("code"),
+            "kc_name": node.get("name"),
+            "final_state": state.get("label"),
+            "p_mastery": state.get("p_mastery"),
+            "probability_band": state.get("probability_band"),
+            "direct_evidence_count": state.get("direct_evidence_count"),
+            "inferred_evidence_count": state.get("inferred_evidence_count"),
+            "reason_text": _node_reason_text(state, response, changes),
+            "latest_change": changes[-1] if changes else None,
+            "direct_step": response.get("step") if response else None,
+        }
+
+    path_summaries: dict[str, dict[str, Any]] = {}
+    for step in selection_steps:
+        path = step.get("target_exam_path") or "unknown_path"
+        summary = path_summaries.setdefault(path, {
+            "target_exam_path": path,
+            "tested_nodes": [],
+            "likely_blockers": [],
+            "ready_to_learn": [],
+            "selection_steps": 0,
+        })
+        summary["selection_steps"] += 1
+        if step.get("kc_code") and step["kc_code"] not in summary["tested_nodes"]:
+            summary["tested_nodes"].append(step["kc_code"])
+        if step.get("correct") is False and step.get("kc_code") and step["kc_code"] not in summary["likely_blockers"]:
+            summary["likely_blockers"].append(step["kc_code"])
+
+    for row in result.get("summary", {}).get("ready_to_learn", []) or []:
+        path = "unknown_path"
+        for step in selection_steps:
+            if step.get("kc_id") == row.get("kc_id") and step.get("target_exam_path"):
+                path = step["target_exam_path"]
+                break
+        path_summaries.setdefault(path, {
+            "target_exam_path": path,
+            "tested_nodes": [],
+            "likely_blockers": [],
+            "ready_to_learn": [],
+            "selection_steps": 0,
+        })["ready_to_learn"].append(row.get("code") or row.get("kc_id"))
+
+    return {
+        "selection_steps": selection_steps,
+        "node_explanations": node_explanations,
+        "path_summaries": list(path_summaries.values()),
+    }
+
+
+def _selection_reason_text(frontier: dict[str, Any], candidate: dict[str, Any], response: dict[str, Any]) -> str:
+    policy = frontier.get("selector_policy")
+    if policy == "grade8_deep_dive":
+        previous = frontier.get("deep_dive_reason") or "previous response showed a gap"
+        return f"Deep-dive: {previous}. Engine selected this probe before leaving the strand."
+    if frontier.get("reason") == "confirmation_after_breadth":
+        return "Confirmation: breadth scan found no new higher-value node, so the engine asked another non-duplicate item for a still-uncertain KC."
+    if response.get("step") == 1:
+        return "Entry point: state-space EIG selected the item expected to split feasible knowledge states best."
+    return "State-space EIG: selected because correct/wrong outcomes are expected to reduce uncertainty over the graph."
+
+
+def _node_reason_text(state: dict[str, Any], response: dict[str, Any] | None, changes: list[dict[str, Any]]) -> str:
+    label = state.get("label")
+    if response:
+        if response.get("response_type") == "unknown":
+            return f"Direct evidence from question {response.get('step')}: student selected I don't know."
+        is_correct = (response.get("grading") or {}).get("is_correct")
+        return f"Direct evidence from question {response.get('step')}: student answered {'correctly' if is_correct else 'incorrectly'}."
+    if changes:
+        latest = changes[-1]
+        reason = str(latest.get("reason") or "")
+        if reason.startswith("state_space_particle_update"):
+            return "Inferred from the feasible knowledge-state posterior after previous answers."
+        if "strong_open_requires" in reason:
+            return "Inferred stronger because the student answered a reviewed open-ended item requiring this KC."
+        if "strong_open_diagnoses" in reason:
+            return "Possibly affected because a reviewed open-ended wrong answer diagnosed this KC."
+        return f"Inferred from graph/state transition: {reason}."
+    if label == "unknown":
+        return "No direct or strong inferred evidence in this session."
+    return "State assigned by current mastery probability thresholds."

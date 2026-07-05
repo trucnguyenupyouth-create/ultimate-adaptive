@@ -50,6 +50,9 @@ function previousAnswerText(step?: AssessmentV2TranscriptStep) {
 }
 
 function reasonText(reason?: string) {
+  if (reason === "grade8_deep_dive_after_failed_response") {
+    return "Deep-dive: câu trước sai/không biết, nên engine đào vào prerequisite hoặc misconception probe trong cùng path trước khi rời strand.";
+  }
   if (reason === "confirmation_after_breadth") {
     return "Câu xác nhận: hệ thống đã quét đủ rộng và cần thêm bằng chứng cho một node còn lưng chừng.";
   }
@@ -143,6 +146,10 @@ export default function AssessmentV2HistoryPage() {
     frontier_history?: Array<{
       selected_item?: string;
       reason?: string;
+      selector_policy?: string;
+      deep_dive_reason?: string;
+      candidate_pool?: Record<string, unknown>;
+      skipped_candidates?: unknown[];
       top_candidates?: Array<{
         item_id?: string;
         expected_gain?: number;
@@ -167,6 +174,8 @@ export default function AssessmentV2HistoryPage() {
   const responses = selected?.responses ?? [];
   const rows = selected ? flattenRows(selected) : [];
   const responseByKc = new Map(responses.map((step) => [step.item.kc_id, step]));
+  const teacherReview = selected?.audit?.teacher_review;
+  const selectionByItem = new Map((teacherReview?.selection_steps ?? []).map((step) => [step.item_id, step]));
 
   return (
     <main className="history-shell">
@@ -254,12 +263,23 @@ export default function AssessmentV2HistoryPage() {
             <div className="review-grid">
               <section className="panel">
                 <h3>1. Chuỗi câu hỏi theo thứ tự</h3>
+                {!!teacherReview?.path_summaries?.length && (
+                  <div className="path-summary-row">
+                    {teacherReview.path_summaries.map((path) => (
+                      <div key={path.target_exam_path} className="path-chip">
+                        <strong>{path.target_exam_path.replaceAll("_", " ")}</strong>
+                        <span>{path.selection_steps} câu · {path.likely_blockers.length} blocker</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="timeline">
                   {responses.map((step, index) => {
                     const result = correctness(step);
                     const Icon = result.icon;
                     const frontierEntry = run.frontier_history?.find((entry) => entry.selected_item === step.item.item_id) ?? run.frontier_history?.[index];
                     const candidate = frontierEntry?.top_candidates?.find((row) => row.item_id === step.item.item_id) ?? frontierEntry?.top_candidates?.[0];
+                    const teacherStep = selectionByItem.get(step.item.item_id);
                     return (
                       <article key={`${step.step}-${step.item.item_id}`} className="timeline-card">
                         <div className="timeline-head">
@@ -269,6 +289,11 @@ export default function AssessmentV2HistoryPage() {
                             <h4>{step.item.kc_name ?? "Kỹ năng chưa đặt tên"}</h4>
                           </div>
                           <span className={`answer-chip ${result.cls}`}><Icon size={14} /> {result.label}</span>
+                        </div>
+                        <div className="item-meta">
+                          {step.item.target_exam_path && <span>{step.item.target_exam_path}</span>}
+                          {step.item.item_role && <span>{step.item.item_role}</span>}
+                          {step.item.item_family && <span>{step.item.item_family}</span>}
                         </div>
                         <p className="question">{step.item.question}</p>
                         <div className="answer-table">
@@ -284,9 +309,15 @@ export default function AssessmentV2HistoryPage() {
                               : `Sau khi ${previousAnswerText(responses[index - 1])}, engine chọn frontier tiếp theo để làm rõ vùng kiến thức còn chưa chắc.`}
                           </p>
                           <p>
-                            {reasonText(frontierEntry?.reason)}
+                            {teacherStep?.selection_reason ?? reasonText(frontierEntry?.reason)}
                             {candidate ? ` expected_gain=${candidate.expected_gain ?? "—"}, gain_if_correct=${candidate.gain_if_correct ?? "—"}, gain_if_wrong=${candidate.gain_if_wrong ?? "—"}.` : ""}
                           </p>
+                          {(teacherStep?.deep_dive_reason || frontierEntry?.deep_dive_reason) && (
+                            <p><strong>Deep-dive:</strong> {teacherStep?.deep_dive_reason ?? frontierEntry?.deep_dive_reason}</p>
+                          )}
+                          {(teacherStep?.selector_policy || frontierEntry?.selector_policy) && (
+                            <p><strong>Policy:</strong> {teacherStep?.selector_policy ?? frontierEntry?.selector_policy}</p>
+                          )}
                         </div>
                       </article>
                     );
@@ -299,6 +330,7 @@ export default function AssessmentV2HistoryPage() {
                 <div className="node-list">
                   {rows.map(({ group, row }) => {
                     const direct = responseByKc.get(row.kc_id);
+                    const explanation = teacherReview?.node_explanations?.[row.kc_id];
                     const transition = run.state_transitions
                       ?.flatMap((entry) => (entry.changes ?? []).map((change) => ({ ...change, source: entry.kc_id })))
                       .reverse()
@@ -314,13 +346,14 @@ export default function AssessmentV2HistoryPage() {
                         </div>
                         <span className={`state-pill ${row.state}`}>{group} · {STATE_LABELS[row.state] ?? row.state}</span>
                         <p>
-                          {direct
+                          {explanation?.reason_text ??
+                          (direct
                             ? `Có bằng chứng trực tiếp ở câu ${direct.step}: ${direct.response_type === "unknown" ? "Không biết" : direct.grading?.is_correct ? "đúng" : "sai"}.`
                             : transition?.reason?.includes("descendant_decay")
                               ? `Suy luận giảm do node tiên quyết ${transition.source ?? "trước đó"} có tín hiệu yếu; đây là “có thể bị ảnh hưởng”, chưa phải kết luận tuyệt đối.`
                               : transition?.reason?.includes("ancestor_boost")
                                 ? `Suy luận tăng do một node phía sau trong graph được trả lời đúng.`
-                                : "Chưa có bằng chứng trực tiếp trong session này."}
+                                : "Chưa có bằng chứng trực tiếp trong session này.")}
                         </p>
                       </article>
                     );
@@ -511,6 +544,42 @@ export default function AssessmentV2HistoryPage() {
           grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
           gap: 18px;
           align-items: start;
+        }
+        .path-summary-row, .item-meta {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 14px;
+        }
+        .path-chip, .item-meta span {
+          border-radius: 999px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          background: #f8fafc;
+          padding: 7px 10px;
+          font-size: 12px;
+          color: #374151;
+        }
+        .path-chip {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          border-radius: 14px;
+        }
+        .path-chip strong {
+          text-transform: capitalize;
+        }
+        .path-chip span {
+          color: #6b7280;
+          font-weight: 800;
+        }
+        .item-meta {
+          margin: 10px 0 0;
+        }
+        .item-meta span {
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: 10px;
+          font-weight: 900;
+          color: #3d72f8;
         }
         .panel {
           padding: 20px;

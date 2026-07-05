@@ -56,7 +56,7 @@ function normalizeWidgetType(raw: WidgetAlias, checkerType?: string): WidgetType
   if (["inequality", "inequality_sign", "comparison_sign"].includes(value)) return "inequality_sign";
   if (["coordinate", "coordinate_pair"].includes(value)) return "coordinate";
   if (["decimal", "decimal_equal", "probability", "probability_equal"].includes(value)) return "decimal";
-  if (["raw", "expression", "expression_equivalent", "ordered_list", "set"].includes(value)) return "raw";
+  if (["raw", "expression", "expression_equivalent", "ordered_list", "set", "ordered_pair_list", "ordered_pair_list_equal"].includes(value)) return "raw";
   return "number";
 }
 
@@ -1350,6 +1350,7 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
   const [fracState, setFracState] = useState<FractionWidgetState>({ num: "", den: "" });
   const [textState, setTextState] = useState("");
   const [powerState, setPowerState] = useState({ base: "", exp: "" });
+  const [coordinateState, setCoordinateState] = useState({ x: "", y: "" });
   const [openCorrect, setOpenCorrect] = useState<boolean | null>(null);
 
   const handleComplete = useCallback(async (answer: string) => {
@@ -1378,6 +1379,9 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
     } else if (realWidgetType === "power") {
       if (!powerState.base.trim() || !powerState.exp.trim()) return;
       answer = `${powerState.base}^${powerState.exp}`;
+    } else if (realWidgetType === "coordinate") {
+      if (!coordinateState.x.trim() || !coordinateState.y.trim()) return;
+      answer = `(${coordinateState.x},${coordinateState.y})`;
     } else {
       if (!textState.trim()) return;
       answer = textState;
@@ -1395,6 +1399,8 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
     ? isFractionReady(fracState)
     : realWidgetType === "power"
       ? powerState.base.trim() !== "" && powerState.exp.trim() !== ""
+      : realWidgetType === "coordinate"
+        ? coordinateState.x.trim() !== "" && coordinateState.y.trim() !== ""
     : textState.trim().length > 0;
 
   const mcqCorrect = isMCQ && selected !== null && MCQ_OPTIONS[selected].correct;
@@ -1467,6 +1473,8 @@ function MasteryStep({ result, pitchMode, onComplete }: MasteryStepProps) {
                   onTextChange={setTextState}
                   powerState={powerState}
                   onPowerChange={setPowerState}
+                  coordinateState={coordinateState}
+                  onCoordinateChange={setCoordinateState}
                 />
               )}
             </div>

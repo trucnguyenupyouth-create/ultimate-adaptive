@@ -100,6 +100,12 @@ class V2ReviewPatchRequest(BaseModel):
     review_notes: Optional[str] = None
     difficulty_label: Optional[str] = None
     is_diagnostic_anchor: Optional[bool] = None
+    official_assessment_scope: Optional[str] = None
+    item_role: Optional[str] = None
+    item_family: Optional[str] = None
+    surface_signature: Optional[str] = None
+    parameter_set: Optional[str] = None
+    target_exam_path: Optional[str] = None
 
 
 # ── Background Job Runner ─────────────────────────────────────────────────────

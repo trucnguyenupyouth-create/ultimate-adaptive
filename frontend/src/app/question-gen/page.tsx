@@ -754,10 +754,11 @@ function itemReviewWarnings(item: V2ReviewItem): string[] {
   return warnings;
 }
 
-const ANSWER_WIDGETS = ["number", "fraction", "decimal", "power", "expression", "ordered_list", "set", "probability"];
-const CHECKER_TYPES = ["numeric_equal", "fraction_equal", "decimal_equal", "power_tuple", "expression_equivalent", "ordered_list_equal", "set_equal", "probability_equal", "rubric_manual"];
+const ANSWER_WIDGETS = ["number", "fraction", "decimal", "power", "expression", "ordered_list", "set", "probability", "coordinate_pair", "ordered_pair_list"];
+const CHECKER_TYPES = ["numeric_equal", "fraction_equal", "decimal_equal", "power_tuple", "expression_equivalent", "ordered_list_equal", "set_equal", "probability_equal", "coordinate_pair_equal", "ordered_pair_list_equal", "rubric_manual"];
 const PILOT_STATUSES = ["not_ready", "ready_for_pilot", "retired"];
 const REVIEW_ACTIONS = ["accept", "revise", "replace", "needs_checker", "needs_widget"];
+const ITEM_ROLES = ["", "anchor", "misconception", "confirmation", "transfer", "bridge", "readiness"];
 
 function V2PilotWorkbench({
   item,
@@ -771,14 +772,26 @@ function V2PilotWorkbench({
   const [question, setQuestion] = useState(item.question);
   const [accepted, setAccepted] = useState((item.accepted_answers ?? []).join("; "));
   const [notes, setNotes] = useState(item.review_notes ?? "");
+  const [scope, setScope] = useState(item.official_assessment_scope ?? "");
+  const [path, setPath] = useState(item.target_exam_path ?? "");
+  const [family, setFamily] = useState(item.item_family ?? "");
+  const [signature, setSignature] = useState(item.surface_signature ?? "");
+  const [parameterSet, setParameterSet] = useState(item.parameter_set ?? "");
 
   useEffect(() => {
     setQuestion(item.question);
     setAccepted((item.accepted_answers ?? []).join("; "));
     setNotes(item.review_notes ?? "");
-  }, [item.review_id, item.question, item.accepted_answers, item.review_notes]);
+    setScope(item.official_assessment_scope ?? "");
+    setPath(item.target_exam_path ?? "");
+    setFamily(item.item_family ?? "");
+    setSignature(item.surface_signature ?? "");
+    setParameterSet(item.parameter_set ?? "");
+  }, [item.review_id, item.question, item.accepted_answers, item.review_notes, item.official_assessment_scope, item.target_exam_path, item.item_family, item.surface_signature, item.parameter_set]);
 
   const blockers = item.pilot_blockers ?? [];
+  const qualityErrors = item.official_quality?.errors ?? [];
+  const qualityWarnings = item.official_quality?.warnings ?? [];
   return (
     <div className="v2-workbench">
       <div className="v2-workbench-title">Pilot readiness workbench</div>
@@ -796,6 +809,12 @@ function V2PilotWorkbench({
           </select>
         </label>
         <label>
+          Item role
+          <select className="v2-select" value={item.item_role ?? ""} disabled={disabled} onChange={(event) => onSave({ item_role: event.target.value, note: `Item role set to ${event.target.value}` })}>
+            {ITEM_ROLES.map((value) => <option key={value || "blank"} value={value}>{value || "Unset"}</option>)}
+          </select>
+        </label>
+        <label>
           Answer widget
           <select className="v2-select" value={item.answer_widget ?? "number"} disabled={disabled} onChange={(event) => onSave({ answer_widget: event.target.value, note: `Answer widget set to ${event.target.value}` })}>
             {ANSWER_WIDGETS.map((value) => <option key={value} value={value}>{value}</option>)}
@@ -808,6 +827,28 @@ function V2PilotWorkbench({
           </select>
         </label>
       </div>
+      <div className="v2-edit-grid">
+        <label>
+          Official scope
+          <input className="v2-input" value={scope} onChange={(event) => setScope(event.target.value)} placeholder="grade8_exam_path" />
+        </label>
+        <label>
+          Exam path
+          <input className="v2-input" value={path} onChange={(event) => setPath(event.target.value)} placeholder="rational_expression" />
+        </label>
+        <label>
+          Item family
+          <input className="v2-input" value={family} onChange={(event) => setFamily(event.target.value)} placeholder="combine_rational_unlike_denominators" />
+        </label>
+        <label>
+          Parameter set
+          <input className="v2-input" value={parameterSet} onChange={(event) => setParameterSet(event.target.value)} placeholder="x2_minus_2_over_x_xplus2" />
+        </label>
+      </div>
+      <label className="v2-field">
+        Surface signature
+        <input className="v2-input v2-wide-input" value={signature} onChange={(event) => setSignature(event.target.value)} />
+      </label>
       <label className="v2-field">
         Question
         <textarea className="v2-comment" value={question} onChange={(event) => setQuestion(event.target.value)} />
@@ -825,6 +866,11 @@ function V2PilotWorkbench({
           <strong>Pilot blockers:</strong> {blockers.join(", ")}
         </div>
       )}
+      {(qualityErrors.length > 0 || qualityWarnings.length > 0) && (
+        <div className="v2-warning">
+          <strong>Official quality:</strong> {[...qualityErrors.map((value) => `error:${value}`), ...qualityWarnings.map((value) => `warn:${value}`)].join(", ")}
+        </div>
+      )}
       <div className="v2-row-actions">
         <button
           className="btn-primary btn-sm"
@@ -833,6 +879,11 @@ function V2PilotWorkbench({
             question,
             accepted_answers: accepted.split(";").map((value) => value.trim()).filter(Boolean),
             review_notes: notes,
+            official_assessment_scope: scope,
+            target_exam_path: path,
+            item_family: family,
+            surface_signature: signature,
+            parameter_set: parameterSet,
             note: "Reviewer saved pilot item fields",
           })}
         >
