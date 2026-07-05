@@ -80,14 +80,17 @@ export default function AssessmentV2HistoryPage() {
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scopeFilter, setScopeFilter] = useState<string | null>(null);
+  const [preferredSessionId, setPreferredSessionId] = useState<string | null>(null);
 
   const loadSessions = async () => {
     setLoadingList(true);
     setError(null);
     try {
-      const res = await listAssessmentV2Sessions({ limit: 100 });
+      const res = await listAssessmentV2Sessions({ limit: 100, assessment_scope: scopeFilter ?? undefined });
       setSessions(res.sessions);
-      if (!selectedId && res.sessions[0]) setSelectedId(res.sessions[0].session_id);
+      const preferred = preferredSessionId ? res.sessions.find((session) => session.session_id === preferredSessionId) : null;
+      if (!selectedId && (preferred || res.sessions[0])) setSelectedId((preferred || res.sessions[0]).session_id);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -96,12 +99,19 @@ export default function AssessmentV2HistoryPage() {
   };
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setScopeFilter(params.get("scope"));
+    setPreferredSessionId(params.get("session"));
+  }, []);
+
+  useEffect(() => {
     let active = true;
-    listAssessmentV2Sessions({ limit: 100 })
+    listAssessmentV2Sessions({ limit: 100, assessment_scope: scopeFilter ?? undefined })
       .then((res) => {
         if (!active) return;
         setSessions(res.sessions);
-        if (res.sessions[0]) setSelectedId(res.sessions[0].session_id);
+        const preferred = preferredSessionId ? res.sessions.find((session) => session.session_id === preferredSessionId) : null;
+        if (preferred || res.sessions[0]) setSelectedId((preferred || res.sessions[0]).session_id);
       })
       .catch((err) => {
         if (active) setError((err as Error).message);
@@ -112,7 +122,7 @@ export default function AssessmentV2HistoryPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [preferredSessionId, scopeFilter]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -181,8 +191,8 @@ export default function AssessmentV2HistoryPage() {
     <main className="history-shell">
       <aside className="history-sidebar">
         <div className="history-topbar">
-          <Link href="/assessment-v2/algebra" className="back-link">
-            <ArrowLeft size={16} /> Assessment
+          <Link href={scopeFilter === "grade8_exam_path" ? "/assessment-v2/grade8-path" : "/assessment-v2/algebra"} className="back-link">
+            <ArrowLeft size={16} /> {scopeFilter === "grade8_exam_path" ? "Grade 8 test" : "Assessment"}
           </Link>
           <button className="icon-button" onClick={loadSessions} disabled={loadingList} title="Tải lại">
             <RefreshCw size={16} />
@@ -191,7 +201,7 @@ export default function AssessmentV2HistoryPage() {
 
         <div>
           <p className="eyebrow">Assessment V2</p>
-          <h1>Lịch sử test</h1>
+          <h1>{scopeFilter === "grade8_exam_path" ? "Grade 8 review" : "Lịch sử test"}</h1>
           <p className="subtitle">Dữ liệu được đọc từ bảng production `assessment_v2_sessions`.</p>
         </div>
 
@@ -242,7 +252,7 @@ export default function AssessmentV2HistoryPage() {
                 </p>
               </div>
               <div className="header-actions">
-                <Link href={`/assessment-v2/algebra`} className="primary-link">Mở assessment mới</Link>
+                <Link href={scopeFilter === "grade8_exam_path" ? "/assessment-v2/grade8-path" : "/assessment-v2/algebra"} className="primary-link">Mở assessment mới</Link>
               </div>
             </header>
 

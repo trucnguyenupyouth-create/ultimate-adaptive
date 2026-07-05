@@ -34,6 +34,7 @@ export interface AssessmentV2SessionResponse {
   session_id: string;
   session_code: string;
   status: "in_progress" | "completed";
+  assessment_scope?: string;
   max_questions: number;
   question_number?: number;
   item?: AssessmentV2Item | null;
@@ -46,6 +47,7 @@ export interface AssessmentV2Result {
   session_id: string;
   session_code: string;
   status: "in_progress" | "completed";
+  assessment_scope?: string;
   max_questions: number;
   summary: AssessmentV2Summary;
   learning_loop?: AssessmentV2LearningLoop;
@@ -104,6 +106,7 @@ export interface AssessmentV2SessionMeta {
   session_id: string;
   session_code: string;
   status: "in_progress" | "completed";
+  assessment_scope?: string;
   student_label?: string | null;
   max_questions: number;
   questions_asked: number;
@@ -189,12 +192,14 @@ export interface AssessmentV2MasteryCheck {
 export async function createAssessmentV2Session(options?: {
   max_questions?: number;
   student_label?: string;
+  assessment_scope?: "g6_algebra_pilot" | "grade8_exam_path" | string;
 }): Promise<AssessmentV2SessionResponse> {
   return apiFetch("/assessment-v2/sessions", {
     method: "POST",
     body: JSON.stringify({
       max_questions: options?.max_questions ?? 35,
       student_label: options?.student_label ?? null,
+      assessment_scope: options?.assessment_scope ?? "g6_algebra_pilot",
     }),
   });
 }
@@ -202,10 +207,12 @@ export async function createAssessmentV2Session(options?: {
 export async function listAssessmentV2Sessions(options?: {
   limit?: number;
   status?: "in_progress" | "completed";
+  assessment_scope?: string;
 }): Promise<{ sessions: AssessmentV2SessionMeta[]; limit: number; status?: string | null }> {
   const params = new URLSearchParams();
   params.set("limit", String(options?.limit ?? 50));
   if (options?.status) params.set("status", options.status);
+  if (options?.assessment_scope) params.set("assessment_scope", options.assessment_scope);
   return apiFetch(`/assessment-v2/sessions?${params.toString()}`);
 }
 

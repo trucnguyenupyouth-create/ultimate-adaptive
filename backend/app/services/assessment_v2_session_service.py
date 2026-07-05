@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import datetime, timezone
 from fractions import Fraction
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import select
@@ -24,6 +26,10 @@ from app.services.assessment_v2_review_service import _ensure_seeded, enrich_rev
 
 
 DEFAULT_MAX_QUESTIONS = 35
+DEFAULT_ASSESSMENT_SCOPE = "g6_algebra_pilot"
+GRADE8_EXAM_PATH_SCOPE = "grade8_exam_path"
+ROOT = Path(__file__).resolve().parents[3]
+GRADE8_DRAFT_ITEMS_PATH = ROOT / "docs" / "grade8_exam_path_official_item_drafts.json"
 
 
 def _now() -> datetime:
@@ -90,6 +96,72 @@ async def _load_g6_graph(db: AsyncSession) -> dict[str, list[dict[str, Any]]]:
     return {"nodes": nodes, "edges": edges}
 
 
+async def _load_grade8_exam_path_context(db: AsyncSession) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[DiagnosticItem]]:
+    if not GRADE8_DRAFT_ITEMS_PATH.exists():
+        raise ValueError("Grade 8 official-path draft item bank is not available on this deployment.")
+    raw_items = json.loads(GRADE8_DRAFT_ITEMS_PATH.read_text(encoding="utf-8")).get("items", [])
+    if not raw_items:
+        raise ValueError("Grade 8 official-path draft item bank is empty.")
+
+    scope_ids: set[str] = set()
+    for item in raw_items:
+        if item.get("official_assessment_scope") != GRADE8_EXAM_PATH_SCOPE:
+            continue
+        for key in ("kc_id",):
+            if item.get(key):
+                scope_ids.add(str(item[key]))
+        for key in ("requires_kcs", "diagnoses_kcs"):
+            for kc_id in item.get(key, []) or []:
+                scope_ids.add(str(kc_id))
+
+    node_result = await db.execute(select(KnowledgeComponent).where(KnowledgeComponent.id.in_([uuid.UUID(kc_id) for kc_id in scope_ids])))
+    nodes = [
+        {
+            "id": str(row.id),
+            "code": row.code,
+            "name": row.name,
+            "grade": row.grade,
+            "subject": row.subject,
+            "chapter_info": row.chapter_info,
+            "description": row.description,
+        }
+        for row in node_result.scalars().all()
+    ]
+    existing_ids = {node["id"] for node in nodes}
+    edge_result = await db.execute(select(KCPrerequisite).where(KCPrerequisite.edge_type == "prerequisite"))
+    edges = [
+        {
+            "source": str(row.prereq_id),
+            "target": str(row.kc_id),
+            "edge_type": row.edge_type,
+            "weight": row.weight,
+        }
+        for row in edge_result.scalars().all()
+        if str(row.prereq_id) in existing_ids and str(row.kc_id) in existing_ids
+    ]
+
+    diagnostic_items: list[DiagnosticItem] = []
+    for raw in raw_items:
+        if raw.get("official_assessment_scope") != GRADE8_EXAM_PATH_SCOPE:
+            continue
+        if str(raw.get("kc_id")) not in existing_ids:
+            continue
+        widget = raw.get("answer_widget") or raw.get("answer_type") or "short_text"
+        format_type = "open" if widget in {"number", "decimal", "fraction", "coordinate_pair", "ordered_pair_list"} else "open_short"
+        diagnostic_items.append(DiagnosticItem(
+            id=raw["review_id"],
+            kc_id=str(raw["kc_id"]),
+            format_type=format_type,
+            difficulty_label=raw.get("item_role") or raw.get("difficulty_label") or "medium",
+            is_diagnostic_anchor=raw.get("item_role") == "anchor",
+            content=dict(raw),
+        ))
+
+    if not diagnostic_items:
+        raise ValueError("Grade 8 official-path assessment has no usable local draft items.")
+    return nodes, edges, diagnostic_items
+
+
 async def _load_pilot_context(db: AsyncSession) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[DiagnosticItem]]:
     await _ensure_seeded(db)
     graph = await _load_g6_graph(db)
@@ -129,6 +201,17 @@ async def _load_pilot_context(db: AsyncSession) -> tuple[list[dict[str, Any]], l
             content=content,
         ))
     return nodes, edges, diagnostic_items
+
+
+async def _load_context_for_scope(
+    db: AsyncSession,
+    assessment_scope: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[DiagnosticItem]]:
+    if assessment_scope == GRADE8_EXAM_PATH_SCOPE:
+        return await _load_grade8_exam_path_context(db)
+    if assessment_scope == DEFAULT_ASSESSMENT_SCOPE:
+        return await _load_pilot_context(db)
+    raise ValueError(f"Unsupported Assessment V2 scope: {assessment_scope}")
 
 
 def _run_from_payload(payload: dict[str, Any]) -> DiagnosticRun:
@@ -368,6 +451,7 @@ def _session_response_from_row(row: AssessmentV2Session) -> dict[str, Any]:
         "session_id": str(row.id),
         "session_code": row.session_code,
         "status": row.status,
+        "assessment_scope": payload.get("assessment_scope") or DEFAULT_ASSESSMENT_SCOPE,
         "max_questions": row.max_questions,
         "question_number": len(responses) + 1,
         "item": _serialize_item(current_item, {node["id"]: node for node in nodes}) if current_item else None,
@@ -375,8 +459,13 @@ def _session_response_from_row(row: AssessmentV2Session) -> dict[str, Any]:
     }
 
 
-async def create_session(db: AsyncSession, max_questions: int = DEFAULT_MAX_QUESTIONS, student_label: str | None = None) -> dict[str, Any]:
-    nodes, edges, items = await _load_pilot_context(db)
+async def create_session(
+    db: AsyncSession,
+    max_questions: int = DEFAULT_MAX_QUESTIONS,
+    student_label: str | None = None,
+    assessment_scope: str = DEFAULT_ASSESSMENT_SCOPE,
+) -> dict[str, Any]:
+    nodes, edges, items = await _load_context_for_scope(db, assessment_scope)
     if not items:
         raise ValueError("No Assessment V2 pilot-ready items are available.")
     engine = V2DiagnosticEngine(nodes=nodes, edges=edges, items=items)
@@ -388,6 +477,7 @@ async def create_session(db: AsyncSession, max_questions: int = DEFAULT_MAX_QUES
     session_code = f"v2-{uuid.uuid4().hex[:12]}"
     payload = {
         "version": 1,
+        "assessment_scope": assessment_scope,
         "created_at": _now_iso(),
         "nodes": nodes,
         "edges": edges,
@@ -421,6 +511,7 @@ def _session_metadata_from_row(row: AssessmentV2Session) -> dict[str, Any]:
         "session_id": str(row.id),
         "session_code": row.session_code,
         "status": row.status,
+        "assessment_scope": payload.get("assessment_scope") or DEFAULT_ASSESSMENT_SCOPE,
         "student_label": row.student_label,
         "max_questions": row.max_questions,
         "questions_asked": len(responses),
@@ -435,17 +526,28 @@ def _session_metadata_from_row(row: AssessmentV2Session) -> dict[str, Any]:
     }
 
 
-async def list_sessions(db: AsyncSession, limit: int = 50, status: str | None = None) -> dict[str, Any]:
+async def list_sessions(
+    db: AsyncSession,
+    limit: int = 50,
+    status: str | None = None,
+    assessment_scope: str | None = None,
+) -> dict[str, Any]:
     query = select(AssessmentV2Session)
     if status:
         query = query.where(AssessmentV2Session.status == status)
     query = query.order_by(AssessmentV2Session.created_at.desc()).limit(limit)
     result = await db.execute(query)
     rows = result.scalars().all()
+    if assessment_scope:
+        rows = [
+            row for row in rows
+            if (dict(row.payload or {}).get("assessment_scope") or DEFAULT_ASSESSMENT_SCOPE) == assessment_scope
+        ]
     return {
         "sessions": [_session_metadata_from_row(row) for row in rows],
         "limit": limit,
         "status": status,
+        "assessment_scope": assessment_scope,
     }
 
 
@@ -557,6 +659,7 @@ async def get_result(db: AsyncSession, session_id: str) -> dict[str, Any]:
         "session_id": str(row.id),
         "session_code": row.session_code,
         "status": row.status,
+        "assessment_scope": payload.get("assessment_scope") or DEFAULT_ASSESSMENT_SCOPE,
         "max_questions": row.max_questions,
         "summary": summary,
         "learning_loop": learning_loop,

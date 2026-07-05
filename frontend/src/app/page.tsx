@@ -1211,6 +1211,22 @@ function GraphBuilderInner() {
           V2 Algebra Pilot
         </Link>
         <Link
+          href="/assessment-v2/grade8-path"
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "6px 12px", borderRadius: 6, fontSize: 13, fontWeight: 500,
+            border: "1px solid rgba(245,158,11,0.45)",
+            background: "rgba(245,158,11,0.08)",
+            color: "#f59e0b",
+            textDecoration: "none",
+            transition: "all 0.15s",
+          }}
+          title="Grade 8 official-path standalone assessment"
+        >
+          <Route size={13} />
+          Grade 8 Test
+        </Link>
+        <Link
           href="/assessment-runs"
           style={{
             display: "flex", alignItems: "center", gap: 6,
