@@ -22,6 +22,7 @@ import {
 const MAX_QUESTIONS = 35;
 
 type Phase = "loading" | "question" | "adapting" | "completed";
+type ExpressionTemplate = "x_plus_number" | "x_times_x_plus_number" | "linear_expression" | "number_minus_x" | null;
 
 function normalizeWidget(raw?: string | null, checker?: string | null): WidgetType | "expression_raw" {
   const value = String(raw || checker || "number").toLowerCase().replace(/[\s-]/g, "_");
@@ -38,11 +39,73 @@ function resetAnswer(setters: {
   setFraction: (value: FractionWidgetState) => void;
   setCoordinate: (value: { x: string; y: string }) => void;
   setPower: (value: { base: string; exp: string }) => void;
+  setExpressionParts: (value: { first: string; second: string }) => void;
 }) {
   setters.setText("");
   setters.setFraction({ num: "", den: "" });
   setters.setCoordinate({ x: "", y: "" });
   setters.setPower({ base: "", exp: "" });
+  setters.setExpressionParts({ first: "", second: "" });
+}
+
+function expressionTemplateForItem(item?: AssessmentV2Item | null): ExpressionTemplate {
+  const family = item?.item_family ?? "";
+  if (["factor_common_x_from_quadratic", "convert_one_over_x_to_common_denominator", "difference_of_squares_factor_missing"].includes(family)) {
+    return "x_plus_number";
+  }
+  if (family === "common_denominator_x_and_x_plus_a") return "x_times_x_plus_number";
+  if (family === "expand_coefficient_parentheses") return "linear_expression";
+  if (family === "represent_remaining_amount_total_minus_x") return "number_minus_x";
+  return null;
+}
+
+function serializeExpressionTemplate(template: ExpressionTemplate, parts: { first: string; second: string }) {
+  if (template === "x_plus_number") return `x+${parts.first}`;
+  if (template === "x_times_x_plus_number") return `x*(x+${parts.first})`;
+  if (template === "linear_expression") {
+    const second = parts.second.trim();
+    return `${parts.first}*x${second.startsWith("-") ? second : `+${second}`}`;
+  }
+  if (template === "number_minus_x") return `${parts.first}-x`;
+  return "";
+}
+
+function ExpressionTemplateInput({
+  template,
+  parts,
+  onChange,
+  onSubmit,
+}: {
+  template: Exclude<ExpressionTemplate, null>;
+  parts: { first: string; second: string };
+  onChange: (value: { first: string; second: string }) => void;
+  onSubmit: () => void;
+}) {
+  const sanitize = (value: string) => value.replace(/[^0-9-]/g, "");
+  const input = (key: "first" | "second", placeholder = "?") => (
+    <input
+      className="template-input"
+      value={parts[key]}
+      inputMode="numeric"
+      onChange={(event) => onChange({ ...parts, [key]: sanitize(event.target.value) })}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") onSubmit();
+      }}
+      placeholder={placeholder}
+      autoFocus={key === "first"}
+    />
+  );
+
+  if (template === "x_times_x_plus_number") {
+    return <div className="template-expression"><span>x(x +</span>{input("first")}<span>)</span></div>;
+  }
+  if (template === "linear_expression") {
+    return <div className="template-expression">{input("first")}<span>x +</span>{input("second", "-?")}</div>;
+  }
+  if (template === "number_minus_x") {
+    return <div className="template-expression">{input("first")}<span>- x</span></div>;
+  }
+  return <div className="template-expression"><span>x +</span>{input("first")}</div>;
 }
 
 export default function Grade8PathAssessmentPage() {
@@ -59,14 +122,18 @@ export default function Grade8PathAssessmentPage() {
   const [fraction, setFraction] = useState<FractionWidgetState>({ num: "", den: "" });
   const [coordinate, setCoordinate] = useState({ x: "", y: "" });
   const [power, setPower] = useState({ base: "", exp: "" });
+  const [expressionParts, setExpressionParts] = useState({ first: "", second: "" });
 
   const widget = normalizeWidget(item?.answer_widget, item?.checker_type);
+  const expressionTemplate = widget === "expression_raw" ? expressionTemplateForItem(item) : null;
   const isReady = useMemo(() => {
     if (widget === "fraction") return isFractionReady(fraction);
     if (widget === "coordinate") return coordinate.x.trim() !== "" && coordinate.y.trim() !== "";
     if (widget === "power") return power.base.trim() !== "" && power.exp.trim() !== "";
+    if (expressionTemplate === "linear_expression") return expressionParts.first.trim() !== "" && expressionParts.second.trim() !== "";
+    if (expressionTemplate) return expressionParts.first.trim() !== "";
     return text.trim().length > 0;
-  }, [coordinate, fraction, power, text, widget]);
+  }, [coordinate, expressionParts, expressionTemplate, fraction, power, text, widget]);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -93,6 +160,7 @@ export default function Grade8PathAssessmentPage() {
     if (widget === "fraction") return serializeFraction(fraction);
     if (widget === "coordinate") return `(${coordinate.x},${coordinate.y})`;
     if (widget === "power") return `${power.base}^${power.exp}`;
+    if (expressionTemplate) return serializeExpressionTemplate(expressionTemplate, expressionParts);
     return text;
   };
 
@@ -116,7 +184,7 @@ export default function Grade8PathAssessmentPage() {
       setTimeout(() => {
         setItem(next.item ?? null);
         setQuestionNumber(next.question_number ?? questionNumber + 1);
-        resetAnswer({ setText, setFraction, setCoordinate, setPower });
+        resetAnswer({ setText, setFraction, setCoordinate, setPower, setExpressionParts });
         setPhase("question");
       }, 500);
     } catch (err) {
@@ -189,16 +257,25 @@ export default function Grade8PathAssessmentPage() {
                 <div className="answer-box">
                   <p>Enter your answer</p>
                   {widget === "expression_raw" ? (
-                    <input
-                      className="raw-input"
-                      value={text}
-                      onChange={(event) => setText(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" && isReady) handleResponse("answer");
-                      }}
-                      placeholder="Example: x*(x+2), (0,-4);(1,-2)"
-                      autoFocus
-                    />
+                    expressionTemplate ? (
+                      <ExpressionTemplateInput
+                        template={expressionTemplate}
+                        parts={expressionParts}
+                        onChange={setExpressionParts}
+                        onSubmit={() => isReady && handleResponse("answer")}
+                      />
+                    ) : (
+                      <input
+                        className="raw-input"
+                        value={text}
+                        onChange={(event) => setText(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" && isReady) handleResponse("answer");
+                        }}
+                        placeholder="Example: x*(x+2)"
+                        autoFocus
+                      />
+                    )
                   ) : widget === "fraction" ? (
                     <FractionWidget
                       num={fraction.num}
@@ -363,6 +440,28 @@ export default function Grade8PathAssessmentPage() {
           font-size: 28px;
           font-weight: 850;
           padding: 10px 8px;
+        }
+        .template-expression {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 10px;
+          color: #111827;
+          font-size: 34px;
+          font-weight: 900;
+        }
+        .template-input {
+          width: 86px;
+          border: none;
+          border-bottom: 3px solid #3d72f8;
+          outline: none;
+          text-align: center;
+          font-size: 34px;
+          font-weight: 900;
+          color: #111827;
+          background: transparent;
+          padding: 4px 6px;
         }
         .actions { display: flex; gap: 12px; }
         button {

@@ -15,7 +15,7 @@ def test_numeric_grading_accepts_decimal_comma():
     )
 
     assert result.is_correct is True
-    assert result.matched_rule == "numeric_equal"
+    assert result.matched_rule == "decimal_equal"
     assert result.confidence == 1.0
 
 
@@ -119,6 +119,37 @@ def test_expression_equivalent_accepts_implicit_multiplication():
 
     assert result.is_correct is True
     assert result.matched_rule == "expression_equivalent"
+
+
+def test_expression_equivalent_accepts_parentheses_as_multiplication():
+    result = grade_open_response(
+        {"answer_type": "expression", "checker_type": "expression_equivalent", "accepted_answers": ["x*(x+2)"]},
+        "x(x+2)",
+    )
+
+    assert result.is_correct is True
+    assert result.matched_rule == "expression_equivalent"
+
+
+def test_expression_equivalent_accepts_percent_notation():
+    assert grade_open_response(
+        {"answer_type": "expression", "checker_type": "expression_equivalent", "accepted_answers": ["0.06*x"]},
+        "6%.x",
+    ).is_correct is True
+    assert grade_open_response(
+        {"answer_type": "expression", "checker_type": "expression_equivalent", "accepted_answers": ["0.058*(300-x)"]},
+        "(300-x).5,8%",
+    ).is_correct is True
+
+
+def test_decimal_equal_accepts_fraction_expected_answer():
+    result = grade_open_response(
+        {"answer_type": "decimal", "checker_type": "decimal_equal", "accepted_answers": ["3/50"]},
+        "0.06",
+    )
+
+    assert result.is_correct is True
+    assert result.matched_rule == "decimal_equal"
 
 
 def test_ordered_list_preserves_order():

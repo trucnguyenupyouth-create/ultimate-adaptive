@@ -172,6 +172,10 @@ _OPS: dict[str, tuple[int, str, Any]] = {
 def _tokenize_expression(value: Any) -> list[str] | None:
     text = normalize_math_key(value).replace(" ", "").replace("**", "^")
     text = text.replace("×", "*").replace(":", "/")
+    text = re.sub(r"(?<=\))\.(?=\d)", "*", text)
+    text = text.replace(",", ".")
+    text = re.sub(r"([+-]?\d+(?:\.\d+)?)%", r"(\1/100)", text)
+    text = re.sub(r"(?<=[a-z0-9)])\.(?=[a-z(])", "*", text)
     if not text:
         return None
     tokens: list[str] = []
@@ -368,12 +372,19 @@ def grade_open_response(content: dict, student_answer: Any) -> OpenGradeResult:
     tolerance = 1e-9 if raw_tolerance is None else float(raw_tolerance)
     effective_type = checker_type or answer_type
 
-    if effective_type in {"integer", "decimal", "number", "numeric", "numericequal", "decimalequal"}:
+    if effective_type in {"integer", "number", "numeric", "numericequal"}:
         got = _to_float(student_answer)
         for expected in accepted:
             exp = _to_float(expected)
             if got is not None and exp is not None and abs(got - exp) <= tolerance:
                 return OpenGradeResult(True, 1.0, "numeric_equal", answer_key)
+
+    if effective_type in {"decimal", "decimalequal"}:
+        got = _to_fraction(student_answer)
+        for expected in accepted:
+            exp = _to_fraction(expected)
+            if got is not None and exp is not None and abs(float(got) - float(exp)) <= tolerance:
+                return OpenGradeResult(True, 1.0, "decimal_equal", answer_key)
 
     if effective_type in {"fraction", "ratio", "fractionequal"}:
         got = _to_fraction(student_answer)
