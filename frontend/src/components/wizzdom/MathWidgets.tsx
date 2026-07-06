@@ -299,10 +299,90 @@ export function CoordinateWidget({
 }
 export function serializeCoordinate(s: CoordinateWidgetState) { return `(${s.x},${s.y})`; }
 
+// ─── W9: Set Widget ───────────────────────────────────────────────────────────
+// For set_equal checker: { -2; 3 }
+export interface SetWidgetState { val: string }
+export function SetWidget({
+  val, onChange, onSubmit, disabled, placeholder = "-2; 3",
+}: {
+  val: string; onChange: (v: string) => void; onSubmit?: () => void;
+  disabled?: boolean; placeholder?: string;
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <span style={{ fontSize: "1.8rem", fontFamily: "serif", fontWeight: 700, color: "#64748b" }}>{`{`}</span>
+      <input
+        type="text"
+        value={val}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") onSubmit?.(); }}
+        disabled={disabled}
+        placeholder={placeholder}
+        autoFocus
+        style={{
+          minWidth: 140,
+          border: "none",
+          borderBottom: `3px solid ${val ? "#3d72f8" : "#E5E7EB"}`,
+          outline: "none",
+          textAlign: "center",
+          fontSize: "1.4rem",
+          fontFamily: "ui-monospace, monospace",
+          fontWeight: 700,
+          padding: "4px 4px",
+          background: "transparent",
+          color: val ? "#111827" : "#CCCCCC",
+        }}
+      />
+      <span style={{ fontSize: "1.8rem", fontFamily: "serif", fontWeight: 700, color: "#64748b" }}>{`}`}</span>
+    </div>
+  );
+}
+export function serializeSet(s: SetWidgetState) { return `{${s.val}}`; }
+
+// ─── W10: Ordered Pair List Widget ────────────────────────────────────────────
+// For ordered_pair_list_equal: (0,-4); (2,0)
+export interface OrderedPairListWidgetState { val: string }
+export function OrderedPairListWidget({
+  val, onChange, onSubmit, disabled,
+}: {
+  val: string; onChange: (v: string) => void; onSubmit?: () => void; disabled?: boolean;
+}) {
+  return (
+    <div style={{ display: "grid", gap: 10, justifyItems: "center" }}>
+      <input
+        type="text"
+        value={val}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") onSubmit?.(); }}
+        disabled={disabled}
+        placeholder="(0, -4); (2, 0)"
+        autoFocus
+        style={{
+          width: "min(420px, 100%)",
+          border: "none",
+          borderBottom: `3px solid ${val ? "#3d72f8" : "#E5E7EB"}`,
+          outline: "none",
+          textAlign: "center",
+          fontSize: "1.4rem",
+          fontFamily: "ui-monospace, monospace",
+          fontWeight: 700,
+          padding: "6px 8px",
+          background: "transparent",
+          color: val ? "#111827" : "#CCCCCC",
+        }}
+      />
+      <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", fontFamily: "sans-serif" }}>
+        Nhập từng điểm dạng <strong>(x, y)</strong>, cách nhau bằng dấu chấm phẩy
+      </p>
+    </div>
+  );
+}
+export function serializeOrderedPairList(s: OrderedPairListWidgetState) { return s.val; }
+
 // ─── Unified MathAnswerWidget ─────────────────────────────────────────────────
 // Dispatches to correct widget based on `widgetType` from API
 
-export type WidgetType = "number" | "integer" | "decimal" | "fraction" | "mixed_number" | "power" | "sqrt" | "inequality_sign" | "coordinate" | "mcq" | "raw";
+export type WidgetType = "number" | "integer" | "decimal" | "fraction" | "mixed_number" | "power" | "sqrt" | "inequality_sign" | "coordinate" | "mcq" | "raw" | "set" | "ordered_pair_list";
 
 interface MathAnswerWidgetProps {
   widgetType: WidgetType;

@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CheckCircle2, History, Loader2, RotateCcw } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import {
   createAssessmentV2Session,
   submitAssessmentV2Response,
@@ -13,9 +12,13 @@ import {
 import {
   FractionWidget,
   MathAnswerWidget,
+  SetWidget,
+  OrderedPairListWidget,
   isFractionReady,
   serializeFraction,
   type FractionWidgetState,
+  type SetWidgetState,
+  type OrderedPairListWidgetState,
   type WidgetType,
 } from "@/components/wizzdom/MathWidgets";
 import { WizzdomLogo } from "@/components/wizzdom/MathDisplay";
@@ -32,6 +35,149 @@ type ExpressionTemplate =
   | "two_factor_product"
   | "percent_times_amount"
   | null;
+
+// ─── Token sets per item_family for AlgebraExpressionWidget ──────────────────
+// Only show tokens relevant to the answer for that family.
+const FAMILY_TOKENS: Record<string, string[]> = {
+  // Bỏ ngoặc / đa thức
+  remove_parentheses_minus_before:            ["x", "y", "+", "-"],
+  remove_nested_parentheses_minus_inside:     ["x", "y", "+", "-"],
+  subtract_multivariable_polynomials:         ["x", "y", "+", "-"],
+  // Nhận biết
+  identify_polynomial_terms:                 ["x", "y", "^", "+", "-"],
+  identify_rational_expression_part:         ["x", "a", "b", "+", "-", "/"],
+  identify_variable_in_algebraic_expression: ["x", "a", "b", "+", "-"],
+  // Chia đơn thức
+  divide_two_monomials_g7:                   ["x", "y", "a", "b", "^", "/"],
+};
+
+// Default tokens for unknown expression families
+const DEFAULT_EXPRESSION_TOKENS = ["x", "a", "b", "+", "-", "*", "/", "^", "(", ")"];
+
+function getTokensForFamily(family?: string | null): string[] {
+  if (!family) return DEFAULT_EXPRESSION_TOKENS;
+  return FAMILY_TOKENS[family] ?? DEFAULT_EXPRESSION_TOKENS;
+}
+
+// ─── AlgebraExpressionWidget ──────────────────────────────────────────────────
+// Smart expression input: shows only tokens relevant to the item_family.
+function AlgebraExpressionWidget({
+  value,
+  onChange,
+  onSubmit,
+  disabled,
+  item,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onSubmit: () => void;
+  disabled?: boolean;
+  item?: AssessmentV2Item | null;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const tokens = getTokensForFamily(item?.item_family);
+
+  const insert = (token: string) => {
+    const input = inputRef.current;
+    if (!input) { onChange(value + token); return; }
+    const start = input.selectionStart ?? value.length;
+    const end = input.selectionEnd ?? value.length;
+    const next = `${value.slice(0, start)}${token}${value.slice(end)}`;
+    onChange(next);
+    requestAnimationFrame(() => {
+      input.focus();
+      input.setSelectionRange(start + token.length, start + token.length);
+    });
+  };
+
+  return (
+    <div style={{ display: "grid", justifyItems: "center", gap: 16, width: "min(640px, 100%)" }}>
+      {/* Main input */}
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && value.trim()) onSubmit(); }}
+        disabled={disabled}
+        placeholder="Nhập đáp án..."
+        autoFocus
+        style={{
+          width: "100%",
+          border: "none",
+          borderBottom: `3px solid ${value ? "#3d72f8" : "#cbd5e1"}`,
+          outline: "none",
+          textAlign: "center",
+          fontSize: 28,
+          fontWeight: 850,
+          padding: "10px 8px",
+          background: "transparent",
+          fontFamily: "ui-monospace, monospace",
+          color: value ? "#111827" : "#94a3b8",
+          transition: "border-color 0.18s",
+        }}
+      />
+
+      {/* Contextual token chips */}
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
+        {tokens.map((token) => (
+          <button
+            key={token}
+            type="button"
+            onClick={() => insert(token)}
+            disabled={disabled}
+            style={{
+              minWidth: 40,
+              height: 36,
+              borderRadius: 10,
+              padding: "0 10px",
+              background: "#eef4ff",
+              color: "#2563eb",
+              border: "1.5px solid #bfdbfe",
+              fontSize: 16,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "ui-monospace, monospace",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background 0.12s",
+            }}
+          >
+            {token}
+          </button>
+        ))}
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            disabled={disabled}
+            style={{
+              height: 36,
+              borderRadius: 10,
+              padding: "0 12px",
+              background: "#fff1f2",
+              color: "#dc2626",
+              border: "1.5px solid #fecaca",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "sans-serif",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            ✕ Xóa
+          </button>
+        )}
+      </div>
+
+      <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", textAlign: "center" }}>
+        Bấm chip hoặc gõ trực tiếp · Enter để nộp
+      </p>
+    </div>
+  );
+}
 
 const PATH_LABELS: Record<string, string> = {
   rational_expression: "Phân thức đại số",
@@ -92,13 +238,17 @@ function friendlyError(message?: string | null) {
   return "Có lỗi khi xử lý câu trả lời. Em thử lại hoặc báo giáo viên giúp hệ thống kiểm tra.";
 }
 
-function normalizeWidget(raw?: string | null, checker?: string | null): WidgetType | "expression_raw" {
+type ResolvedWidget = WidgetType | "expression_raw" | "expression_template" | "set_input" | "ordered_pair_list_input";
+
+function normalizeWidget(raw?: string | null, checker?: string | null): ResolvedWidget {
   const value = String(raw || checker || "number").toLowerCase().replace(/[\s-]/g, "_");
   if (["fraction", "fraction_equal"].includes(value)) return "fraction";
   if (["decimal", "decimal_equal", "probability", "probability_equal"].includes(value)) return "decimal";
   if (["coordinate", "coordinate_pair", "coordinate_pair_equal"].includes(value)) return "coordinate";
   if (["power", "power_tuple"].includes(value)) return "power";
-  if (["expression", "expression_equivalent", "ordered_pair_list", "ordered_pair_list_equal", "set", "set_equal", "raw"].includes(value)) return "expression_raw";
+  if (["set", "set_equal"].includes(value)) return "set_input";
+  if (["ordered_pair_list", "ordered_pair_list_equal"].includes(value)) return "ordered_pair_list_input";
+  if (["expression", "expression_equivalent", "raw"].includes(value)) return "expression_raw";
   return "number";
 }
 
@@ -235,79 +385,6 @@ function ExpressionTemplateInput({
   return <div className="template-expression"><span>x +</span>{blank("first")}</div>;
 }
 
-function RawExpressionInput({
-  value,
-  onChange,
-  onSubmit,
-  helper,
-  placeholder = "Ví dụ: x*(x+2)",
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: () => void;
-  helper?: string;
-  placeholder?: string;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const insert = (token: string) => {
-    const input = inputRef.current;
-    if (!input) {
-      onChange(value + token);
-      return;
-    }
-    const start = input.selectionStart ?? value.length;
-    const end = input.selectionEnd ?? value.length;
-    const next = `${value.slice(0, start)}${token}${value.slice(end)}`;
-    onChange(next);
-    requestAnimationFrame(() => {
-      input.focus();
-      const cursor = start + token.length;
-      input.setSelectionRange(cursor, cursor);
-    });
-  };
-  return (
-    <div className="raw-expression">
-      <input
-        ref={inputRef}
-        className="raw-input"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" && value.trim()) onSubmit();
-        }}
-        placeholder={placeholder}
-        autoFocus
-      />
-      <div className="math-keypad" aria-label="Phím hỗ trợ nhập biểu thức">
-        {["x", "a", "b", "+", "-", "*", "/", "^", "(", ")"].map((token) => (
-          <button type="button" key={token} onClick={() => insert(token)}>{token}</button>
-        ))}
-        <button type="button" onClick={() => onChange("")}><RotateCcw size={14} /> Xóa</button>
-      </div>
-      <p className="input-note">{helper ?? <>Có thể dùng phím hỗ trợ hoặc gõ trực tiếp. Dấu nhân nhập bằng <strong>*</strong>.</>}</p>
-    </div>
-  );
-}
-
-function rawInputCopy(item?: AssessmentV2Item | null) {
-  const checker = item?.checker_type;
-  if (checker === "set_equal") {
-    return {
-      placeholder: "Ví dụ: {-2; 3}",
-      helper: "Nhập các giá trị trong tập nghiệm, cách nhau bằng dấu chấm phẩy.",
-    };
-  }
-  if (checker === "ordered_pair_list_equal") {
-    return {
-      placeholder: "Ví dụ: (0,-4); (2,0)",
-      helper: "Nhập từng điểm theo dạng (x,y), các điểm cách nhau bằng dấu chấm phẩy.",
-    };
-  }
-  return {
-    placeholder: "Nhập biểu thức",
-    helper: "Có thể dùng phím hỗ trợ hoặc gõ trực tiếp. Dấu nhân nhập bằng *.",
-  };
-}
 
 export default function Grade8PathAssessmentPage() {
   const initialized = useRef(false);
@@ -324,18 +401,23 @@ export default function Grade8PathAssessmentPage() {
   const [coordinate, setCoordinate] = useState({ x: "", y: "" });
   const [power, setPower] = useState({ base: "", exp: "" });
   const [expressionParts, setExpressionParts] = useState({ first: "", second: "" });
+  const [setInput, setSetInput] = useState<SetWidgetState>({ val: "" });
+  const [pairListInput, setPairListInput] = useState<OrderedPairListWidgetState>({ val: "" });
 
   const widget = normalizeWidget(item?.answer_widget, item?.checker_type);
   const expressionTemplate = widget === "expression_raw" ? expressionTemplateForItem(item) : null;
+
   const isReady = useMemo(() => {
     if (widget === "fraction") return isFractionReady(fraction);
     if (widget === "coordinate") return coordinate.x.trim() !== "" && coordinate.y.trim() !== "";
     if (widget === "power") return power.base.trim() !== "" && power.exp.trim() !== "";
+    if (widget === "set_input") return setInput.val.trim().length > 0;
+    if (widget === "ordered_pair_list_input") return pairListInput.val.trim().length > 0;
     if (expressionTemplate === "linear_expression") return expressionParts.first.trim() !== "" && expressionParts.second.trim() !== "";
     if (expressionTemplate === "rational_fraction" || expressionTemplate === "two_factor_product") return expressionParts.first.trim() !== "" && expressionParts.second.trim() !== "";
     if (expressionTemplate) return expressionParts.first.trim() !== "";
     return text.trim().length > 0;
-  }, [coordinate, expressionParts, expressionTemplate, fraction, power, text, widget]);
+  }, [coordinate, expressionParts, expressionTemplate, fraction, pairListInput.val, power, setInput.val, text, widget]);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -362,6 +444,8 @@ export default function Grade8PathAssessmentPage() {
     if (widget === "fraction") return serializeFraction(fraction);
     if (widget === "coordinate") return `(${coordinate.x},${coordinate.y})`;
     if (widget === "power") return `${power.base}^${power.exp}`;
+    if (widget === "set_input") return `{${setInput.val}}`;
+    if (widget === "ordered_pair_list_input") return pairListInput.val;
     if (expressionTemplate) return serializeExpressionTemplate(expressionTemplate, expressionParts, item);
     return text;
   };
@@ -387,6 +471,8 @@ export default function Grade8PathAssessmentPage() {
         setItem(next.item ?? null);
         setQuestionNumber(next.question_number ?? questionNumber + 1);
         resetAnswer({ setText, setFraction, setCoordinate, setPower, setExpressionParts });
+        setSetInput({ val: "" });
+        setPairListInput({ val: "" });
         setPhase("question");
       }, 500);
     } catch (err) {
@@ -426,9 +512,6 @@ export default function Grade8PathAssessmentPage() {
             <span>Nút này giúp kết quả sát với thực tế hơn là đoán mò.</span>
           </div>
         </div>
-        <Link className="teacher-link" href="/assessment-v2/history?scope=grade8_exam_path">
-          <History size={15} /> Dành cho giáo viên
-        </Link>
       </aside>
 
       <section className="content">
@@ -452,7 +535,6 @@ export default function Grade8PathAssessmentPage() {
           <div className="card">
             <div className="top-row">
               <span>Câu {questionNumber} / tối đa {maxQuestions}</span>
-              <Link href="/assessment-v2/history?scope=grade8_exam_path">Giáo viên xem lại</Link>
             </div>
             <div className="progress">
               <div style={{ width: `${Math.min(100, (questionNumber / maxQuestions) * 100)}%` }} />
@@ -471,24 +553,56 @@ export default function Grade8PathAssessmentPage() {
                 <h2>{item.question}</h2>
 
                 <div className="answer-box">
-                  <p>Nhập đáp án của em</p>
-                  {widget === "expression_raw" ? (
-                    expressionTemplate ? (
-                      <ExpressionTemplateInput
-                        template={expressionTemplate}
-                        parts={expressionParts}
-                        onChange={setExpressionParts}
-                        onSubmit={() => isReady && handleResponse("answer")}
-                        item={item}
-                      />
-                    ) : (
-                      <RawExpressionInput
-                        value={text}
-                        onChange={setText}
-                        onSubmit={() => isReady && handleResponse("answer")}
-                        {...rawInputCopy(item)}
-                      />
-                    )
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                    <p style={{ margin: 0 }}>Nhập đáp án của em</p>
+                    <span style={{
+                      fontSize: 11, fontWeight: 800, padding: "3px 10px",
+                      borderRadius: 999, border: "1px solid #bfdbfe",
+                      background: "#eff6ff", color: "#2563eb",
+                      fontFamily: "ui-monospace, monospace", letterSpacing: 0.3,
+                    }}>
+                      {widget === "fraction" ? "PHÂN SỐ"
+                        : widget === "decimal" ? "SỐ THẬP PHÂN"
+                        : widget === "coordinate" ? "TỌA ĐỘ  (x, y)"
+                        : widget === "power" ? "LŨY THỪA  a^n"
+                        : widget === "set_input" ? "TẬP HỢP  { ... }"
+                        : widget === "ordered_pair_list_input" ? "DANH SÁCH ĐIỂM"
+                        : expressionTemplate ? "BIỂU THỨC CÓ CẤU TRÚC"
+                        : "BIỂU THỨC ĐẠI SỐ"}
+                    </span>
+                  </div>
+                  {widget === "expression_raw" && expressionTemplate ? (
+                    // Structured template (e.g. x + [?], [coeff]x + [const], etc.)
+                    <ExpressionTemplateInput
+                      template={expressionTemplate}
+                      parts={expressionParts}
+                      onChange={setExpressionParts}
+                      onSubmit={() => isReady && handleResponse("answer")}
+                      item={item}
+                    />
+                  ) : widget === "expression_raw" ? (
+                    // Smart expression input with family-aware token chips
+                    <AlgebraExpressionWidget
+                      value={text}
+                      onChange={setText}
+                      onSubmit={() => isReady && handleResponse("answer")}
+                      disabled={submitting}
+                      item={item}
+                    />
+                  ) : widget === "set_input" ? (
+                    <SetWidget
+                      val={setInput.val}
+                      onChange={(v) => setSetInput({ val: v })}
+                      onSubmit={() => isReady && handleResponse("answer")}
+                      disabled={submitting}
+                    />
+                  ) : widget === "ordered_pair_list_input" ? (
+                    <OrderedPairListWidget
+                      val={pairListInput.val}
+                      onChange={(v) => setPairListInput({ val: v })}
+                      onSubmit={() => isReady && handleResponse("answer")}
+                      disabled={submitting}
+                    />
                   ) : widget === "fraction" ? (
                     <FractionWidget
                       num={fraction.num}
@@ -499,7 +613,7 @@ export default function Grade8PathAssessmentPage() {
                     />
                   ) : (
                     <MathAnswerWidget
-                      widgetType={widget}
+                      widgetType={widget as WidgetType}
                       textState={text}
                       onTextChange={setText}
                       coordinateState={coordinate}
@@ -545,13 +659,6 @@ export default function Grade8PathAssessmentPage() {
                 {(result.summary.skills_to_review.length ? result.summary.skills_to_review : result.summary.possibly_affected).slice(0, 8).map((row) => (
                   <p key={row.kc_id}><strong>{row.code}</strong><br />{row.name} · {Math.round(row.p_mastery * 100)}%</p>
                 ))}
-              </section>
-              <section>
-                <h3>Dành cho giáo viên</h3>
-                <p>Giáo viên có thể xem từng câu đã hỏi, đáp án học sinh, trạng thái kỹ năng và lý do hệ thống chọn câu tiếp theo.</p>
-                <Link className="review-button" href={`/assessment-v2/history?scope=grade8_exam_path&session=${result.session_id}`}>
-                  Mở trang phân tích
-                </Link>
               </section>
             </div>
           </div>
@@ -631,32 +738,6 @@ export default function Grade8PathAssessmentPage() {
         .guidance-card strong { display: block; font-size: 18px; line-height: 1.25; }
         .guidance-card.primary strong { font-size: 32px; color: #3d72f8; }
         .guidance-card span { display: block; color: #64748b; margin-top: 6px; line-height: 1.45; font-weight: 750; }
-        .teacher-link {
-          margin-top: auto;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          border-radius: 999px;
-          padding: 11px 14px;
-          background: rgba(255,255,255,0.76);
-          color: #64748b;
-          border: 1px solid rgba(15,23,42,0.08);
-          font-weight: 850;
-          text-decoration: none;
-        }
-        .history-link, .review-button {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          border-radius: 999px;
-          padding: 13px 16px;
-          background: white;
-          color: #0f172a;
-          font-weight: 900;
-          text-decoration: none;
-        }
         .content { padding: 38px; display: flex; align-items: center; justify-content: center; }
         .card {
           width: min(1000px, 100%);
@@ -864,10 +945,9 @@ export default function Grade8PathAssessmentPage() {
         .metrics div { border-radius: 16px; background: #f8fafc; padding: 18px; }
         .metrics strong { display: block; font-size: 32px; }
         .metrics span { color: #64748b; font-weight: 800; }
-        .summary-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        .summary-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         .summary-grid section { border-radius: 18px; border: 1px solid #e5e7eb; padding: 18px; }
         .summary-grid p { line-height: 1.45; color: #334155; }
-        .review-button { background: #0f172a; color: white; margin-top: 10px; }
         @media (max-width: 900px) {
           .grade8-shell { grid-template-columns: 1fr; }
           .side { min-height: auto; }
