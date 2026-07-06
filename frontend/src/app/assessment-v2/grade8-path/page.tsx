@@ -18,6 +18,7 @@ import {
   type FractionWidgetState,
   type WidgetType,
 } from "@/components/wizzdom/MathWidgets";
+import { WizzdomLogo } from "@/components/wizzdom/MathDisplay";
 
 const MAX_QUESTIONS = 35;
 
@@ -334,21 +335,34 @@ export default function Grade8PathAssessmentPage() {
   return (
     <main className="grade8-shell">
       <aside className="side">
-        <p className="eyebrow">Đánh giá thích ứng</p>
-        <h1>Kiểm tra gốc đại số lớp 8</h1>
-        <p>
-          Bài kiểm tra mở dùng để tìm kiến thức nền đang cản trở các chủ đề phân thức, phương trình, bài toán thực tế và hàm số bậc nhất.
-        </p>
-        <div className="side-card">
-          <strong>{MAX_QUESTIONS}</strong>
-          <span>câu hỏi tối đa</span>
+        <div className="brand-row">
+          <WizzdomLogo />
+          <span>Kiểm tra đầu vào</span>
         </div>
-        <div className="side-card">
-          <strong>Tự nhập đáp án</strong>
-          <span>không có đáp án trắc nghiệm để đoán</span>
+        <div className="student-intro">
+          <p className="eyebrow">Đại số lớp 8</p>
+          <h1>Làm thật như con biết</h1>
+          <p>
+            Bài này giúp thầy cô biết con đang vững phần nào và đang cần học lại từ đâu.
+            Không tính điểm thi, nên con không cần đoán.
+          </p>
         </div>
-        <Link className="history-link" href="/assessment-v2/history?scope=grade8_exam_path">
-          <History size={16} /> Xem lịch sử giáo viên
+        <div className="guidance-list">
+          <div className="guidance-card primary">
+            <strong>{MAX_QUESTIONS}</strong>
+            <span>câu tối đa, có thể kết thúc sớm nếu đủ dữ liệu</span>
+          </div>
+          <div className="guidance-card">
+            <strong>Tập trung làm từng câu</strong>
+            <span>Con hãy nhập đáp án như khi làm nháp trên giấy.</span>
+          </div>
+          <div className="guidance-card">
+            <strong>Đừng ngại chọn “Em chưa biết”</strong>
+            <span>Nút này giúp kết quả sát với thực tế hơn là đoán mò.</span>
+          </div>
+        </div>
+        <Link className="teacher-link" href="/assessment-v2/history?scope=grade8_exam_path">
+          <History size={15} /> Dành cho giáo viên
         </Link>
       </aside>
 
@@ -373,7 +387,7 @@ export default function Grade8PathAssessmentPage() {
           <div className="card">
             <div className="top-row">
               <span>Câu {questionNumber} / tối đa {maxQuestions}</span>
-              <Link href="/assessment-v2/history?scope=grade8_exam_path">Xem lịch sử</Link>
+              <Link href="/assessment-v2/history?scope=grade8_exam_path">Giáo viên xem lại</Link>
             </div>
             <div className="progress">
               <div style={{ width: `${Math.min(100, (questionNumber / maxQuestions) * 100)}%` }} />
@@ -484,18 +498,41 @@ export default function Grade8PathAssessmentPage() {
           display: grid;
           grid-template-columns: 340px minmax(0, 1fr);
           background:
-            radial-gradient(circle at top right, rgba(61,114,248,0.12), transparent 34%),
+            radial-gradient(circle at 12% 14%, rgba(61,114,248,0.16), transparent 26%),
+            radial-gradient(circle at top right, rgba(16,185,129,0.12), transparent 30%),
             linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
           color: #111827;
         }
         .side {
           min-height: 100vh;
-          padding: 34px 26px;
-          background: linear-gradient(180deg, #0f172a 0%, #14213f 100%);
-          color: white;
+          padding: 28px 24px;
+          background: rgba(255, 255, 255, 0.72);
+          color: #111827;
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 22px;
+          border-right: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 18px 0 60px rgba(15, 23, 42, 0.05);
+          backdrop-filter: blur(18px);
+        }
+        .brand-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .brand-row span {
+          border-radius: 999px;
+          padding: 7px 10px;
+          background: #eef2ff;
+          color: #3d72f8;
+          font-size: 12px;
+          font-weight: 900;
+          white-space: nowrap;
+        }
+        .student-intro {
+          display: grid;
+          gap: 12px;
         }
         .eyebrow, .kc {
           margin: 0;
@@ -506,18 +543,42 @@ export default function Grade8PathAssessmentPage() {
           text-transform: uppercase;
           letter-spacing: 0;
         }
-        h1 { font-size: 38px; line-height: 1.05; margin: 0; }
+        h1 { font-size: 40px; line-height: 1.04; margin: 0; letter-spacing: 0; }
         h2 { font-size: 30px; line-height: 1.22; margin: 18px 0; }
         h3 { margin: 0 0 14px; }
-        .side p { color: #cbd5e1; line-height: 1.55; font-size: 18px; }
-        .side-card {
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 16px;
-          background: rgba(255,255,255,0.06);
-          padding: 18px;
+        .side p { color: #475569; line-height: 1.55; font-size: 17px; margin: 0; }
+        .guidance-list {
+          display: grid;
+          gap: 12px;
         }
-        .side-card strong { display: block; font-size: 26px; }
-        .side-card span { color: #cbd5e1; }
+        .guidance-card {
+          border: 1px solid rgba(15,23,42,0.08);
+          border-radius: 16px;
+          background: rgba(255,255,255,0.86);
+          padding: 16px;
+          box-shadow: 0 12px 28px rgba(15,23,42,0.05);
+        }
+        .guidance-card.primary {
+          background: #eef2ff;
+          border-color: rgba(61,114,248,0.18);
+        }
+        .guidance-card strong { display: block; font-size: 18px; line-height: 1.25; }
+        .guidance-card.primary strong { font-size: 32px; color: #3d72f8; }
+        .guidance-card span { display: block; color: #64748b; margin-top: 6px; line-height: 1.45; font-weight: 750; }
+        .teacher-link {
+          margin-top: auto;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          border-radius: 999px;
+          padding: 11px 14px;
+          background: rgba(255,255,255,0.76);
+          color: #64748b;
+          border: 1px solid rgba(15,23,42,0.08);
+          font-weight: 850;
+          text-decoration: none;
+        }
         .history-link, .review-button {
           display: inline-flex;
           align-items: center;
