@@ -20,6 +20,107 @@ const STATE_LABELS: Record<string, string> = {
   unknown: "Chưa đủ bằng chứng",
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  completed: "Hoàn thành",
+  in_progress: "Đang làm",
+  abandoned: "Đã dừng",
+};
+
+const PATH_LABELS: Record<string, string> = {
+  rational_expression: "Phân thức đại số",
+  linear_equation: "Phương trình",
+  word_problem_modeling: "Bài toán thực tế",
+  linear_function: "Hàm số bậc nhất",
+  fraction_foundation: "Nền tảng phân số",
+  integer_foundation: "Nền tảng số nguyên",
+  algebra_foundation: "Nền tảng đại số",
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  anchor: "Câu neo",
+  misconception: "Dò lỗi sai thường gặp",
+  prerequisite_probe: "Dò kiến thức nền",
+  confirmation: "Câu xác nhận",
+  bridge: "Câu nối",
+  transfer: "Câu vận dụng",
+  readiness: "Sẵn sàng học tiếp",
+};
+
+const POLICY_LABELS: Record<string, string> = {
+  state_space_eig: "Chọn theo mức giảm bất định kỳ vọng",
+  grade8_root_cause: "Ưu tiên đào gốc lớp 6-7",
+  grade8_deep_dive: "Đào sâu sau câu sai/không biết",
+  grade8_unresolved_follow_up: "Hỏi tiếp để xác nhận kỹ năng còn lưng chừng",
+};
+
+const FAMILY_LABELS: Record<string, string> = {
+  domain_single_linear_denominator: "Điều kiện xác định",
+  factor_common_x_from_quadratic: "Đặt nhân tử chung",
+  common_denominator_x_and_x_plus_a: "Quy đồng mẫu phân thức",
+  convert_one_over_x_to_common_denominator: "Biến đổi phân thức",
+  difference_of_squares_factor_missing: "Hiệu hai bình phương",
+  simplify_cancel_common_factor: "Rút gọn phân thức",
+  solve_linear_parentheses_ax_minus_b_plus_c_eq_dx: "Phương trình có ngoặc",
+  expand_coefficient_parentheses: "Khai triển ngoặc",
+  solve_linear_collect_like_terms: "Thu gọn và giải phương trình",
+  solve_linear_with_numeric_denominators: "Phương trình có mẫu số",
+  check_solution_by_lhs_minus_rhs: "Kiểm tra nghiệm",
+  add_unlike_fractions_numeric: "Cộng phân số khác mẫu",
+  subtract_unlike_fractions_numeric: "Trừ phân số khác mẫu",
+  equivalent_fraction_missing_part: "Phân số bằng nhau",
+  fraction_cross_product_missing_part: "Nhân chéo phân số",
+  recognize_valid_fraction_parts: "Nhận biết phân số",
+  write_negative_integer_context: "Số nguyên âm trong ngữ cảnh",
+  write_basement_floor_integer: "Biểu diễn số nguyên âm",
+  opposite_negative_integer: "Số đối",
+  divide_negative_by_positive_integer: "Chia số nguyên",
+  multiply_two_negative_integers: "Nhân số nguyên âm",
+  remove_parentheses_minus_before: "Bỏ ngoặc có dấu trừ",
+  remove_nested_parentheses_minus_inside: "Bỏ ngoặc lồng nhau",
+  simplify_nested_parentheses_expression: "Thu gọn biểu thức có ngoặc",
+  distribute_number_over_sum: "Phân phối nhân với tổng",
+  order_operations_parentheses_first: "Thứ tự thực hiện phép tính",
+  identify_variable_in_algebraic_expression: "Nhận biết biến",
+  identify_rational_expression_part: "Nhận biết phân thức",
+  identify_side_of_equation: "Nhận biết hai vế phương trình",
+  recognize_one_variable_equation_structure: "Nhận biết phương trình một ẩn",
+  compute_function_value_linear: "Tính giá trị hàm số",
+  point_on_line_from_x_value: "Tìm điểm trên đường thẳng",
+  two_points_for_line_graph: "Vẽ đường thẳng từ hai điểm",
+  represent_points_from_value_table: "Biểu diễn điểm từ bảng giá trị",
+  parallel_parameter_m_squared_plus_one: "Điều kiện song song có tham số",
+  build_interest_equation_from_context: "Lập phương trình từ bài lãi suất",
+  solve_interest_model_for_first_amount: "Giải mô hình lãi suất",
+};
+
+const CHECKER_LABELS: Record<string, string> = {
+  numeric_equal: "So sánh số",
+  decimal_equal: "So sánh số thập phân",
+  fraction_equal: "So sánh phân số tương đương",
+  expression_equivalent: "So sánh biểu thức tương đương",
+  coordinate_pair_equal: "So sánh tọa độ",
+  ordered_pair_list_equal: "So sánh danh sách tọa độ",
+  set_equal: "So sánh tập nghiệm",
+  probability_equal: "So sánh xác suất",
+  power_tuple: "So sánh lũy thừa",
+  no_match: "Không khớp đáp án",
+};
+
+function labelFor(map: Record<string, string>, value?: string | null) {
+  if (!value) return "—";
+  return map[value] ?? value.replaceAll("_", " ");
+}
+
+function familyLabel(value?: string | null) {
+  if (!value) return null;
+  return FAMILY_LABELS[value] ?? "Dạng câu chẩn đoán";
+}
+
+function checkerLabel(value?: string | null) {
+  if (!value) return "—";
+  return CHECKER_LABELS[value] ?? "Cách chấm tự động";
+}
+
 function formatDate(value?: string | null) {
   if (!value) return "—";
   try {
@@ -51,21 +152,55 @@ function previousAnswerText(step?: AssessmentV2TranscriptStep) {
 
 function reasonText(reason?: string) {
   if (reason === "grade8_deep_dive_after_failed_response") {
-    return "Deep-dive: câu trước sai/không biết, nên engine đào vào prerequisite hoặc misconception probe trong cùng path trước khi rời strand.";
+    return "Đào sâu: câu trước sai/không biết, nên hệ thống kiểm tra kiến thức nền hoặc lỗi sai thường gặp trong cùng mạch kiến thức trước khi chuyển sang mạch khác.";
   }
   if (reason === "confirmation_after_breadth") {
-    return "Câu xác nhận: hệ thống đã quét đủ rộng và cần thêm bằng chứng cho một node còn lưng chừng.";
+    return "Câu xác nhận: hệ thống đã quét đủ rộng và cần thêm bằng chứng cho một kỹ năng còn lưng chừng.";
   }
   if (reason === "complete_min_direct_evidence") {
     return "Câu bổ sung để hoàn tất bằng chứng trực tiếp tối thiểu.";
   }
-  return "Engine chọn frontier có thông tin kỳ vọng cao nhất: nếu đúng hoặc sai đều giúp cập nhật nhiều node liên quan.";
+  return "Hệ thống chọn câu có khả năng giảm bất định cao nhất: dù học sinh đúng hay sai, câu này đều giúp cập nhật nhiều kỹ năng liên quan.";
+}
+
+function deepDiveText(reason?: string | null) {
+  if (!reason) return "";
+  if (reason.includes("same KC confirmation") || reason.includes("same_kc")) {
+    return "Hệ thống hỏi thêm một câu khác dạng để xác nhận kỹ năng đang lưng chừng.";
+  }
+  if (reason.includes("root_cause_priority") || reason.includes("grade6") || reason.includes("grade7")) {
+    return "Hệ thống ưu tiên đào xuống kiến thức nền lớp 6-7 vì đây có thể là nguyên nhân gốc.";
+  }
+  if (reason.includes("graph ancestor") || reason.includes("ancestor") || reason.includes("prerequisite")) {
+    return "Hệ thống chọn kỹ năng tiên quyết gần hơn trong bản đồ để kiểm tra gốc của lỗi.";
+  }
+  if (reason.includes("misconception")) {
+    return "Hệ thống kiểm tra một lỗi sai thường gặp liên quan đến câu trước.";
+  }
+  if (reason.includes("wrong") || reason.includes("unknown") || reason.includes("failed")) {
+    return "Câu trước chưa đạt, nên hệ thống đào sâu thay vì chuyển ngay sang mạch khác.";
+  }
+  return "Hệ thống đào sâu để làm rõ nguyên nhân của vùng kiến thức chưa chắc.";
+}
+
+function misconceptionText(value?: string | null) {
+  if (!value || value === "no_match") return "Không phát hiện rõ";
+  if (value.includes("sign")) return "Có dấu hiệu nhầm dấu";
+  if (value.includes("denominator")) return "Có dấu hiệu nhầm mẫu số";
+  if (value.includes("distribute") || value.includes("parentheses")) return "Có dấu hiệu lỗi phân phối hoặc bỏ ngoặc";
+  if (value.includes("copy") || value.includes("structure")) return "Có dấu hiệu nhầm cấu trúc biểu thức";
+  return "Có lỗi sai cần giáo viên xem lại";
+}
+
+function formatGain(value?: number) {
+  if (typeof value !== "number" || Number.isNaN(value)) return "—";
+  return value.toFixed(3);
 }
 
 function flattenRows(result: AssessmentV2Result): Array<{ group: string; row: AssessmentV2SummaryRow }> {
   return [
     ...result.summary.strong_areas.map((row) => ({ group: "Đã xác nhận vững", row })),
-    ...result.summary.skills_to_review.map((row) => ({ group: "Kỹ năng cần review", row })),
+    ...result.summary.skills_to_review.map((row) => ({ group: "Kỹ năng cần ôn", row })),
     ...result.summary.possibly_affected.map((row) => ({ group: "Có thể bị ảnh hưởng", row })),
     ...result.summary.ready_to_learn.map((row) => ({ group: "Sẵn sàng học tiếp", row })),
     ...result.summary.not_enough_evidence.map((row) => ({ group: "Chưa đủ bằng chứng", row })),
@@ -192,7 +327,7 @@ export default function AssessmentV2HistoryPage() {
       <aside className="history-sidebar">
         <div className="history-topbar">
           <Link href={scopeFilter === "grade8_exam_path" ? "/assessment-v2/grade8-path" : "/assessment-v2/algebra"} className="back-link">
-            <ArrowLeft size={16} /> {scopeFilter === "grade8_exam_path" ? "Grade 8 test" : "Assessment"}
+            <ArrowLeft size={16} /> {scopeFilter === "grade8_exam_path" ? "Bài kiểm tra lớp 8" : "Bài kiểm tra"}
           </Link>
           <button className="icon-button" onClick={loadSessions} disabled={loadingList} title="Tải lại">
             <RefreshCw size={16} />
@@ -200,19 +335,19 @@ export default function AssessmentV2HistoryPage() {
         </div>
 
         <div>
-          <p className="eyebrow">Assessment V2</p>
-          <h1>{scopeFilter === "grade8_exam_path" ? "Grade 8 review" : "Lịch sử test"}</h1>
-          <p className="subtitle">Dữ liệu được đọc từ bảng production `assessment_v2_sessions`.</p>
+          <p className="eyebrow">Đánh giá thích ứng</p>
+          <h1>{scopeFilter === "grade8_exam_path" ? "Phân tích bài lớp 8" : "Lịch sử kiểm tra"}</h1>
+          <p className="subtitle">Dữ liệu được đọc từ bảng lưu kết quả thật của hệ thống.</p>
         </div>
 
         <label className="search-box">
           <Search size={16} />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm session, học sinh, KC..." />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm lượt làm, học sinh, kỹ năng..." />
         </label>
 
         <div className="session-list">
           {loadingList && <div className="empty-card">Đang tải lịch sử...</div>}
-          {!loadingList && filtered.length === 0 && <div className="empty-card">Chưa có session phù hợp.</div>}
+          {!loadingList && filtered.length === 0 && <div className="empty-card">Chưa có lượt làm phù hợp.</div>}
           {filtered.map((session) => (
             <button
               key={session.session_id}
@@ -225,13 +360,13 @@ export default function AssessmentV2HistoryPage() {
             >
               <div className="session-card-head">
                 <strong>{session.student_label || session.session_code}</strong>
-                <span className={session.status === "completed" ? "done" : "running"}>{session.status}</span>
+                <span className={session.status === "completed" ? "done" : "running"}>{STATUS_LABELS[session.status] ?? session.status}</span>
               </div>
               <p>{formatDate(session.completed_at ?? session.updated_at ?? session.created_at)}</p>
               <div className="mini-metrics">
                 <span>{session.questions_asked}/{session.max_questions} câu</span>
                 <span>{session.correct_count} đúng</span>
-                <span>{session.skills_directly_tested} node test</span>
+                <span>{session.skills_directly_tested} kỹ năng</span>
               </div>
             </button>
           ))}
@@ -240,27 +375,27 @@ export default function AssessmentV2HistoryPage() {
 
       <section className="history-content">
         {error && <div className="error-card">{error}</div>}
-        {loadingDetail && <div className="loading-card">Đang tải chi tiết session...</div>}
+        {loadingDetail && <div className="loading-card">Đang tải chi tiết lượt làm...</div>}
         {!loadingDetail && selected && (
           <>
             <header className="detail-header">
               <div>
                 <p className="eyebrow">{selected.session_code}</p>
-                <h2>Review kết quả assessment</h2>
+                <h2>Phân tích kết quả kiểm tra</h2>
                 <p className="subtitle">
-                  {responses.length} câu đã hỏi · {selected.summary.value_metrics.skills_directly_tested} node test trực tiếp · {selected.summary.value_metrics.skills_inferred} node suy luận
+                  {responses.length} câu đã hỏi · {selected.summary.value_metrics.skills_directly_tested} kỹ năng kiểm tra trực tiếp · {selected.summary.value_metrics.skills_inferred} kỹ năng suy luận
                 </p>
               </div>
               <div className="header-actions">
-                <Link href={scopeFilter === "grade8_exam_path" ? "/assessment-v2/grade8-path" : "/assessment-v2/algebra"} className="primary-link">Mở assessment mới</Link>
+                <Link href={scopeFilter === "grade8_exam_path" ? "/assessment-v2/grade8-path" : "/assessment-v2/algebra"} className="primary-link">Mở bài kiểm tra mới</Link>
               </div>
             </header>
 
             <div className="metric-grid">
               {[
                 ["Câu đã hỏi", selected.summary.value_metrics.questions_asked],
-                ["Node test trực tiếp", selected.summary.value_metrics.skills_directly_tested],
-                ["Node suy luận", selected.summary.value_metrics.skills_inferred],
+                ["Kỹ năng kiểm tra trực tiếp", selected.summary.value_metrics.skills_directly_tested],
+                ["Kỹ năng suy luận", selected.summary.value_metrics.skills_inferred],
                 ["Không hỏi trực tiếp", selected.summary.value_metrics.skills_not_directly_asked],
               ].map(([label, value]) => (
                 <div key={label} className="metric-card">
@@ -277,8 +412,8 @@ export default function AssessmentV2HistoryPage() {
                   <div className="path-summary-row">
                     {teacherReview.path_summaries.map((path) => (
                       <div key={path.target_exam_path} className="path-chip">
-                        <strong>{path.target_exam_path.replaceAll("_", " ")}</strong>
-                        <span>{path.selection_steps} câu · {path.likely_blockers.length} blocker</span>
+                        <strong>{labelFor(PATH_LABELS, path.target_exam_path)}</strong>
+                        <span>{path.selection_steps} câu · {path.likely_blockers.length} điểm nghẽn nghi ngờ</span>
                       </div>
                     ))}
                   </div>
@@ -301,32 +436,32 @@ export default function AssessmentV2HistoryPage() {
                           <span className={`answer-chip ${result.cls}`}><Icon size={14} /> {result.label}</span>
                         </div>
                         <div className="item-meta">
-                          {step.item.target_exam_path && <span>{step.item.target_exam_path}</span>}
-                          {step.item.item_role && <span>{step.item.item_role}</span>}
-                          {step.item.item_family && <span>{step.item.item_family}</span>}
+                          {step.item.target_exam_path && <span>{labelFor(PATH_LABELS, step.item.target_exam_path)}</span>}
+                          {step.item.item_role && <span>{labelFor(ROLE_LABELS, step.item.item_role)}</span>}
+                          {step.item.item_family && <span>{familyLabel(step.item.item_family)}</span>}
                         </div>
                         <p className="question">{step.item.question}</p>
                         <div className="answer-table">
                           <span>Đáp án học sinh</span><strong>{step.response_type === "unknown" ? "Không biết" : step.answer || "—"}</strong>
-                          <span>Checker</span><strong>{step.grading?.matched_rule ?? step.item.checker_type ?? "—"}</strong>
-                          <span>Misconception</span><strong>{step.grading?.diagnosed_misconception || "Không phát hiện"}</strong>
+                          <span>Cách chấm</span><strong>{checkerLabel(step.grading?.matched_rule ?? step.item.checker_type)}</strong>
+                          <span>Lỗi sai nhận diện</span><strong>{misconceptionText(step.grading?.diagnosed_misconception)}</strong>
                         </div>
                         <div className="why">
                           <strong>Vì sao hỏi câu này?</strong>
                           <p>
                             {index === 0
-                              ? "Câu đầu tiên là điểm vào: engine chọn node/item có khả năng chia nhánh graph tốt và có item usable."
-                              : `Sau khi ${previousAnswerText(responses[index - 1])}, engine chọn frontier tiếp theo để làm rõ vùng kiến thức còn chưa chắc.`}
+                              ? "Câu đầu tiên là điểm vào: hệ thống chọn kỹ năng/câu hỏi có khả năng chia nhánh bản đồ tốt và có câu hỏi dùng được."
+                              : `Sau khi ${previousAnswerText(responses[index - 1])}, hệ thống chọn vùng ranh giới tiếp theo để làm rõ phần kiến thức còn chưa chắc.`}
                           </p>
                           <p>
-                            {teacherStep?.selection_reason ?? reasonText(frontierEntry?.reason)}
-                            {candidate ? ` expected_gain=${candidate.expected_gain ?? "—"}, gain_if_correct=${candidate.gain_if_correct ?? "—"}, gain_if_wrong=${candidate.gain_if_wrong ?? "—"}.` : ""}
+                            {reasonText(frontierEntry?.reason)}
+                            {candidate ? ` Mức giảm bất định kỳ vọng=${formatGain(candidate.expected_gain)}, nếu đúng=${formatGain(candidate.gain_if_correct)}, nếu sai=${formatGain(candidate.gain_if_wrong)}.` : ""}
                           </p>
                           {(teacherStep?.deep_dive_reason || frontierEntry?.deep_dive_reason) && (
-                            <p><strong>Deep-dive:</strong> {teacherStep?.deep_dive_reason ?? frontierEntry?.deep_dive_reason}</p>
+                            <p><strong>Lý do đào sâu:</strong> {deepDiveText(teacherStep?.deep_dive_reason ?? frontierEntry?.deep_dive_reason)}</p>
                           )}
                           {(teacherStep?.selector_policy || frontierEntry?.selector_policy) && (
-                            <p><strong>Policy:</strong> {teacherStep?.selector_policy ?? frontierEntry?.selector_policy}</p>
+                            <p><strong>Chiến lược chọn câu:</strong> {labelFor(POLICY_LABELS, teacherStep?.selector_policy ?? frontierEntry?.selector_policy)}</p>
                           )}
                         </div>
                       </article>
@@ -336,7 +471,7 @@ export default function AssessmentV2HistoryPage() {
               </section>
 
               <section className="panel">
-                <h3>2. Node được đánh dấu sau test</h3>
+                <h3>2. Kỹ năng được đánh dấu sau bài kiểm tra</h3>
                 <div className="node-list">
                   {rows.map(({ group, row }) => {
                     const direct = responseByKc.get(row.kc_id);
@@ -360,10 +495,10 @@ export default function AssessmentV2HistoryPage() {
                           (direct
                             ? `Có bằng chứng trực tiếp ở câu ${direct.step}: ${direct.response_type === "unknown" ? "Không biết" : direct.grading?.is_correct ? "đúng" : "sai"}.`
                             : transition?.reason?.includes("descendant_decay")
-                              ? `Suy luận giảm do node tiên quyết ${transition.source ?? "trước đó"} có tín hiệu yếu; đây là “có thể bị ảnh hưởng”, chưa phải kết luận tuyệt đối.`
+                              ? "Suy luận giảm do một kỹ năng tiên quyết có tín hiệu yếu; đây là “có thể bị ảnh hưởng”, chưa phải kết luận tuyệt đối."
                               : transition?.reason?.includes("ancestor_boost")
-                                ? `Suy luận tăng do một node phía sau trong graph được trả lời đúng.`
-                                : "Chưa có bằng chứng trực tiếp trong session này.")}
+                                ? "Suy luận tăng do một kỹ năng phía sau trong bản đồ được trả lời đúng."
+                                : "Chưa có bằng chứng trực tiếp trong lượt làm này.")}
                         </p>
                       </article>
                     );
@@ -373,7 +508,7 @@ export default function AssessmentV2HistoryPage() {
             </div>
           </>
         )}
-        {!loadingDetail && !selected && <div className="loading-card">Chọn một session để xem chi tiết.</div>}
+        {!loadingDetail && !selected && <div className="loading-card">Chọn một lượt làm để xem chi tiết.</div>}
       </section>
 
       <style jsx>{`

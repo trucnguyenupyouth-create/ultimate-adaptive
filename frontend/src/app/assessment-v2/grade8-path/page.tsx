@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CheckCircle2, HelpCircle, History, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, History, Loader2, RotateCcw } from "lucide-react";
 import {
   createAssessmentV2Session,
   submitAssessmentV2Response,
@@ -23,6 +23,65 @@ const MAX_QUESTIONS = 35;
 
 type Phase = "loading" | "question" | "adapting" | "completed";
 type ExpressionTemplate = "x_plus_number" | "x_times_x_plus_number" | "linear_expression" | "number_minus_x" | null;
+
+const PATH_LABELS: Record<string, string> = {
+  rational_expression: "Phân thức đại số",
+  linear_equation: "Phương trình",
+  word_problem_modeling: "Bài toán thực tế",
+  linear_function: "Hàm số bậc nhất",
+  fraction_foundation: "Nền tảng phân số",
+  integer_foundation: "Nền tảng số nguyên",
+  algebra_foundation: "Nền tảng đại số",
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  anchor: "Câu neo",
+  misconception: "Dò lỗi sai thường gặp",
+  prerequisite_probe: "Dò kiến thức nền",
+  confirmation: "Câu xác nhận",
+  bridge: "Câu nối",
+  transfer: "Câu vận dụng",
+  readiness: "Sẵn sàng học tiếp",
+};
+
+const FAMILY_LABELS: Record<string, string> = {
+  identify_rational_expression_part: "Nhận biết phân thức",
+  identify_variable_in_algebraic_expression: "Nhận biết biến",
+  equivalent_fraction_missing_part: "Phân số bằng nhau",
+  recognize_valid_fraction_parts: "Nhận biết phân số",
+  write_negative_integer_context: "Số nguyên âm",
+  remove_parentheses_minus_before: "Bỏ ngoặc dấu trừ",
+  opposite_negative_integer: "Số đối",
+  divide_negative_by_positive_integer: "Chia số nguyên",
+  expand_coefficient_parentheses: "Khai triển ngoặc",
+  reciprocal_positive_fraction: "Nghịch đảo phân số",
+  opposite_positive_fraction: "Số đối của phân số",
+  order_operations_parentheses_first: "Thứ tự phép tính",
+  simplify_fraction_by_gcd: "Rút gọn phân số",
+  multiply_two_negative_integers: "Nhân số nguyên",
+  percent_to_decimal: "Đổi phần trăm",
+};
+
+function labelFor(map: Record<string, string>, value?: string | null) {
+  if (!value) return null;
+  return map[value] ?? value.replace(/_/g, " ");
+}
+
+function familyLabel(value?: string | null) {
+  if (!value) return null;
+  return FAMILY_LABELS[value] ?? "Dạng câu chẩn đoán";
+}
+
+function friendlyError(message?: string | null) {
+  if (!message) return "Có lỗi khi xử lý câu trả lời. Em thử lại giúp hệ thống nhé.";
+  if (message.includes("float()") || message.includes("NoneType")) {
+    return "Đáp án chưa đúng định dạng để hệ thống chấm. Em thử nhập lại bằng số hoặc dùng nút Em chưa biết.";
+  }
+  if (message.includes("network") || message.includes("fetch")) {
+    return "Kết nối đang không ổn định. Em thử nộp lại sau vài giây.";
+  }
+  return "Có lỗi khi xử lý câu trả lời. Em thử lại hoặc báo giáo viên giúp hệ thống kiểm tra.";
+}
 
 function normalizeWidget(raw?: string | null, checker?: string | null): WidgetType | "expression_raw" {
   const value = String(raw || checker || "number").toLowerCase().replace(/[\s-]/g, "_");
@@ -83,17 +142,20 @@ function ExpressionTemplateInput({
 }) {
   const sanitize = (value: string) => value.replace(/[^0-9-]/g, "");
   const input = (key: "first" | "second", placeholder = "?") => (
-    <input
-      className="template-input"
-      value={parts[key]}
-      inputMode="numeric"
-      onChange={(event) => onChange({ ...parts, [key]: sanitize(event.target.value) })}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") onSubmit();
-      }}
-      placeholder={placeholder}
-      autoFocus={key === "first"}
-    />
+    <span className="template-blank">
+      <input
+        className="template-input"
+        value={parts[key]}
+        inputMode="numeric"
+        onChange={(event) => onChange({ ...parts, [key]: sanitize(event.target.value) })}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") onSubmit();
+        }}
+        placeholder={placeholder}
+        autoFocus={key === "first"}
+        aria-label="Ô điền số"
+      />
+    </span>
   );
 
   if (template === "x_times_x_plus_number") {
@@ -106,6 +168,80 @@ function ExpressionTemplateInput({
     return <div className="template-expression">{input("first")}<span>- x</span></div>;
   }
   return <div className="template-expression"><span>x +</span>{input("first")}</div>;
+}
+
+function RawExpressionInput({
+  value,
+  onChange,
+  onSubmit,
+  helper,
+  placeholder = "Ví dụ: x*(x+2)",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  helper?: string;
+  placeholder?: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const insert = (token: string) => {
+    const input = inputRef.current;
+    if (!input) {
+      onChange(value + token);
+      return;
+    }
+    const start = input.selectionStart ?? value.length;
+    const end = input.selectionEnd ?? value.length;
+    const next = `${value.slice(0, start)}${token}${value.slice(end)}`;
+    onChange(next);
+    requestAnimationFrame(() => {
+      input.focus();
+      const cursor = start + token.length;
+      input.setSelectionRange(cursor, cursor);
+    });
+  };
+  return (
+    <div className="raw-expression">
+      <input
+        ref={inputRef}
+        className="raw-input"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && value.trim()) onSubmit();
+        }}
+        placeholder={placeholder}
+        autoFocus
+      />
+      <div className="math-keypad" aria-label="Phím hỗ trợ nhập biểu thức">
+        {["x", "a", "b", "+", "-", "*", "/", "^", "(", ")"].map((token) => (
+          <button type="button" key={token} onClick={() => insert(token)}>{token}</button>
+        ))}
+        <button type="button" onClick={() => onChange("")}><RotateCcw size={14} /> Xóa</button>
+      </div>
+      <p className="input-note">{helper ?? <>Có thể dùng phím hỗ trợ hoặc gõ trực tiếp. Dấu nhân nhập bằng <strong>*</strong>.</>}</p>
+    </div>
+  );
+}
+
+function rawInputCopy(item?: AssessmentV2Item | null) {
+  const checker = item?.checker_type;
+  if (checker === "set_equal") {
+    return {
+      placeholder: "Ví dụ: {-2; 3}",
+      helper: "Nhập các giá trị trong tập nghiệm, cách nhau bằng dấu chấm phẩy.",
+    };
+  }
+  if (checker === "ordered_pair_list_equal") {
+    return {
+      placeholder: "Ví dụ: (0,-4); (2,0)",
+      helper: "Nhập từng điểm theo dạng (x,y), các điểm cách nhau bằng dấu chấm phẩy.",
+    };
+  }
+  return {
+    placeholder: "Ví dụ: x*(x+2)",
+    helper: "Có thể dùng phím hỗ trợ hoặc gõ trực tiếp. Dấu nhân nhập bằng *.",
+  };
 }
 
 export default function Grade8PathAssessmentPage() {
@@ -141,7 +277,7 @@ export default function Grade8PathAssessmentPage() {
     createAssessmentV2Session({
       max_questions: MAX_QUESTIONS,
       assessment_scope: "grade8_exam_path",
-      student_label: "Grade 8 official-path standalone test",
+      student_label: "Bài kiểm tra gốc đại số lớp 8",
     })
       .then((res) => {
         setSessionId(res.session_id);
@@ -188,7 +324,7 @@ export default function Grade8PathAssessmentPage() {
         setPhase("question");
       }, 500);
     } catch (err) {
-      setError((err as Error).message);
+      setError(friendlyError((err as Error).message));
       setPhase("question");
     } finally {
       setSubmitting(false);
@@ -198,21 +334,21 @@ export default function Grade8PathAssessmentPage() {
   return (
     <main className="grade8-shell">
       <aside className="side">
-        <p className="eyebrow">Assessment V2</p>
-        <h1>Grade 8 Algebra Diagnostic</h1>
+        <p className="eyebrow">Đánh giá thích ứng</p>
+        <h1>Kiểm tra gốc đại số lớp 8</h1>
         <p>
-          Standalone official-path test for rational expressions, equations, word-problem modeling, and linear functions.
+          Bài kiểm tra mở dùng để tìm kiến thức nền đang cản trở các chủ đề phân thức, phương trình, bài toán thực tế và hàm số bậc nhất.
         </p>
         <div className="side-card">
           <strong>{MAX_QUESTIONS}</strong>
-          <span>maximum questions</span>
+          <span>câu hỏi tối đa</span>
         </div>
         <div className="side-card">
-          <strong>Open-ended</strong>
-          <span>no multiple-choice guessing</span>
+          <strong>Tự nhập đáp án</strong>
+          <span>không có đáp án trắc nghiệm để đoán</span>
         </div>
         <Link className="history-link" href="/assessment-v2/history?scope=grade8_exam_path">
-          <History size={16} /> Teacher review history
+          <History size={16} /> Xem lịch sử giáo viên
         </Link>
       </aside>
 
@@ -220,23 +356,24 @@ export default function Grade8PathAssessmentPage() {
         {phase === "loading" && (
           <div className="card center">
             <Loader2 className="spin" size={30} />
-            <h2>Preparing adaptive test</h2>
+            <h2>Đang chuẩn bị bài kiểm tra</h2>
+            <p>Hệ thống đang tải bản đồ kiến thức và ngân hàng câu hỏi.</p>
           </div>
         )}
 
         {phase === "adapting" && (
           <div className="card center">
             <Loader2 className="spin" size={30} />
-            <h2>Choosing the next diagnostic question</h2>
-            <p>The engine is updating the knowledge-state frontier from the previous answer.</p>
+            <h2>Đang chọn câu hỏi tiếp theo</h2>
+            <p>Hệ thống đang cập nhật vùng kiến thức cần kiểm tra dựa trên câu trả lời vừa rồi.</p>
           </div>
         )}
 
         {phase === "question" && (
           <div className="card">
             <div className="top-row">
-              <span>Question {questionNumber} of up to {maxQuestions}</span>
-              <Link href="/assessment-v2/history?scope=grade8_exam_path">Review runs</Link>
+              <span>Câu {questionNumber} / tối đa {maxQuestions}</span>
+              <Link href="/assessment-v2/history?scope=grade8_exam_path">Xem lịch sử</Link>
             </div>
             <div className="progress">
               <div style={{ width: `${Math.min(100, (questionNumber / maxQuestions) * 100)}%` }} />
@@ -248,14 +385,14 @@ export default function Grade8PathAssessmentPage() {
               <>
                 <p className="kc">{item.kc_code} · {item.kc_name}</p>
                 <div className="meta">
-                  {item.target_exam_path && <span>{item.target_exam_path}</span>}
-                  {item.item_role && <span>{item.item_role}</span>}
-                  {item.item_family && <span>{item.item_family}</span>}
+                  {item.target_exam_path && <span>{labelFor(PATH_LABELS, item.target_exam_path)}</span>}
+                  {item.item_role && <span>{labelFor(ROLE_LABELS, item.item_role)}</span>}
+                  {item.item_family && <span>{familyLabel(item.item_family)}</span>}
                 </div>
                 <h2>{item.question}</h2>
 
                 <div className="answer-box">
-                  <p>Enter your answer</p>
+                  <p>Nhập đáp án của em</p>
                   {widget === "expression_raw" ? (
                     expressionTemplate ? (
                       <ExpressionTemplateInput
@@ -265,15 +402,11 @@ export default function Grade8PathAssessmentPage() {
                         onSubmit={() => isReady && handleResponse("answer")}
                       />
                     ) : (
-                      <input
-                        className="raw-input"
+                      <RawExpressionInput
                         value={text}
-                        onChange={(event) => setText(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" && isReady) handleResponse("answer");
-                        }}
-                        placeholder="Example: x*(x+2)"
-                        autoFocus
+                        onChange={setText}
+                        onSubmit={() => isReady && handleResponse("answer")}
+                        {...rawInputCopy(item)}
                       />
                     )
                   ) : widget === "fraction" ? (
@@ -301,15 +434,15 @@ export default function Grade8PathAssessmentPage() {
 
                 <div className="actions">
                   <button disabled={!isReady || submitting} onClick={() => handleResponse("answer")}>
-                    Submit answer <ArrowRight size={18} />
+                    Nộp đáp án <ArrowRight size={18} />
                   </button>
                   <button className="secondary" disabled={submitting} onClick={() => handleResponse("unknown")}>
-                    I don't know
+                    Em chưa biết
                   </button>
                 </div>
               </>
             ) : (
-              <div className="empty">No active item is available.</div>
+              <div className="empty">Chưa có câu hỏi khả dụng.</div>
             )}
           </div>
         )}
@@ -317,27 +450,27 @@ export default function Grade8PathAssessmentPage() {
         {phase === "completed" && result && (
           <div className="card">
             <div className="complete-icon"><CheckCircle2 size={28} /></div>
-            <h2>Diagnostic complete</h2>
+            <h2>Đã hoàn thành bài kiểm tra</h2>
             <p className="muted">
-              This is diagnostic, not a score. Inferred gaps are shown as possibly affected by prerequisite chains.
+              Đây là kết quả chẩn đoán, không phải điểm số. Các kiến thức suy luận được xem là vùng có thể bị ảnh hưởng bởi chuỗi kiến thức nền.
             </p>
             <div className="metrics">
-              <div><strong>{result.summary.value_metrics.questions_asked}</strong><span>questions asked</span></div>
-              <div><strong>{result.summary.value_metrics.skills_directly_tested}</strong><span>skills tested</span></div>
-              <div><strong>{result.summary.value_metrics.skills_inferred}</strong><span>skills inferred</span></div>
+              <div><strong>{result.summary.value_metrics.questions_asked}</strong><span>câu đã hỏi</span></div>
+              <div><strong>{result.summary.value_metrics.skills_directly_tested}</strong><span>kỹ năng kiểm tra trực tiếp</span></div>
+              <div><strong>{result.summary.value_metrics.skills_inferred}</strong><span>kỹ năng suy luận</span></div>
             </div>
             <div className="summary-grid">
               <section>
-                <h3>Skills to review</h3>
+                <h3>Kiến thức cần ôn</h3>
                 {(result.summary.skills_to_review.length ? result.summary.skills_to_review : result.summary.possibly_affected).slice(0, 8).map((row) => (
                   <p key={row.kc_id}><strong>{row.code}</strong><br />{row.name} · {Math.round(row.p_mastery * 100)}%</p>
                 ))}
               </section>
               <section>
-                <h3>Ready to inspect</h3>
-                <p>Teachers can review every question, answer, node state, and why the engine selected each item.</p>
+                <h3>Dành cho giáo viên</h3>
+                <p>Giáo viên có thể xem từng câu đã hỏi, đáp án học sinh, trạng thái kỹ năng và lý do hệ thống chọn câu tiếp theo.</p>
                 <Link className="review-button" href={`/assessment-v2/history?scope=grade8_exam_path&session=${result.session_id}`}>
-                  Open teacher review
+                  Mở trang phân tích
                 </Link>
               </section>
             </div>
@@ -349,14 +482,16 @@ export default function Grade8PathAssessmentPage() {
         .grade8-shell {
           min-height: 100vh;
           display: grid;
-          grid-template-columns: 360px minmax(0, 1fr);
-          background: #f5f7ff;
+          grid-template-columns: 340px minmax(0, 1fr);
+          background:
+            radial-gradient(circle at top right, rgba(61,114,248,0.12), transparent 34%),
+            linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
           color: #111827;
         }
         .side {
           min-height: 100vh;
-          padding: 34px 28px;
-          background: #0f172a;
+          padding: 34px 26px;
+          background: linear-gradient(180deg, #0f172a 0%, #14213f 100%);
           color: white;
           display: flex;
           flex-direction: column;
@@ -371,8 +506,8 @@ export default function Grade8PathAssessmentPage() {
           text-transform: uppercase;
           letter-spacing: 0;
         }
-        h1 { font-size: 42px; line-height: 1; margin: 0; }
-        h2 { font-size: 30px; line-height: 1.18; margin: 18px 0; }
+        h1 { font-size: 38px; line-height: 1.05; margin: 0; }
+        h2 { font-size: 30px; line-height: 1.22; margin: 18px 0; }
         h3 { margin: 0 0 14px; }
         .side p { color: #cbd5e1; line-height: 1.55; font-size: 18px; }
         .side-card {
@@ -395,14 +530,14 @@ export default function Grade8PathAssessmentPage() {
           font-weight: 900;
           text-decoration: none;
         }
-        .content { padding: 42px; display: flex; align-items: center; justify-content: center; }
+        .content { padding: 38px; display: flex; align-items: center; justify-content: center; }
         .card {
-          width: min(960px, 100%);
-          border-radius: 24px;
+          width: min(1000px, 100%);
+          border-radius: 22px;
           background: white;
           border: 1px solid rgba(15,23,42,0.1);
           box-shadow: 0 18px 55px rgba(15,23,42,0.08);
-          padding: 34px;
+          padding: 32px;
         }
         .center { text-align: center; display: grid; justify-items: center; }
         .spin { animation: spin 1s linear infinite; color: #3d72f8; }
@@ -441,27 +576,87 @@ export default function Grade8PathAssessmentPage() {
           font-weight: 850;
           padding: 10px 8px;
         }
+        .raw-expression {
+          width: min(680px, 100%);
+          display: grid;
+          justify-items: center;
+          gap: 14px;
+        }
+        .math-keypad {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 8px;
+        }
+        .math-keypad button {
+          min-width: 42px;
+          height: 38px;
+          border-radius: 12px;
+          padding: 0 12px;
+          background: #eef4ff;
+          color: #1d4ed8;
+          border: 1px solid #c7d7fe;
+          font-size: 16px;
+        }
+        .input-note {
+          max-width: 560px;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.4;
+          text-align: center;
+        }
         .template-expression {
           display: flex;
           align-items: center;
           justify-content: center;
           flex-wrap: wrap;
-          gap: 10px;
+          gap: 8px;
           color: #111827;
-          font-size: 34px;
+          font-size: clamp(28px, 4vw, 42px);
           font-weight: 900;
+          line-height: 1.15;
+          letter-spacing: 0;
+          padding: 4px 0 2px;
+        }
+        .template-expression span {
+          display: inline-flex;
+          align-items: center;
+        }
+        .template-blank {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 74px;
+          height: 58px;
+          padding: 0 8px;
+          border-radius: 14px;
+          background: #f8fbff;
+          box-shadow: inset 0 -4px 0 #3d72f8;
+          transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+        }
+        .template-blank:focus-within {
+          background: #eef4ff;
+          box-shadow: inset 0 -4px 0 #2563eb, 0 0 0 5px rgba(61, 114, 248, 0.12);
+          transform: translateY(-1px);
         }
         .template-input {
-          width: 86px;
+          width: 58px;
+          max-width: 72px;
           border: none;
-          border-bottom: 3px solid #3d72f8;
           outline: none;
           text-align: center;
-          font-size: 34px;
+          font-size: clamp(28px, 4vw, 40px);
+          line-height: 1;
           font-weight: 900;
           color: #111827;
           background: transparent;
-          padding: 4px 6px;
+          padding: 0;
+          appearance: textfield;
+        }
+        .template-input::placeholder {
+          color: #94a3b8;
+          opacity: 0.75;
         }
         .actions { display: flex; gap: 12px; }
         button {

@@ -120,7 +120,7 @@ export function FractionWidget({
         placeholder="?" style={iStyle(!!den)}
       />
       {den === "0" && (
-        <p style={{ fontSize: "0.7rem", color: B.orange, marginTop: 2, fontFamily: NUNITO }}>Denominator must not be 0</p>
+        <p style={{ fontSize: "0.7rem", color: B.orange, marginTop: 2, fontFamily: NUNITO }}>Mẫu số không được bằng 0</p>
       )}
     </div>
   );
@@ -447,12 +447,12 @@ function CoordWidgetSC() {
 }
 
 const SHOWCASE_WIDGETS = [
-  { id: "fraction",   label: "Fraction",        context: "Simplify: 6/8 = ?",        Component: FractionWidgetSC },
-  { id: "mixed",      label: "Mixed number",    context: "Write as a mixed number: 7/3 = ?", Component: MixedWidgetSC },
-  { id: "power",      label: "Power",           context: "Fill the exponent: 2^n = 8", Component: PowerWidgetSC },
-  { id: "sqrt",       label: "Square root",     context: "Calculate: sqrt(?) = 4",   Component: SqrtWidgetSC },
-  { id: "inequality", label: "Comparison sign", context: "Compare 3/4 and 0.8:",     Component: IneqWidgetSC },
-  { id: "coordinate", label: "Coordinate",      context: "Point A has coordinates:", Component: CoordWidgetSC },
+  { id: "fraction",   label: "Phân số",        context: "Rút gọn: 6/8 = ?",        Component: FractionWidgetSC },
+  { id: "mixed",      label: "Hỗn số",    context: "Viết dưới dạng hỗn số: 7/3 = ?", Component: MixedWidgetSC },
+  { id: "power",      label: "Lũy thừa",           context: "Điền số mũ: 2^n = 8", Component: PowerWidgetSC },
+  { id: "sqrt",       label: "Căn bậc hai",     context: "Tính: căn(?) = 4",   Component: SqrtWidgetSC },
+  { id: "inequality", label: "Dấu so sánh", context: "So sánh 3/4 và 0,8:",     Component: IneqWidgetSC },
+  { id: "coordinate", label: "Tọa độ",      context: "Điểm A có tọa độ:", Component: CoordWidgetSC },
 ];
 
 export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
@@ -494,8 +494,8 @@ export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: `1px solid ${B.grayBorder}` }}>
           <div>
-            <p style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: B.blue, margin: "0 0 2px" }}>Math Input System</p>
-            <h3 style={{ fontFamily: NUNITO, fontSize: 20, fontWeight: 800, color: B.text, margin: 0 }}>Math input widgets</h3>
+            <p style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: B.blue, margin: "0 0 2px" }}>Bộ nhập toán học</p>
+            <h3 style={{ fontFamily: NUNITO, fontSize: 20, fontWeight: 800, color: B.text, margin: 0 }}>Ô nhập đáp án</h3>
           </div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "none", backgroundColor: B.gray, cursor: "pointer", transition: "opacity 0.2s" }} className="hover:opacity-70">
             <X size={16} style={{ color: B.textMuted }} />
@@ -505,7 +505,7 @@ export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
         {/* Tagline banner */}
         <div style={{ padding: "14px 24px", backgroundColor: B.blueLight }}>
           <p style={{ fontFamily: INTER, fontSize: 14, lineHeight: 1.5, color: B.textMid, margin: 0 }}>
-            Students enter math the way they write it on paper. Each expression type has its own keyboard-friendly and touch-friendly widget.
+            Học sinh nhập toán gần giống cách viết trên giấy. Mỗi dạng đáp án có ô nhập riêng để giảm lỗi gõ nhầm.
           </p>
         </div>
 
@@ -529,7 +529,7 @@ export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
         {/* Footer */}
         <div style={{ padding: "0 24px 20px", textAlign: "center" }}>
           <p style={{ fontFamily: INTER, fontSize: 11, color: B.textLight, margin: 0 }}>
-            Tab · Shift+Tab · ↑↓ to navigate · Enter to submit · numeric keyboard on mobile
+            Tab · Shift+Tab · ↑↓ để chuyển ô · Enter để nộp · bàn phím số trên điện thoại
           </p>
         </div>
       </motion.div>
