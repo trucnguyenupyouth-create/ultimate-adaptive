@@ -369,10 +369,10 @@ def test_grade8_fail_transfer_deep_dives_to_prerequisite_probe_before_unrelated_
     assert next_item is not None
     assert next_item.id == "probe-mid"
     frontier = run.frontier_history[-1]
-    assert frontier["selector_policy"] == "grade8_deep_dive"
-    assert frontier["reason"] == "grade8_deep_dive_after_failed_response"
+    assert frontier["selector_policy"] == "grade8_unresolved_follow_up"
+    assert frontier["reason"] == "grade8_confirm_unresolved_direct_miss"
     assert frontier["source_failed_kc"] == "cap"
-    assert "probe:diagnosed misconception" in frontier["deep_dive_reason"]
+    assert "follow_up:near prerequisite probe" in frontier["deep_dive_reason"]
 
 
 def test_grade8_unknown_response_records_deep_dive_audit_context():
@@ -389,7 +389,7 @@ def test_grade8_unknown_response_records_deep_dive_audit_context():
 
     assert next_item is not None
     top = run.frontier_history[-1]["top_candidates"][0]
-    assert top["selector_strategy"] == "grade8_deep_dive_state_space_eig"
+    assert top["selector_strategy"] == "grade8_unresolved_follow_up_state_space_eig"
     assert top["source_response_type"] == "unknown"
     assert "unknown_on:transfer-cap" in top["deep_dive_reason"]
     assert top["candidate_pool"]["target_exam_path"] == "linear_equation"
@@ -424,6 +424,31 @@ def test_grade8_can_ask_same_kc_twice_when_family_and_surface_are_different():
     assert next_item.kc_id == "cap"
 
 
+def test_grade8_unresolved_prerequisite_miss_gets_confirmation_before_breadth():
+    followup = _g8_item(
+        "root-followup",
+        "root",
+        role="prerequisite_probe",
+        family="root_followup",
+        surface="root_followup_surface",
+        diagnoses=["root"],
+    )
+    engine = _grade8_deep_dive_engine(extra_items=[followup])
+    run = engine.new_run()
+    first = engine.items_by_id["anchor-root"]
+    run.states["root"].p_mastery = 0.90
+
+    engine.apply_response(run, first, DiagnosticResponse(item_id=first.id, correct=False, student_answer="wrong"))
+    next_item = engine.select_next(run)
+
+    assert next_item is not None
+    assert next_item.id == "root-followup"
+    frontier = run.frontier_history[-1]
+    assert frontier["selector_policy"] == "grade8_unresolved_follow_up"
+    assert frontier["source_failed_kc"] == "root"
+    assert "same KC confirmation" in frontier["deep_dive_reason"]
+
+
 def test_grade8_duplicate_surface_signature_is_not_selected_twice():
     duplicate_surface = _g8_item(
         "cap-duplicate-surface",
@@ -445,9 +470,41 @@ def test_grade8_duplicate_surface_signature_is_not_selected_twice():
     run = engine.new_run()
     first = engine.items_by_id["transfer-cap"]
 
-    engine.apply_response(run, first, DiagnosticResponse(item_id=first.id, correct=False, student_answer="wrong"))
+    engine.apply_response(run, first, DiagnosticResponse(item_id=first.id, correct=True, student_answer="correct"))
 
     assert engine.select_next(run) is None
+
+
+def test_grade8_unresolved_miss_can_use_parameterized_same_surface_fallback():
+    same_surface_followup = _g8_item(
+        "cap-parameter-followup",
+        "cap",
+        role="prerequisite_probe",
+        family="cap_followup",
+        surface="transfer_surface",
+        requires=[],
+        diagnoses=[],
+    )
+    engine = V2DiagnosticEngine(
+        nodes=[{"id": "cap", "code": "CAP", "name": "Capstone"}],
+        edges=[],
+        items=[
+            _g8_item("transfer-cap", "cap", role="transfer", family="transfer", surface="transfer_surface", requires=[], diagnoses=[]),
+            same_surface_followup,
+        ],
+    )
+    run = engine.new_run()
+    run.states["cap"].p_mastery = 0.90
+    first = engine.items_by_id["transfer-cap"]
+
+    engine.apply_response(run, first, DiagnosticResponse(item_id=first.id, correct=False, student_answer="wrong"))
+    next_item = engine.select_next(run)
+
+    assert next_item is not None
+    assert next_item.id == "cap-parameter-followup"
+    frontier = run.frontier_history[-1]
+    assert frontier["selector_policy"] == "grade8_unresolved_follow_up"
+    assert frontier["top_candidates"][0]["candidate_pool"]["surface_relaxed"] is True
 
 
 def test_grade8_deep_dive_falls_back_to_normal_eig_when_no_probe_exists():

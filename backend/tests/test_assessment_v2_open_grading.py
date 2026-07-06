@@ -111,6 +111,16 @@ def test_expression_equivalent_checker():
     assert result.matched_rule == "expression_equivalent"
 
 
+def test_expression_equivalent_accepts_implicit_multiplication():
+    result = grade_open_response(
+        {"answer_type": "expression", "checker_type": "expression_equivalent", "accepted_answers": ["3*x - 6"]},
+        "3x-6",
+    )
+
+    assert result.is_correct is True
+    assert result.matched_rule == "expression_equivalent"
+
+
 def test_ordered_list_preserves_order():
     content = {
         "answer_type": "ordered_list",

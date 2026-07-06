@@ -207,7 +207,23 @@ def _tokenize_expression(value: Any) -> list[str] | None:
             i += 1
             continue
         return None
-    return tokens
+    return _insert_implicit_multiplication(tokens)
+
+
+def _insert_implicit_multiplication(tokens: list[str]) -> list[str]:
+    expanded: list[str] = []
+
+    def is_value(token: str) -> bool:
+        return token == ")" or re.fullmatch(r"\d+(?:\.\d+)?", token) is not None or re.fullmatch(r"[a-z]+", token) is not None
+
+    def starts_value(token: str) -> bool:
+        return token == "(" or re.fullmatch(r"\d+(?:\.\d+)?", token) is not None or re.fullmatch(r"[a-z]+", token) is not None
+
+    for token in tokens:
+        if expanded and is_value(expanded[-1]) and starts_value(token):
+            expanded.append("*")
+        expanded.append(token)
+    return expanded
 
 
 def _eval_expression(value: Any, variables: dict[str, float] | None = None) -> float | None:

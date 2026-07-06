@@ -451,9 +451,12 @@ class V2DiagnosticEngine:
 
     def select_next(self, run: DiagnosticRun) -> DiagnosticItem | None:
         selector = self._selector_for_run(run)
-        candidates = self._grade8_deep_dive_candidates(run, selector=selector)
+        candidates = self._grade8_unresolved_follow_up_candidates(run, selector=selector)
         reason_suffix = ""
-        policy = "grade8_deep_dive" if candidates else "state_space_eig"
+        policy = "grade8_unresolved_follow_up" if candidates else "state_space_eig"
+        if not candidates:
+            candidates = self._grade8_deep_dive_candidates(run, selector=selector)
+            policy = "grade8_deep_dive" if candidates else "state_space_eig"
         if not candidates:
             candidates = self._frontier_candidates(run, allow_confirmation=False, selector=selector)
             policy = "state_space_eig"
@@ -540,6 +543,135 @@ class V2DiagnosticEngine:
         if state.probability_band not in {"strong_gap", "likely_gap", "uncertain", "likely_mastered"}:
             return False
         return True
+
+    def _grade8_unresolved_follow_up_candidates(
+        self,
+        run: DiagnosticRun,
+        selector: KnowledgeStateParticleSelector,
+    ) -> list[dict[str, Any]]:
+        context = self._last_grade8_unresolved_miss_context(run)
+        if context is None:
+            return []
+
+        source_item = context["item"]
+        source_state = run.states.get(source_item.kc_id)
+        if source_state is None:
+            return []
+
+        target_path = source_item.content.get("target_exam_path")
+        skipped: list[dict[str, str]] = []
+        raw_candidates: list[tuple[int, float, str, str, DiagnosticItem, bool]] = []
+        target_kcs = self._grade8_follow_up_target_kcs(source_item)
+        for kc_id in target_kcs:
+            if kc_id not in run.states:
+                skipped.append({"kc_id": kc_id, "reason": "kc_not_in_scope"})
+                continue
+            state = run.states[kc_id]
+            if state.label == "tested_mastered":
+                skipped.append({"kc_id": kc_id, "reason": "already_tested_mastered"})
+                continue
+            if state.direct_evidence_count >= GRADE8_MAX_TESTS_PER_KC:
+                skipped.append({"kc_id": kc_id, "reason": "max_tests_per_kc"})
+                continue
+            usable = [
+                item for item in self.items_by_kc.get(kc_id, [])
+                if item.id not in run.seen_items
+                and self._is_grade8_exam_path_item(item)
+                and not self._surface_was_seen(run, item)
+            ]
+            same_path = [item for item in usable if item.content.get("target_exam_path") == target_path]
+            if same_path:
+                usable = same_path
+            relaxed_surface = False
+            if not usable and kc_id == source_item.kc_id:
+                usable = [
+                    item for item in self.items_by_kc.get(kc_id, [])
+                    if item.id not in run.seen_items
+                    and self._is_grade8_exam_path_item(item)
+                    and item.content.get("target_exam_path") == target_path
+                ]
+                relaxed_surface = bool(usable)
+            if not usable:
+                skipped.append({"kc_id": kc_id, "reason": "no_distinct_follow_up_item"})
+                continue
+            for item in usable:
+                role_rank = GRADE8_DEEP_DIVE_ROLES.get(str(item.content.get("item_role") or ""), 99)
+                kc_rank = target_kcs.index(kc_id)
+                surface_penalty = 30 if relaxed_surface else 0
+                raw_candidates.append((kc_rank * 10 + role_rank + surface_penalty, -self._cheap_candidate_score(run, kc_id, item), kc_id, item.id, item, relaxed_surface))
+
+        if not raw_candidates:
+            return []
+
+        selected_pool = sorted(raw_candidates)[:PARTICLE_PREFILTER_LIMIT]
+        entropy_before = selector.entropy()
+        candidates: list[dict[str, Any]] = []
+        for _rank, _cheap, kc_id, _item_id, item, relaxed_surface in selected_pool:
+            payload = self._candidate_score(run, kc_id, item, selector=selector, entropy_before=entropy_before)
+            same_kc_bonus = 36.0 if kc_id == source_item.kc_id else 18.0
+            unknown_bonus = 10.0 if context["response_type"] == "unknown" else 0.0
+            fallback_penalty = -12.0 if relaxed_surface else 0.0
+            target_order_bonus = max(0.0, 24.0 - float(_rank))
+            payload["score"] = round(payload["score"] + same_kc_bonus + unknown_bonus + fallback_penalty + target_order_bonus, 4)
+            payload["reason"] = "grade8_confirm_unresolved_direct_miss"
+            payload["selector_strategy"] = "grade8_unresolved_follow_up_state_space_eig"
+            payload["deep_dive_reason"] = self._grade8_follow_up_reason(context, item)
+            payload["source_failed_kc"] = source_item.kc_id
+            payload["source_failed_item"] = source_item.id
+            payload["source_response_type"] = context["response_type"]
+            payload["candidate_pool"] = {
+                "target_exam_path": target_path,
+                "target_kcs": target_kcs,
+                "pool_size": len(raw_candidates),
+                "source_probability_band": source_state.probability_band,
+                "source_p_mastery": round(source_state.p_mastery, 4),
+                "surface_relaxed": relaxed_surface,
+            }
+            payload["skipped_candidates"] = skipped[:12]
+            candidates.append(payload)
+        return candidates
+
+    def _last_grade8_unresolved_miss_context(self, run: DiagnosticRun) -> dict[str, Any] | None:
+        if self.mode != "assessment" or not run.state_transitions:
+            return None
+        transition = run.state_transitions[-1]
+        if transition.get("correct") is True:
+            return None
+        item = self.items_by_id.get(str(transition.get("item_id")))
+        if item is None or not self._is_grade8_exam_path_item(item):
+            return None
+        state = run.states.get(item.kc_id)
+        if state is None:
+            return None
+        if state.direct_evidence_count >= GRADE8_MAX_TESTS_PER_KC:
+            return None
+        if state.label == "tested_mastered":
+            return None
+        response_type = "answer"
+        for evidence in reversed(run.evidence_by_kc.get(item.kc_id, [])):
+            if evidence.get("item_id") == item.id:
+                response_type = str(evidence.get("response_type") or "answer")
+                break
+        return {"item": item, "response_type": response_type, "transition": transition}
+
+    def _grade8_follow_up_target_kcs(self, item: DiagnosticItem) -> list[str]:
+        ordered = [item.kc_id] if item.kc_id in self.graph else []
+        for kc_id in self._grade8_deep_dive_target_kcs(item):
+            if kc_id not in ordered:
+                ordered.append(kc_id)
+        return ordered
+
+    def _grade8_follow_up_reason(self, context: dict[str, Any], item: DiagnosticItem) -> str:
+        source_item = context["item"]
+        response_text = "unknown" if context["response_type"] == "unknown" else "wrong"
+        if item.kc_id == source_item.kc_id:
+            relation = "same KC confirmation because one miss left the node unresolved"
+        elif item.kc_id in self.graph and source_item.kc_id in self.graph and nx.has_path(self.graph, item.kc_id, source_item.kc_id):
+            relation = "near prerequisite probe after unresolved miss"
+        else:
+            relation = "related diagnostic follow-up after unresolved miss"
+        role = item.content.get("item_role") or "item"
+        return f"{response_text}_on:{source_item.id}; follow_up:{relation}; role:{role}"
 
     def _grade8_deep_dive_candidates(
         self,
