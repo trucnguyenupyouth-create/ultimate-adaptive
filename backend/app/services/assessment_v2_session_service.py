@@ -30,6 +30,7 @@ DEFAULT_ASSESSMENT_SCOPE = "g6_algebra_pilot"
 GRADE8_EXAM_PATH_SCOPE = "grade8_exam_path"
 ROOT = Path(__file__).resolve().parents[3]
 GRADE8_DRAFT_ITEMS_PATH = ROOT / "docs" / "grade8_exam_path_official_item_drafts.json"
+GRADE8_SCOPE_PATH = ROOT / "docs" / "grade8_exam_scope.json"
 
 
 def _now() -> datetime:
@@ -99,22 +100,40 @@ async def _load_g6_graph(db: AsyncSession) -> dict[str, list[dict[str, Any]]]:
 async def _load_grade8_exam_path_context(db: AsyncSession) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[DiagnosticItem]]:
     if not GRADE8_DRAFT_ITEMS_PATH.exists():
         raise ValueError("Grade 8 official-path draft item bank is not available on this deployment.")
+    if not GRADE8_SCOPE_PATH.exists():
+        raise ValueError("Grade 8 official-path scope is not available on this deployment.")
     raw_items = json.loads(GRADE8_DRAFT_ITEMS_PATH.read_text(encoding="utf-8")).get("items", [])
+    scope_config = json.loads(GRADE8_SCOPE_PATH.read_text(encoding="utf-8"))
     if not raw_items:
         raise ValueError("Grade 8 official-path draft item bank is empty.")
 
-    scope_ids: set[str] = set()
+    scope_codes = set(scope_config.get("reportable_scope_codes") or [])
+    scope_codes.update(scope_config.get("support_scope_codes") or [])
+    if not scope_codes:
+        raise ValueError("Grade 8 official-path scope has no reportable/support nodes.")
+
+    node_result = await db.execute(select(KnowledgeComponent).where(KnowledgeComponent.code.in_(sorted(scope_codes))))
+    node_rows = list(node_result.scalars().all())
+    nodes_by_id = {str(row.id): row for row in node_rows}
+    ids_by_code = {row.code: str(row.id) for row in node_rows}
+    missing_codes = sorted(scope_codes - set(ids_by_code))
+    if missing_codes:
+        raise ValueError(f"Grade 8 official-path scope references missing KCs: {missing_codes}")
+
+    scope_ids = set(nodes_by_id)
     for item in raw_items:
         if item.get("official_assessment_scope") != GRADE8_EXAM_PATH_SCOPE:
             continue
-        for key in ("kc_id",):
-            if item.get(key):
-                scope_ids.add(str(item[key]))
-        for key in ("requires_kcs", "diagnoses_kcs"):
-            for kc_id in item.get(key, []) or []:
-                scope_ids.add(str(kc_id))
+        item_code = item.get("kc_code")
+        if item_code in scope_codes and item.get("kc_id"):
+            scope_ids.add(str(item["kc_id"]))
+        for id_key, code_key in (("requires_kcs", "requires_kc_codes"), ("diagnoses_kcs", "diagnoses_kc_codes")):
+            ids = [str(kc_id) for kc_id in item.get(id_key, []) or []]
+            codes = [str(kc_code) for kc_code in item.get(code_key, []) or []]
+            for kc_id, kc_code in zip(ids, codes):
+                if kc_code in scope_codes:
+                    scope_ids.add(kc_id)
 
-    node_result = await db.execute(select(KnowledgeComponent).where(KnowledgeComponent.id.in_([uuid.UUID(kc_id) for kc_id in scope_ids])))
     nodes = [
         {
             "id": str(row.id),
@@ -125,7 +144,8 @@ async def _load_grade8_exam_path_context(db: AsyncSession) -> tuple[list[dict[st
             "chapter_info": row.chapter_info,
             "description": row.description,
         }
-        for row in node_result.scalars().all()
+        for row in node_rows
+        if str(row.id) in scope_ids
     ]
     existing_ids = {node["id"] for node in nodes}
     edge_result = await db.execute(select(KCPrerequisite).where(KCPrerequisite.edge_type == "prerequisite"))
@@ -143,6 +163,8 @@ async def _load_grade8_exam_path_context(db: AsyncSession) -> tuple[list[dict[st
     diagnostic_items: list[DiagnosticItem] = []
     for raw in raw_items:
         if raw.get("official_assessment_scope") != GRADE8_EXAM_PATH_SCOPE:
+            continue
+        if raw.get("kc_code") not in scope_codes:
             continue
         if str(raw.get("kc_id")) not in existing_ids:
             continue

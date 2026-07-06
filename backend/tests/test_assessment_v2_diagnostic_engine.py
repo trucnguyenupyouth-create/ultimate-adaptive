@@ -475,7 +475,7 @@ def test_grade8_duplicate_surface_signature_is_not_selected_twice():
     assert engine.select_next(run) is None
 
 
-def test_grade8_unresolved_miss_can_use_parameterized_same_surface_fallback():
+def test_grade8_unresolved_miss_does_not_use_same_surface_fallback():
     same_surface_followup = _g8_item(
         "cap-parameter-followup",
         "cap",
@@ -500,11 +500,7 @@ def test_grade8_unresolved_miss_can_use_parameterized_same_surface_fallback():
     engine.apply_response(run, first, DiagnosticResponse(item_id=first.id, correct=False, student_answer="wrong"))
     next_item = engine.select_next(run)
 
-    assert next_item is not None
-    assert next_item.id == "cap-parameter-followup"
-    frontier = run.frontier_history[-1]
-    assert frontier["selector_policy"] == "grade8_unresolved_follow_up"
-    assert frontier["top_candidates"][0]["candidate_pool"]["surface_relaxed"] is True
+    assert next_item is None
 
 
 def test_grade8_deep_dive_falls_back_to_normal_eig_when_no_probe_exists():

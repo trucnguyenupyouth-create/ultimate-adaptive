@@ -28,6 +28,7 @@ from app.engines.assessment_v2.diagnostic_engine import (  # noqa: E402
 )
 
 ITEMS_JSON = ROOT / "docs" / "grade8_exam_path_official_item_drafts.json"
+SCOPE_JSON = ROOT / "docs" / "grade8_exam_scope.json"
 MAX_QUESTIONS = 35
 
 
@@ -43,6 +44,11 @@ def _load_env() -> None:
 
 async def _load_production_graph() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, str]]:
     _load_env()
+    scope = json.loads(SCOPE_JSON.read_text(encoding="utf-8"))
+    scope_codes = set(scope.get("reportable_scope_codes") or [])
+    scope_codes.update(scope.get("support_scope_codes") or [])
+    if not scope_codes:
+        raise RuntimeError("Grade 8 simulation scope is empty.")
     engine = create_async_engine(
         os.environ["DATABASE_URL"],
         echo=False,
@@ -54,13 +60,16 @@ async def _load_production_graph() -> tuple[list[dict[str, Any]], list[dict[str,
                 """
                 select id::text, code, name, grade
                 from knowledge_components
-                where subject = 'math'
-                  and grade in (6, 7, 8)
+                where code = any(:codes)
                 """
-            )
+            ),
+            {"codes": sorted(scope_codes)},
         )
         nodes = [dict(row._mapping) for row in node_rows]
         node_ids = {node["id"] for node in nodes}
+        missing_codes = sorted(scope_codes - {node["code"] for node in nodes})
+        if missing_codes:
+            raise RuntimeError(f"Missing scope KCs in production DB: {missing_codes}")
 
         edge_rows = await conn.execute(
             text(
@@ -148,8 +157,28 @@ def _summarize(run: Any, names: dict[str, str], steps: list[dict[str, Any]]) -> 
         bands[state.probability_band] = bands.get(state.probability_band, 0) + 1
     item_ids = [step["item_id"] for step in steps]
     surfaces = [step.get("surface_signature") for step in steps if step.get("surface_signature")]
+    code_by_kc = {kc_id: names.get(kc_id, kc_id).split(" — ")[0] for kc_id in run.states}
+
+    def grade_of_kc(kc_id: str) -> str:
+        code = code_by_kc.get(kc_id, "")
+        if code.startswith("G6"):
+            return "G6"
+        if code.startswith("G7"):
+            return "G7"
+        if code.startswith("G8"):
+            return "G8"
+        return "unknown"
+
+    foundation_step_count = sum(1 for step in steps if grade_of_kc(step["kc_id"]) in {"G6", "G7"})
+    foundation_tested = [kc_id for kc_id in run.tested_order if grade_of_kc(kc_id) in {"G6", "G7"}]
+    foundation_confirmed = [
+        kc_id
+        for kc_id in foundation_tested
+        if run.states[kc_id].direct_evidence_count >= 2
+    ]
 
     return {
+        "scope_nodes": len(run.states),
         "questions": len(steps),
         "unknown_responses": sum(1 for step in steps if step["response_type"] == "unknown"),
         "wrong_attempts": sum(1 for step in steps if step["response_type"] == "answer" and not step["correct"]),
@@ -161,6 +190,11 @@ def _summarize(run: Any, names: dict[str, str], steps: list[dict[str, Any]]) -> 
         "inferred_mastered": len(inferred_mastered),
         "unknown_nodes": len(unknown),
         "deep_dive_steps": sum(1 for step in steps if step.get("selector_policy") == "grade8_deep_dive"),
+        "root_cause_steps": sum(1 for step in steps if step.get("selector_policy") == "grade8_root_cause"),
+        "foundation_questions": foundation_step_count,
+        "foundation_question_ratio": round(foundation_step_count / max(len(steps), 1), 4),
+        "foundation_tested_kcs": len(foundation_tested),
+        "foundation_confirmed_kcs": len(foundation_confirmed),
         "duplicate_item_count": len(item_ids) - len(set(item_ids)),
         "duplicate_surface_count": len(surfaces) - len(set(surfaces)),
         "bands": bands,

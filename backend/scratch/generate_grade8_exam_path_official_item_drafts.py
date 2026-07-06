@@ -27,8 +27,9 @@ from app.engines.assessment_v2.item_quality import infer_surface_signature, vali
 
 OUT_JSON = ROOT / "docs" / "grade8_exam_path_official_item_drafts.json"
 OUT_MD = ROOT / "docs" / "grade8_exam_path_official_item_drafts.md"
+SCOPE_JSON = ROOT / "docs" / "grade8_exam_scope.json"
 
-KC_CODES = {
+BASE_KC_CODES = {
     "G8-MATH-TINH-GIA-TRI",
     "G8-MATH-NHAN-BIET-PHAN",
     "G8-MATH-XAC-DINH-DIEU",
@@ -56,15 +57,31 @@ KC_CODES = {
     "G8-MATH-THU-GON-DA",
     "G8-MATH-NHAN-DANG-A",
     "G8-MATH-PHAN-TICH-DA",
+    "G6-MATH-NHAN-BIET-PHAN-1",
     "G6-MATH-TINH-CHAT-CO",
     "G6-MATH-QUY-DONG-MAU",
     "G6-MATH-CONG-HAI-PHAN-1",
+    "G6-MAMATMATHMAT",
+    "G6-MATH-NHAN-BIET-HAI",
     "G6-MATH-B31K2",
     "G6-MATH-TIM-GIA-TRI-1",
     "G6-MATH-TIM-MOT-SO",
     "G6-MATH-BO-DAU-NGOAC",
     "G6-MATH-BO-DAU-NGOAC-1",
 }
+
+
+def _scope_kc_codes() -> set[str]:
+    if not SCOPE_JSON.exists():
+        return set()
+    scope = json.loads(SCOPE_JSON.read_text(encoding="utf-8"))
+    codes = set(scope.get("full_related_scope_codes") or [])
+    codes.update(scope.get("core_diagnostic_scope_codes") or [])
+    codes.update(scope.get("support_scope_codes") or [])
+    return {str(code) for code in codes if code}
+
+
+KC_CODES = BASE_KC_CODES | _scope_kc_codes()
 
 
 def _load_env() -> None:
@@ -333,6 +350,88 @@ def _items(nodes: dict[str, dict[str, str]]) -> list[dict[str, Any]]:
             requires_codes=["G7-MATH-TINH-GIA-TRI-1"],
         )
 
+    # Grade 7 prerequisite probes for Grade 8 linear equations and functions.
+    for expr, answer in [
+        ("3x + 5", "x"),
+        ("4a - 7", "a"),
+        ("2m + n", "m;n"),
+        ("5t", "t"),
+        ("p/3 + 2", "p"),
+    ]:
+        add(
+            path="linear_equation",
+            role="prerequisite_probe",
+            family="identify_variable_in_algebraic_expression",
+            parameter_set=expr.replace(" ", "").replace("+", "plus").replace("-", "minus").replace("/", "over"),
+            kc_code="G7-MATH-NHAN-BIET-BIEU",
+            question=f"Trong biểu thức {expr}, biến là gì? Nếu có nhiều biến, viết theo thứ tự xuất hiện và ngăn cách bằng dấu chấm phẩy.",
+            answer_widget="set" if ";" in answer else "expression",
+            checker_type="set_equal" if ";" in answer else "expression_equivalent",
+            accepted_answers=[answer],
+            requires_codes=[],
+            diagnoses_codes=["G7-MATH-NHAN-BIET-BIEU"],
+        )
+    for expr, values, answer in [
+        ("3x + 5", "x = 2", "11"),
+        ("2a - 7", "a = 5", "3"),
+        ("m/2 + 4", "m = 6", "7"),
+        ("5 - 3t", "t = -1", "8"),
+        ("2x + y", "x = 3, y = 4", "10"),
+    ]:
+        add(
+            path="linear_equation",
+            role="prerequisite_probe",
+            family="evaluate_algebraic_expression_given_values",
+            parameter_set=f"{expr}_{values}".replace(" ", "").replace("+", "plus").replace("-", "minus").replace("/", "over").replace("=", "eq").replace(",", "_"),
+            kc_code="G7-MATH-TINH-GIA-TRI-1",
+            question=f"Tính giá trị của biểu thức {expr} khi {values}.",
+            answer_widget="number",
+            checker_type="numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=["G7-MATH-NHAN-BIET-BIEU"],
+            diagnoses_codes=["G7-MATH-TINH-GIA-TRI-1"],
+        )
+    for equation, side, answer in [
+        ("3x + 2 = 11", "trái", "3x+2"),
+        ("5 - y = 2y + 1", "phải", "2y+1"),
+        ("a/2 + 4 = 10", "trái", "a/2+4"),
+        ("7 = 2m - 3", "phải", "2m-3"),
+        ("p + 6 = 4p", "trái", "p+6"),
+    ]:
+        add(
+            path="linear_equation",
+            role="prerequisite_probe",
+            family="identify_side_of_equation",
+            parameter_set=f"{equation}_{side}".replace(" ", "").replace("+", "plus").replace("-", "minus").replace("/", "over").replace("=", "eq"),
+            kc_code="G7-MATH-KHAI-NIEM-DANG",
+            question=f"Trong đẳng thức {equation}, viết biểu thức ở vế {side}.",
+            answer_widget="expression",
+            checker_type="expression_equivalent",
+            accepted_answers=[answer],
+            requires_codes=["G7-MATH-NHAN-BIET-BIEU"],
+            diagnoses_codes=["G7-MATH-KHAI-NIEM-DANG"],
+        )
+    for equation, variable, answer in [
+        ("x + 5 = 12", "x", "7"),
+        ("y - 4 = 9", "y", "13"),
+        ("3x = 18", "x", "6"),
+        ("a/2 = 7", "a", "14"),
+        ("2m + 3 = 11", "m", "4"),
+    ]:
+        add(
+            path="linear_equation",
+            role="prerequisite_probe",
+            family="solve_one_step_or_two_step_equation_by_transposition",
+            parameter_set=equation.replace(" ", "").replace("+", "plus").replace("-", "minus").replace("/", "over").replace("=", "eq"),
+            kc_code="G7-MATH-QUY-TAC-CHUYEN",
+            question=f"Giải phương trình {equation}. Giá trị của {variable} là bao nhiêu?",
+            answer_widget="number",
+            checker_type="numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=["G7-MATH-KHAI-NIEM-DANG"],
+            diagnoses_codes=["G7-MATH-QUY-TAC-CHUYEN"],
+        )
+
     # Path C: Word-problem modeling, 22 items.
     for pct in ["6", "5.8", "7.5"]:
         decimal = str(Fraction(pct) / 100)
@@ -494,7 +593,417 @@ def _items(nodes: dict[str, dict[str, str]]) -> list[dict[str, Any]]:
             flags=["concept_missing_explicit_graph_node:tham_số_đường_thẳng"],
         )
 
-    assert len(items) == 101, len(items)
+    # Core diagnostic direct-coverage top-up.
+    # These items make the documented Grade 8 core scope directly testable instead of inference-only.
+    for question, answer in [
+        ("Trong phân số -7/9, tử số là bao nhiêu?", "-7"),
+        ("Trong phân số 0/8, mẫu số là bao nhiêu?", "8"),
+        ("Với biểu thức 5/n, giá trị nào của n làm biểu thức không phải là phân số?", "0"),
+    ]:
+        add(
+            path="rational_expression",
+            role="prerequisite_probe",
+            family="recognize_valid_fraction_parts",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G6-MATH-NHAN-BIET-PHAN-1",
+            question=question,
+            answer_widget="number",
+            checker_type="numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=[],
+            diagnoses_codes=["G6-MATH-NHAN-BIET-PHAN-1"],
+        )
+    for question, answer in [
+        ("Điền mẫu số còn thiếu: 3/5 = 12/____.", "20"),
+        ("Điền tử số còn thiếu: -2/7 = ____/21.", "-6"),
+        ("Điền mẫu số còn thiếu: 15/20 = 3/____.", "4"),
+    ]:
+        add(
+            path="rational_expression",
+            role="prerequisite_probe",
+            family="equivalent_fraction_missing_part",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G6-MATH-TINH-CHAT-CO",
+            question=question,
+            answer_widget="number",
+            checker_type="numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=["G6-MATH-NHAN-BIET-PHAN-1"],
+            diagnoses_codes=["G6-MATH-TINH-CHAT-CO"],
+        )
+    for question, answer in [
+        ("Khi quy đồng 1/3 lên mẫu 12, tử số mới là bao nhiêu?", "4"),
+        ("Mẫu chung nhỏ nhất của 2/3 và 5/6 là bao nhiêu?", "6"),
+        ("Khi quy đồng -1/4 lên mẫu 12, tử số mới là bao nhiêu?", "-3"),
+    ]:
+        add(
+            path="rational_expression",
+            role="prerequisite_probe",
+            family="common_denominator_fraction_numeric_probe",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G6-MATH-QUY-DONG-MAU",
+            question=question,
+            answer_widget="number",
+            checker_type="numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=["G6-MATH-TINH-CHAT-CO"],
+            diagnoses_codes=["G6-MATH-QUY-DONG-MAU"],
+        )
+    for question, answer in [
+        ("Tính 1/3 + 1/6. Viết kết quả tối giản.", "1/2"),
+        ("Tính -1/4 + 3/8. Viết kết quả tối giản.", "1/8"),
+        ("Tính 2/5 + 1/10. Viết kết quả tối giản.", "1/2"),
+    ]:
+        add(
+            path="linear_equation",
+            role="prerequisite_probe",
+            family="add_unlike_fractions_numeric",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G6-MATH-CONG-HAI-PHAN-1",
+            question=question,
+            answer_widget="fraction",
+            checker_type="fraction_equal",
+            accepted_answers=[answer],
+            requires_codes=["G6-MATH-QUY-DONG-MAU"],
+            diagnoses_codes=["G6-MATH-CONG-HAI-PHAN-1"],
+        )
+    for question, answer in [
+        ("Tính 3/4 - 1/6. Viết kết quả tối giản.", "7/12"),
+        ("Tính 5/6 - 1/3. Viết kết quả tối giản.", "1/2"),
+        ("Tính 1/4 - 2/3. Viết kết quả tối giản.", "-5/12"),
+    ]:
+        add(
+            path="linear_equation",
+            role="prerequisite_probe",
+            family="subtract_unlike_fractions_numeric",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G6-MAMATMATHMAT",
+            question=question,
+            answer_widget="fraction",
+            checker_type="fraction_equal",
+            accepted_answers=[answer],
+            requires_codes=["G6-MATH-QUY-DONG-MAU"],
+            diagnoses_codes=["G6-MAMATMATHMAT"],
+        )
+    for question, answer in [
+        ("Với hai phân số 2/3 và 4/6, tích chéo 2·6 bằng bao nhiêu?", "12"),
+        ("Điền tử số còn thiếu để k/12 = 1/3.", "4"),
+        ("Điền mẫu số còn thiếu để 6/k = 2/5.", "15"),
+    ]:
+        add(
+            path="rational_expression",
+            role="prerequisite_probe",
+            family="fraction_cross_product_missing_part",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G6-MATH-NHAN-BIET-HAI",
+            question=question,
+            answer_widget="number",
+            checker_type="numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=["G6-MATH-NHAN-BIET-PHAN-1"],
+            diagnoses_codes=["G6-MATH-NHAN-BIET-HAI"],
+        )
+    for question, answer in [
+        ("20% của một số là 12. Số đó là bao nhiêu?", "60"),
+        ("25% của một số là 40. Số đó là bao nhiêu?", "160"),
+        ("5% của một số là 9. Số đó là bao nhiêu?", "180"),
+    ]:
+        add(
+            path="word_problem_modeling",
+            role="prerequisite_probe",
+            family="find_whole_from_percent_value",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G6-MATH-TIM-MOT-SO",
+            question=question,
+            answer_widget="number",
+            checker_type="numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=["G6-MATH-B31K2"],
+            diagnoses_codes=["G6-MATH-TIM-MOT-SO"],
+        )
+    for question, answer in [
+        ("Bỏ ngoặc và thu gọn: x - (3 - y).", "x-3+y"),
+        ("Bỏ ngoặc và thu gọn: 5 - (a + 2).", "3-a"),
+        ("Bỏ ngoặc và thu gọn: m - (-2 + n).", "m+2-n"),
+    ]:
+        add(
+            path="linear_equation",
+            role="prerequisite_probe",
+            family="remove_parentheses_minus_before",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G6-MATH-BO-DAU-NGOAC-1",
+            question=question,
+            answer_widget="expression",
+            checker_type="expression_equivalent",
+            accepted_answers=[answer],
+            requires_codes=["G6-MATH-BO-DAU-NGOAC"],
+            diagnoses_codes=["G6-MATH-BO-DAU-NGOAC-1"],
+        )
+    for question, answer in [
+        ("Trong phân thức (2x - 1)/(x + 3), mẫu thức là gì?", "x+3"),
+        ("Trong phân thức (x^2 + 1)/(3x - 2), tử thức là gì?", "x^2+1"),
+        ("Khi xem đa thức 5x - 4 là một phân thức, mẫu thức bằng bao nhiêu?", "1"),
+    ]:
+        add(
+            path="rational_expression",
+            role="anchor",
+            family="identify_rational_expression_part",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G8-MATH-NHAN-BIET-PHAN",
+            question=question,
+            answer_widget="expression" if answer != "1" else "number",
+            checker_type="expression_equivalent" if answer != "1" else "numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=["G8-MATH-NHAN-BIET-DA"],
+            diagnoses_codes=["G8-MATH-NHAN-BIET-PHAN"],
+        )
+    for question, answer in [
+        ("Với hai phân thức (x + 1)/(x - 1) và (x + 2)/(x - 2), tích chéo A·D là gì?", "(x+1)*(x-2)"),
+        ("Với hai phân thức x/(x + 3) và 2/(x - 1), tích chéo B·C là gì?", "2*(x+3)"),
+        ("Với hai phân thức k/(x + 2) và 3/x, theo tích chéo vế phải của đẳng thức k·x = ____ là gì?", "3*(x+2)"),
+    ]:
+        add(
+            path="rational_expression",
+            role="confirmation",
+            family="rational_expression_cross_product_component",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G8-MATH-KIEM-TRA-HAI",
+            question=question,
+            answer_widget="expression",
+            checker_type="expression_equivalent",
+            accepted_answers=[answer],
+            requires_codes=["G8-MATH-NHAN-BIET-PHAN"],
+            diagnoses_codes=["G8-MATH-KIEM-TRA-HAI"],
+        )
+    for question, answer in [
+        ("Trong đa thức x^2y - 3xy + 5, có bao nhiêu hạng tử?", "3"),
+        ("Trong đa thức 2x^2 - y + 7, viết hạng tử thứ hai kèm dấu.", "-y"),
+        ("Trong đa thức a^2b + 4ab - 1, có bao nhiêu hạng tử chứa biến?", "2"),
+    ]:
+        add(
+            path="rational_expression",
+            role="prerequisite_probe",
+            family="identify_polynomial_terms",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G8-MATH-NHAN-BIET-DA",
+            question=question,
+            answer_widget="number" if answer.lstrip("-").isdigit() else "expression",
+            checker_type="numeric_equal" if answer.lstrip("-").isdigit() else "expression_equivalent",
+            accepted_answers=[answer],
+            requires_codes=[],
+            diagnoses_codes=["G8-MATH-NHAN-BIET-DA"],
+        )
+    for question, answer in [
+        ("Thu gọn đa thức x^2 + 3x^2 - 2y.", "4*x^2-2*y"),
+        ("Thu gọn đa thức 5xy - 2xy + 4.", "3*x*y+4"),
+        ("Thu gọn đa thức 2a - 7 + 3a + 1.", "5*a-6"),
+    ]:
+        add(
+            path="rational_expression",
+            role="prerequisite_probe",
+            family="combine_like_terms_polynomial",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G8-MATH-THU-GON-DA",
+            question=question,
+            answer_widget="expression",
+            checker_type="expression_equivalent",
+            accepted_answers=[answer],
+            requires_codes=["G8-MATH-NHAN-BIET-DA"],
+            diagnoses_codes=["G8-MATH-THU-GON-DA"],
+        )
+    for question, answer in [
+        ("Trong phương trình 2x + 5 = 11, ẩn là gì?", "x"),
+        ("Trong hệ thức x + y = 3, có bao nhiêu ẩn?", "2"),
+        ("Trong phương trình 4t - 7 = 9, ẩn là gì?", "t"),
+    ]:
+        add(
+            path="linear_equation",
+            role="prerequisite_probe",
+            family="recognize_one_variable_equation_structure",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G8-MATH-NHAN-BIET-PHUONG",
+            question=question,
+            answer_widget="number" if answer.isdigit() else "expression",
+            checker_type="numeric_equal" if answer.isdigit() else "expression_equivalent",
+            accepted_answers=[answer],
+            requires_codes=["G7-MATH-NHAN-BIET-BIEU"],
+            diagnoses_codes=["G8-MATH-NHAN-BIET-PHUONG"],
+        )
+    for question, answer in [
+        ("Trong phương trình 3x + 6 = 0, hệ số a của dạng ax + b = 0 là bao nhiêu?", "3"),
+        ("Trong phương trình 5 - 2x = 0, hệ số a của dạng ax + b = 0 là bao nhiêu?", "-2"),
+        ("Trong phương trình x^2 + 1 = 0, bậc cao nhất của x là bao nhiêu?", "2"),
+    ]:
+        add(
+            path="linear_equation",
+            role="prerequisite_probe",
+            family="identify_first_degree_equation_coefficients",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G8-MATH-NHAN-BIET-PHUONG-1",
+            question=question,
+            answer_widget="number",
+            checker_type="numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=["G8-MATH-NHAN-BIET-PHUONG"],
+            diagnoses_codes=["G8-MATH-NHAN-BIET-PHUONG-1"],
+        )
+    for question, answer in [
+        ("Từ bảng x: 0, 1, 2 và y: -4, -2, 0, viết điểm ứng với x = 2.", "(2,0)"),
+        ("Từ bảng x: -1, 0, 1 và y: 3, 1, -1, viết điểm ứng với x = -1.", "(-1,3)"),
+        ("Từ bảng x: 0, 1 và y: 5, 8, viết hai điểm theo thứ tự x = 0 rồi x = 1.", "(0,5);(1,8)"),
+    ]:
+        add(
+            path="linear_function",
+            role="prerequisite_probe",
+            family="represent_points_from_value_table",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G8-MATH-BIEU-DIEN-DO",
+            question=question,
+            answer_widget="ordered_pair_list" if ";" in answer else "coordinate_pair",
+            checker_type="ordered_pair_list_equal" if ";" in answer else "coordinate_pair_equal",
+            accepted_answers=[answer],
+            requires_codes=["G8-MATH-BIEU-DIEN-DIEM"],
+            diagnoses_codes=["G8-MATH-BIEU-DIEN-DO"],
+        )
+    for question, answer in [
+        ("Với y = -2x + 3, khi x tăng thêm 1 thì y thay đổi bao nhiêu?", "-2"),
+        ("Với y = 3x - 1, khi x tăng thêm 1 thì y thay đổi bao nhiêu?", "3"),
+        ("Với y = -x + 5, khi x tăng thêm 1 thì y thay đổi bao nhiêu?", "-1"),
+    ]:
+        add(
+            path="linear_function",
+            role="prerequisite_probe",
+            family="slope_direction_as_y_change",
+            parameter_set=question.replace(" ", "_"),
+            kc_code="G8-MATH-NHAN-BIET-HUONG",
+            question=question,
+            answer_widget="number",
+            checker_type="numeric_equal",
+            accepted_answers=[answer],
+            requires_codes=["G8-MATH-NHAN-BIET-HAM"],
+            diagnoses_codes=["G8-MATH-NHAN-BIET-HUONG"],
+        )
+
+    supplemental_items = [
+        # Grade 6 fraction and percent roots.
+        ("fraction_foundation", "prerequisite_probe", "simplify_fraction_by_gcd", "12_18", "G6-MATH-RUT-GON-VE", "Rút gọn phân số 12/18 về tối giản.", "fraction", "fraction_equal", ["2/3"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-RUT-GON-VE"], "6/9"),
+        ("fraction_foundation", "prerequisite_probe", "reduce_negative_fraction", "minus15_20", "G6-MATH-RUT-GON-VE", "Viết phân số -15/20 ở dạng tối giản.", "fraction", "fraction_equal", ["-3/4"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-RUT-GON-VE"], ["3/4"]),
+        ("fraction_foundation", "prerequisite_probe", "add_same_denominator_fraction", "2_7_plus_3_7", "G6-MATH-CONG-HAI-PHAN", "Tính 2/7 + 3/7.", "fraction", "fraction_equal", ["5/7"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-CONG-HAI-PHAN"], ["5/14"]),
+        ("fraction_foundation", "prerequisite_probe", "combine_signed_same_denominator_fraction", "minus1_5_plus_3_5", "G6-MATH-CONG-HAI-PHAN", "Điền kết quả tối giản: -1/5 + 3/5 = ____.", "fraction", "fraction_equal", ["2/5"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-CONG-HAI-PHAN"], ["-4/5"]),
+        ("fraction_foundation", "prerequisite_probe", "subtract_same_denominator_fraction", "5_7_minus_2_7", "G6-MATH-TRU-HAI-PHAN", "Tính 5/7 - 2/7.", "fraction", "fraction_equal", ["3/7"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-TRU-HAI-PHAN"], ["3/0"]),
+        ("fraction_foundation", "prerequisite_probe", "subtract_signed_same_denominator_fraction", "minus1_6_minus_3_6", "G6-MATH-TRU-HAI-PHAN", "Hoàn thành phép trừ: -1/6 - 3/6 = ____.", "fraction", "fraction_equal", ["-2/3"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-TRU-HAI-PHAN"], ["2/6"]),
+        ("fraction_foundation", "prerequisite_probe", "multiply_two_fractions", "2_3_times_3_5", "G6-MATH-NHAN-HAI-PHAN", "Tính 2/3 × 3/5.", "fraction", "fraction_equal", ["2/5"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-NHAN-HAI-PHAN"], ["5/8"]),
+        ("fraction_foundation", "prerequisite_probe", "multiply_signed_fractions", "minus4_7_times_14_3", "G6-MATH-NHAN-HAI-PHAN", "Tính và rút gọn: -4/7 × 14/3.", "fraction", "fraction_equal", ["-8/3"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-NHAN-HAI-PHAN"], ["-56/21"]),
+        ("fraction_foundation", "prerequisite_probe", "divide_two_fractions", "2_3_div_4_5", "G6-MATH-CHIA-HAI-PHAN", "Tính 2/3 : 4/5.", "fraction", "fraction_equal", ["5/6"], ["G6-MATH-PHAN-SO-NGHICH", "G6-MATH-NHAN-HAI-PHAN"], ["G6-MATH-CHIA-HAI-PHAN"], ["8/15"]),
+        ("fraction_foundation", "prerequisite_probe", "divide_signed_fraction", "minus3_4_div_9_8", "G6-MATH-CHIA-HAI-PHAN", "Thực hiện phép chia phân số: -3/4 : 9/8.", "fraction", "fraction_equal", ["-2/3"], ["G6-MATH-PHAN-SO-NGHICH", "G6-MATH-NHAN-HAI-PHAN"], ["G6-MATH-CHIA-HAI-PHAN"], ["-27/32"]),
+        ("fraction_foundation", "prerequisite_probe", "reciprocal_positive_fraction", "3_5", "G6-MATH-PHAN-SO-NGHICH", "Phân số nghịch đảo của 3/5 là gì?", "fraction", "fraction_equal", ["5/3"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-PHAN-SO-NGHICH"], ["-5/3"]),
+        ("fraction_foundation", "prerequisite_probe", "reciprocal_negative_fraction", "minus2_7", "G6-MATH-PHAN-SO-NGHICH", "Viết nghịch đảo của phân số -2/7.", "fraction", "fraction_equal", ["-7/2"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-PHAN-SO-NGHICH"], ["7/2"]),
+        ("fraction_foundation", "prerequisite_probe", "opposite_positive_fraction", "3_5", "G6-MATH-SO-DOI-CUA", "Số đối của 3/5 là gì?", "fraction", "fraction_equal", ["-3/5"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-SO-DOI-CUA"], ["5/3"]),
+        ("fraction_foundation", "prerequisite_probe", "opposite_negative_fraction", "minus7_9", "G6-MATH-SO-DOI-CUA", "Điền số đối của -7/9.", "fraction", "fraction_equal", ["7/9"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G6-MATH-SO-DOI-CUA"], ["-9/7"]),
+        ("fraction_foundation", "prerequisite_probe", "fraction_of_number_direct", "2_3_of_18", "G6-MATH-TIM-GIA-TRI", "Tính 2/3 của 18.", "number", "numeric_equal", ["12"], ["G6-MATH-NHAN-HAI-PHAN"], ["G6-MATH-TIM-GIA-TRI"], ["27"]),
+        ("fraction_foundation", "prerequisite_probe", "fraction_of_quantity_context", "3_5_of_20_students", "G6-MATH-TIM-GIA-TRI", "Một lớp có 20 học sinh; 3/5 số học sinh tham gia CLB. Có bao nhiêu học sinh tham gia?", "number", "numeric_equal", ["12"], ["G6-MATH-NHAN-HAI-PHAN"], ["G6-MATH-TIM-GIA-TRI"], ["4"]),
+        ("fraction_foundation", "prerequisite_probe", "find_whole_from_fraction_value", "2_3_is_10", "G6-MATH-TIM-MOT-SO-1", "2/3 của một số là 10. Số đó là bao nhiêu?", "number", "numeric_equal", ["15"], ["G6-MATH-CHIA-HAI-PHAN"], ["G6-MATH-TIM-MOT-SO-1"], ["20/3"]),
+        ("fraction_foundation", "prerequisite_probe", "recover_total_from_fraction_part", "3_4_is_18", "G6-MATH-TIM-MOT-SO-1", "Một đoạn đường đã đi được 3/4 là 18 km. Cả đoạn đường dài bao nhiêu km?", "number", "numeric_equal", ["24"], ["G6-MATH-CHIA-HAI-PHAN"], ["G6-MATH-TIM-MOT-SO-1"], ["13.5"]),
+        # Grade 6 integer/sign/parentheses roots.
+        ("integer_foundation", "prerequisite_probe", "write_negative_integer_context", "below_zero_5", "G6-MATH-NHAN-BIET-DOC", "Viết số nguyên biểu diễn nhiệt độ 5 độ dưới 0.", "number", "numeric_equal", ["-5"], [], ["G6-MATH-NHAN-BIET-DOC"], ["5"]),
+        ("integer_foundation", "prerequisite_probe", "write_basement_floor_integer", "basement_2", "G6-MATH-NHAN-BIET-DOC", "Tầng hầm thứ 2 được biểu diễn bằng số nguyên nào nếu mặt đất là 0?", "number", "numeric_equal", ["-2"], [], ["G6-MATH-NHAN-BIET-DOC"], ["2"]),
+        ("integer_foundation", "prerequisite_probe", "opposite_negative_integer", "minus7", "G6-MATH-NHAN-BIET-SO-1", "Số đối của -7 là bao nhiêu?", "number", "numeric_equal", ["7"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-NHAN-BIET-SO-1"], ["-7"]),
+        ("integer_foundation", "prerequisite_probe", "opposite_positive_integer", "12", "G6-MATH-NHAN-BIET-SO-1", "Điền số đối của 12.", "number", "numeric_equal", ["-12"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-NHAN-BIET-SO-1"], ["12"]),
+        ("integer_foundation", "prerequisite_probe", "add_two_negative_integers", "minus7_minus5", "G6-MATH-CONG-HAI-SO", "Tính (-7) + (-5).", "number", "numeric_equal", ["-12"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-CONG-HAI-SO"], ["12"]),
+        ("integer_foundation", "prerequisite_probe", "context_two_decreases", "decrease4_decrease6", "G6-MATH-CONG-HAI-SO", "Một giá trị giảm 4 rồi giảm tiếp 6. Tổng thay đổi là bao nhiêu?", "number", "numeric_equal", ["-10"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-CONG-HAI-SO"], ["10"]),
+        ("integer_foundation", "prerequisite_probe", "add_opposite_sign_integers", "minus8_plus3", "G6-MATH-CONG-HAI-SO-1", "Tính (-8) + 3.", "number", "numeric_equal", ["-5"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-CONG-HAI-SO-1"], ["11"]),
+        ("integer_foundation", "prerequisite_probe", "combine_positive_and_negative_integer", "6_plus_minus10", "G6-MATH-CONG-HAI-SO-1", "Hoàn thành phép tính: 6 + (-10) = ____.", "number", "numeric_equal", ["-4"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-CONG-HAI-SO-1"], ["16"]),
+        ("integer_foundation", "prerequisite_probe", "subtract_integer_plain", "minus3_minus5", "G6-MATH-TU-CHO-SO", "Tính (-3) - 5.", "number", "numeric_equal", ["-8"], ["G6-MATH-NHAN-BIET-SO-1"], ["G6-MATH-TU-CHO-SO"], ["2"]),
+        ("integer_foundation", "prerequisite_probe", "subtract_negative_integer", "4_minus_minus9", "G6-MATH-TU-CHO-SO", "Điền kết quả: 4 - (-9) = ____.", "number", "numeric_equal", ["13"], ["G6-MATH-NHAN-BIET-SO-1"], ["G6-MATH-TU-CHO-SO"], ["-5"]),
+        ("integer_foundation", "prerequisite_probe", "multiply_opposite_sign_integers", "minus6_times4", "G6-MATH-NHAN-HAI-SO", "Tính (-6) × 4.", "number", "numeric_equal", ["-24"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-NHAN-HAI-SO"], ["24"]),
+        ("integer_foundation", "prerequisite_probe", "product_positive_negative_integer", "5_times_minus9", "G6-MATH-NHAN-HAI-SO", "Hoàn thành tích: 5 × (-9) = ____.", "number", "numeric_equal", ["-45"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-NHAN-HAI-SO"], ["45"]),
+        ("integer_foundation", "prerequisite_probe", "multiply_two_negative_integers", "minus6_times_minus4", "G6-MATH-NHAN-HAI-SO-1", "Tính (-6) × (-4).", "number", "numeric_equal", ["24"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-NHAN-HAI-SO-1"], ["-24"]),
+        ("integer_foundation", "prerequisite_probe", "positive_product_same_sign", "7_times8", "G6-MATH-NHAN-HAI-SO-1", "Tích của 7 và 8 bằng bao nhiêu?", "number", "numeric_equal", ["56"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-NHAN-HAI-SO-1"], ["-56"]),
+        ("integer_foundation", "prerequisite_probe", "divide_negative_by_positive_integer", "minus24_div6", "G6-MATH-THUC-HIEN-PHEP", "Tính (-24) : 6.", "number", "numeric_equal", ["-4"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-THUC-HIEN-PHEP"], ["4"]),
+        ("integer_foundation", "prerequisite_probe", "divide_two_negative_integers", "minus35_div_minus5", "G6-MATH-THUC-HIEN-PHEP", "Thực hiện phép chia: (-35) : (-5).", "number", "numeric_equal", ["7"], ["G6-MATH-NHAN-BIET-DOC"], ["G6-MATH-THUC-HIEN-PHEP"], ["-7"]),
+        ("integer_foundation", "prerequisite_probe", "remove_nested_parentheses_minus_inside", "a_minus_b_minus_c_plus2", "G6-MATH-BO-NGOAC-LONG", "Bỏ ngoặc: a - (b - (c + 2)).", "expression", "expression_equivalent", ["a-b+c+2"], ["G6-MATH-BO-DAU-NGOAC", "G6-MATH-BO-DAU-NGOAC-1"], ["G6-MATH-BO-NGOAC-LONG"], ["a-b-c-2"]),
+        ("integer_foundation", "prerequisite_probe", "simplify_nested_parentheses_expression", "x_plus_y_minus_z_minus3", "G6-MATH-BO-NGOAC-LONG", "Rút gọn biểu thức x + (y - (z - 3)).", "expression", "expression_equivalent", ["x+y-z+3"], ["G6-MATH-BO-DAU-NGOAC", "G6-MATH-BO-DAU-NGOAC-1"], ["G6-MATH-BO-NGOAC-LONG"], ["x+y-z-3"]),
+        ("integer_foundation", "prerequisite_probe", "distribute_number_over_sum", "4_xplus3", "G6-MATH-PHAN-PHOI-NHAN", "Khai triển 4(x + 3).", "expression", "expression_equivalent", ["4*x+12"], ["G6-MATH-NHAN-HAI-SO-1"], ["G6-MATH-PHAN-PHOI-NHAN"], ["4*x+3"]),
+        ("integer_foundation", "prerequisite_probe", "factor_common_number_from_binomial", "5a_plus10", "G6-MATH-PHAN-PHOI-NHAN", "Viết 5a + 10 thành tích có nhân tử chung 5.", "expression", "expression_equivalent", ["5*(a+2)"], ["G6-MATH-NHAN-HAI-SO-1"], ["G6-MATH-PHAN-PHOI-NHAN"], ["5*(a+10)"]),
+        ("integer_foundation", "prerequisite_probe", "order_operations_no_parentheses", "3_plus4_times2", "G6-MATH-AP-DUNG-DUNG", "Tính 3 + 4 × 2.", "number", "numeric_equal", ["11"], ["G6-MATH-NHAN-HAI-SO-1"], ["G6-MATH-AP-DUNG-DUNG"], ["14"]),
+        ("integer_foundation", "prerequisite_probe", "division_before_addition", "18_div3_plus5", "G6-MATH-AP-DUNG-DUNG", "Theo đúng thứ tự phép tính, 18 : 3 + 5 bằng bao nhiêu?", "number", "numeric_equal", ["11"], ["G6-MATH-THUC-HIEN-PHEP"], ["G6-MATH-AP-DUNG-DUNG"], ["6"]),
+        ("integer_foundation", "prerequisite_probe", "order_operations_parentheses_first", "2_times_3_plus4", "G6-MATH-AP-DUNG-DUNG-1", "Tính 2 × (3 + 4).", "number", "numeric_equal", ["14"], ["G6-MATH-AP-DUNG-DUNG"], ["G6-MATH-AP-DUNG-DUNG-1"], ["10"]),
+        ("integer_foundation", "prerequisite_probe", "parentheses_then_multiply", "12_minus5_times3", "G6-MATH-AP-DUNG-DUNG-1", "Hoàn thành: (12 - 5) × 3 = ____.", "number", "numeric_equal", ["21"], ["G6-MATH-AP-DUNG-DUNG"], ["G6-MATH-AP-DUNG-DUNG-1"], ["-3"]),
+        # Grade 7 algebra roots.
+        ("algebra_foundation", "prerequisite_probe", "recognize_rational_number_fraction_form", "minus0_75", "G9-MATH-NHAN-BIET-SO-1", "Viết -0.75 dưới dạng phân số tối giản.", "fraction", "fraction_equal", ["-3/4"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G9-MATH-NHAN-BIET-SO-1"], ["3/4"]),
+        ("algebra_foundation", "prerequisite_probe", "rational_number_numerator_for_denominator", "5_as_a_over2", "G9-MATH-NHAN-BIET-SO-1", "Tìm tử số a để 5 = a/2.", "number", "numeric_equal", ["10"], ["G6-MATH-NHAN-BIET-PHAN-1"], ["G9-MATH-NHAN-BIET-SO-1"], ["5"]),
+        ("algebra_foundation", "prerequisite_probe", "identify_monomial_coefficient", "minus7x3", "G7-MATH-NHAN-BIET-DON", "Hệ số của đơn thức -7x^3 là bao nhiêu?", "number", "numeric_equal", ["-7"], ["G7-MATH-NHAN-BIET-BIEU"], ["G7-MATH-NHAN-BIET-DON"], ["7"]),
+        ("algebra_foundation", "prerequisite_probe", "monomial_degree_two_variables", "4a2b3", "G7-MATH-NHAN-BIET-DON", "Bậc của đơn thức 4a^2b^3 là bao nhiêu?", "number", "numeric_equal", ["5"], ["G7-MATH-NHAN-BIET-BIEU"], ["G7-MATH-NHAN-BIET-DON"], ["6"]),
+        ("algebra_foundation", "prerequisite_probe", "polynomial_term_count", "x2_minus3x_plus2", "G7-MATH-NHAN-BIET-DA", "Trong đa thức x^2 - 3x + 2, có bao nhiêu hạng tử?", "number", "numeric_equal", ["3"], ["G7-MATH-NHAN-BIET-DON"], ["G7-MATH-NHAN-BIET-DA"], ["2"]),
+        ("algebra_foundation", "prerequisite_probe", "polynomial_degree_single_variable", "5x4_minusx_plus1", "G7-MATH-NHAN-BIET-DA", "Bậc của đa thức 5x^4 - x + 1 là bao nhiêu?", "number", "numeric_equal", ["4"], ["G7-MATH-NHAN-BIET-DON"], ["G7-MATH-NHAN-BIET-DA"], ["5"]),
+        ("algebra_foundation", "prerequisite_probe", "combine_like_terms_g7", "2x2_3x_minusx2_plus5", "G7-MATH-THU-GON-DA", "Thu gọn đa thức 2x^2 + 3x - x^2 + 5.", "expression", "expression_equivalent", ["x^2+3*x+5"], ["G7-MATH-NHAN-BIET-DA"], ["G7-MATH-THU-GON-DA"], ["x^2+8*x"]),
+        ("algebra_foundation", "prerequisite_probe", "simplify_polynomial_constants_g7", "4a_minus2_plus6a_plus7", "G7-MATH-THU-GON-DA", "Rút gọn: 4a - 2 + 6a + 7.", "expression", "expression_equivalent", ["10*a+5"], ["G7-MATH-NHAN-BIET-DA"], ["G7-MATH-THU-GON-DA"], ["10*a-9"]),
+        ("algebra_foundation", "prerequisite_probe", "add_two_polynomials_g7", "2x2_3x_plus_x2_minus5x", "G7-MATH-CONG-HAI-DA", "Cộng hai đa thức: (2x^2 + 3x) + (x^2 - 5x).", "expression", "expression_equivalent", ["3*x^2-2*x"], ["G7-MATH-THU-GON-DA"], ["G7-MATH-CONG-HAI-DA"], ["3*x^2+8*x"]),
+        ("algebra_foundation", "prerequisite_probe", "sum_polynomial_with_constant_g7", "a2_minus4_plus3a2_plus1", "G7-MATH-CONG-HAI-DA", "Tìm tổng của a^2 - 4 và 3a^2 + 1.", "expression", "expression_equivalent", ["4*a^2-3"], ["G7-MATH-THU-GON-DA"], ["G7-MATH-CONG-HAI-DA"], ["4*a^2+5"]),
+        ("algebra_foundation", "prerequisite_probe", "subtract_two_polynomials_g7", "3x2_plusx_minus_x2_minus2x", "G7-MATH-TRU-HAI-DA", "Thực hiện phép trừ: (3x^2 + x) - (x^2 - 2x).", "expression", "expression_equivalent", ["2*x^2+3*x"], ["G7-MATH-THU-GON-DA", "G6-MATH-BO-DAU-NGOAC-1"], ["G7-MATH-TRU-HAI-DA"], ["2*x^2-x"]),
+        ("algebra_foundation", "prerequisite_probe", "subtract_polynomials_with_constants_g7", "5a_plus1_minus_2a_minus4", "G7-MATH-TRU-HAI-DA", "Rút gọn hiệu (5a + 1) - (2a - 4).", "expression", "expression_equivalent", ["3*a+5"], ["G7-MATH-THU-GON-DA", "G6-MATH-BO-DAU-NGOAC-1"], ["G7-MATH-TRU-HAI-DA"], ["3*a-3"]),
+        ("algebra_foundation", "prerequisite_probe", "multiply_monomial_polynomial_g7", "3x_2x_minus5", "G7-MATH-NHAN-DON-THUC", "Khai triển 3x(2x - 5).", "expression", "expression_equivalent", ["6*x^2-15*x"], ["G6-MATH-PHAN-PHOI-NHAN", "G7-MATH-NHAN-BIET-DON"], ["G7-MATH-NHAN-DON-THUC"], ["6*x^2-5"]),
+        ("algebra_foundation", "prerequisite_probe", "negative_monomial_times_polynomial_g7", "minus2a_a_plus3", "G7-MATH-NHAN-DON-THUC", "Tính tích -2a(a + 3).", "expression", "expression_equivalent", ["-2*a^2-6*a"], ["G6-MATH-PHAN-PHOI-NHAN", "G7-MATH-NHAN-BIET-DON"], ["G7-MATH-NHAN-DON-THUC"], ["-2*a^2+3"]),
+        ("algebra_foundation", "prerequisite_probe", "multiply_two_binomials_g7", "xplus2_xplus3", "G7-MATH-NHAN-DA-THUC", "Khai triển (x + 2)(x + 3).", "expression", "expression_equivalent", ["x^2+5*x+6"], ["G7-MATH-NHAN-DON-THUC"], ["G7-MATH-NHAN-DA-THUC"], ["x^2+6"]),
+        ("algebra_foundation", "prerequisite_probe", "product_two_polynomials_g7", "aminus1_aplus4", "G7-MATH-NHAN-DA-THUC", "Tính tích hai đa thức: (a - 1)(a + 4).", "expression", "expression_equivalent", ["a^2+3*a-4"], ["G7-MATH-NHAN-DON-THUC"], ["G7-MATH-NHAN-DA-THUC"], ["a^2-4"]),
+        ("algebra_foundation", "prerequisite_probe", "divide_two_monomials_g7", "12x5_div_3x2", "G7-MATH-CHIA-HAI-DON", "Chia 12x^5 cho 3x^2.", "expression", "expression_equivalent", ["4*x^3"], ["G7-MATH-NHAN-BIET-DON"], ["G7-MATH-CHIA-HAI-DON"], ["4*x^7"]),
+        ("algebra_foundation", "prerequisite_probe", "signed_monomial_division_g7", "minus15a4_div5a", "G7-MATH-CHIA-HAI-DON", "Thực hiện phép chia đơn thức: -15a^4 : 5a.", "expression", "expression_equivalent", ["-3*a^3"], ["G7-MATH-NHAN-BIET-DON"], ["G7-MATH-CHIA-HAI-DON"], ["-3*a^4"]),
+        ("algebra_foundation", "prerequisite_probe", "order_polynomial_descending_g7", "3_minus2x2_plusx", "G7-MATH-SAP-XEP-DA", "Sắp xếp 3 - 2x^2 + x theo lũy thừa giảm của x.", "expression", "expression_equivalent", ["-2*x^2+x+3"], ["G7-MATH-NHAN-BIET-DA"], ["G7-MATH-SAP-XEP-DA"], ["3-2*x^2+x"]),
+        ("algebra_foundation", "prerequisite_probe", "arrange_polynomial_by_power_g7", "y_plus4y3_minus1", "G7-MATH-SAP-XEP-DA", "Viết đa thức y + 4y^3 - 1 theo lũy thừa giảm.", "expression", "expression_equivalent", ["4*y^3+y-1"], ["G7-MATH-NHAN-BIET-DA"], ["G7-MATH-SAP-XEP-DA"], ["y+4*y^3-1"]),
+        # Grade 8 support/bridge nodes.
+        ("rational_expression", "prerequisite_probe", "evaluate_rational_expression_simple", "x_over_xplus2_at2", "G8-MATH-TINH-GIA-TRI", "Tính giá trị của x/(x + 2) khi x = 2.", "fraction", "fraction_equal", ["1/2"], ["G7-MATH-TINH-GIA-TRI-1", "G8-MATH-NHAN-BIET-PHAN"], ["G8-MATH-TINH-GIA-TRI"], ["2"]),
+        ("rational_expression", "prerequisite_probe", "rational_expression_value_with_domain", "xplus1_over_xminus1_at3", "G8-MATH-TINH-GIA-TRI", "Với phân thức (x + 1)/(x - 1), giá trị tại x = 3 là bao nhiêu?", "number", "numeric_equal", ["2"], ["G7-MATH-TINH-GIA-TRI-1", "G8-MATH-NHAN-BIET-PHAN"], ["G8-MATH-TINH-GIA-TRI"], ["4/2"]),
+        ("rational_expression", "prerequisite_probe", "product_difference_of_squares", "xminus3_xplus3", "G8-MATH-BIEN-DOI-TICH", "Khai triển (x - 3)(x + 3).", "expression", "expression_equivalent", ["x^2-9"], ["G8-MATH-NHAN-DANG-A"], ["G8-MATH-BIEN-DOI-TICH"], ["x^2+9"]),
+        ("rational_expression", "prerequisite_probe", "expand_conjugate_product", "2a_minus5_2a_plus5", "G8-MATH-BIEN-DOI-TICH", "Tính tích (2a - 5)(2a + 5).", "expression", "expression_equivalent", ["4*a^2-25"], ["G8-MATH-NHAN-DANG-A"], ["G8-MATH-BIEN-DOI-TICH"], ["4*a^2+25"]),
+        ("rational_expression", "prerequisite_probe", "recognize_multivariable_monomial_coefficient", "minus4x2y", "G8-MATH-NHAN-BIET-DON", "Trong đơn thức -4x^2y, hệ số là bao nhiêu?", "number", "numeric_equal", ["-4"], ["G7-MATH-NHAN-BIET-BIEU"], ["G8-MATH-NHAN-BIET-DON"], ["4"]),
+        ("rational_expression", "prerequisite_probe", "degree_multivariable_monomial", "3ab2", "G8-MATH-NHAN-BIET-DON", "Bậc của đơn thức 3ab^2 là bao nhiêu?", "number", "numeric_equal", ["3"], ["G7-MATH-NHAN-BIET-BIEU"], ["G8-MATH-NHAN-BIET-DON"], ["2"]),
+        ("rational_expression", "prerequisite_probe", "like_monomial_common_variable_part", "4a2b_and_minus7a2b", "G8-MATH-NHAN-BIET-CAC", "Hai đơn thức 4a^2b và -7a^2b đồng dạng có phần biến chung là gì?", "expression", "expression_equivalent", ["a^2*b"], ["G8-MATH-NHAN-BIET-DON"], ["G8-MATH-NHAN-BIET-CAC"], ["a*b^2"]),
+        ("rational_expression", "prerequisite_probe", "find_exponent_for_like_terms", "5x2y_and_minus3xmy", "G8-MATH-NHAN-BIET-CAC", "Để 5x^2y và -3x^m y là hai đơn thức đồng dạng, m bằng bao nhiêu?", "number", "numeric_equal", ["2"], ["G8-MATH-NHAN-BIET-DON"], ["G8-MATH-NHAN-BIET-CAC"], ["1"]),
+        ("rational_expression", "prerequisite_probe", "add_multivariable_polynomials", "x2_2xy_plus3x2_minusxy", "G8-MATH-CONG-HAI-DA", "Cộng (x^2 + 2xy) và (3x^2 - xy).", "expression", "expression_equivalent", ["4*x^2+x*y"], ["G8-MATH-THU-GON-DA"], ["G8-MATH-CONG-HAI-DA"], ["4*x^2+3*x*y"]),
+        ("rational_expression", "prerequisite_probe", "sum_linear_multivariable_polynomials", "a_minusb_plus2a_plus3b", "G8-MATH-CONG-HAI-DA", "Tìm tổng của a - b và 2a + 3b.", "expression", "expression_equivalent", ["3*a+2*b"], ["G8-MATH-THU-GON-DA"], ["G8-MATH-CONG-HAI-DA"], ["3*a-4*b"]),
+        ("rational_expression", "prerequisite_probe", "subtract_multivariable_polynomials", "4x2_xy_minus_x2_minus2xy", "G8-MATH-TRU-HAI-DA", "Thực hiện phép trừ: (4x^2 + xy) - (x^2 - 2xy).", "expression", "expression_equivalent", ["3*x^2+3*x*y"], ["G8-MATH-THU-GON-DA", "G6-MATH-BO-DAU-NGOAC-1"], ["G8-MATH-TRU-HAI-DA"], ["3*x^2-x*y"]),
+        ("rational_expression", "prerequisite_probe", "difference_linear_multivariable_polynomials", "5a_minusb_minus2a_plus3b", "G8-MATH-TRU-HAI-DA", "Rút gọn hiệu (5a - b) - (2a + 3b).", "expression", "expression_equivalent", ["3*a-4*b"], ["G8-MATH-THU-GON-DA", "G6-MATH-BO-DAU-NGOAC-1"], ["G8-MATH-TRU-HAI-DA"], ["3*a+2*b"]),
+        ("rational_expression", "prerequisite_probe", "multiply_monomial_polynomial_g8", "2x_3x_plus4y", "G8-MATH-NHAN-DON-THUC", "Khai triển 2x(3x + 4y).", "expression", "expression_equivalent", ["6*x^2+8*x*y"], ["G6-MATH-PHAN-PHOI-NHAN", "G8-MATH-NHAN-BIET-DON"], ["G8-MATH-NHAN-DON-THUC"], ["6*x^2+4*y"]),
+        ("rational_expression", "prerequisite_probe", "signed_monomial_times_polynomial_g8", "minus3a_2a_minusb", "G8-MATH-NHAN-DON-THUC", "Tính tích -3a(2a - b).", "expression", "expression_equivalent", ["-6*a^2+3*a*b"], ["G6-MATH-PHAN-PHOI-NHAN", "G8-MATH-NHAN-BIET-DON"], ["G8-MATH-NHAN-DON-THUC"], ["-6*a^2-3*a*b"]),
+    ]
+
+    for (
+        path,
+        role,
+        family,
+        parameter_set,
+        kc_code,
+        question,
+        answer_widget,
+        checker_type,
+        accepted_answers,
+        requires_codes,
+        diagnoses_codes,
+        wrong_patterns,
+    ) in supplemental_items:
+        wrong_values = wrong_patterns if isinstance(wrong_patterns, list) else [wrong_patterns]
+        add(
+            path=path,
+            role=role,
+            family=family,
+            parameter_set=parameter_set,
+            kc_code=kc_code,
+            question=question,
+            answer_widget=answer_widget,
+            checker_type=checker_type,
+            accepted_answers=accepted_answers,
+            requires_codes=requires_codes,
+            diagnoses_codes=diagnoses_codes,
+            common_wrong_patterns=[
+                _wrong(str(pattern), "Common wrong pattern generated for academic review.", diagnoses_codes)
+                for pattern in wrong_values
+            ],
+        )
+
+    scope_codes = _scope_kc_codes()
+    direct_codes = {item["kc_code"] for item in items}
+    missing_direct = sorted(scope_codes - direct_codes)
+    assert not missing_direct, missing_direct
     return items
 
 

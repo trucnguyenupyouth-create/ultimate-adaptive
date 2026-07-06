@@ -38,6 +38,7 @@ GRADE8_DEEP_DIVE_ROLES = {
     "transfer": 5,
     "readiness": 6,
 }
+GRADE8_FOUNDATION_GRADES = {6, 7}
 PARTICLE_COUNT = 800
 PARTICLE_PREFILTER_LIMIT = 12
 PARTICLE_RESAMPLE_ESS_RATIO = 0.30
@@ -458,6 +459,9 @@ class V2DiagnosticEngine:
             candidates = self._grade8_deep_dive_candidates(run, selector=selector)
             policy = "grade8_deep_dive" if candidates else "state_space_eig"
         if not candidates:
+            candidates = self._grade8_root_cause_candidates(run, selector=selector)
+            policy = "grade8_root_cause" if candidates else "state_space_eig"
+        if not candidates:
             candidates = self._frontier_candidates(run, allow_confirmation=False, selector=selector)
             policy = "state_space_eig"
         reason_suffix = ""
@@ -534,6 +538,18 @@ class V2DiagnosticEngine:
     def _is_grade8_exam_path_item(self, item: DiagnosticItem) -> bool:
         return item.content.get("official_assessment_scope") == GRADE8_EXAM_PATH_SCOPE
 
+    def _is_grade8_root_cause_mode(self) -> bool:
+        return any(self._is_grade8_exam_path_item(item) for item in self.items_by_id.values())
+
+    def _is_foundation_kc(self, kc_id: str) -> bool:
+        try:
+            return int(self.graph.nodes[kc_id].get("grade", 99)) in GRADE8_FOUNDATION_GRADES
+        except (TypeError, ValueError):
+            return False
+
+    def _grade8_item_role_rank(self, item: DiagnosticItem) -> int:
+        return GRADE8_DEEP_DIVE_ROLES.get(str(item.content.get("item_role") or ""), 99)
+
     def _grade8_can_confirm_kc(self, run: DiagnosticRun, kc_id: str) -> bool:
         state = run.states[kc_id]
         if self.mode != "assessment":
@@ -543,6 +559,79 @@ class V2DiagnosticEngine:
         if state.probability_band not in {"strong_gap", "likely_gap", "uncertain", "likely_mastered"}:
             return False
         return True
+
+    def _grade8_root_cause_candidates(
+        self,
+        run: DiagnosticRun,
+        selector: KnowledgeStateParticleSelector,
+    ) -> list[dict[str, Any]]:
+        if self.mode != "assessment" or not self._is_grade8_root_cause_mode():
+            return []
+
+        foundation_tested = sum(1 for kc_id in run.tested_order if self._is_foundation_kc(kc_id))
+        total_tested = max(len(run.tested_order), 1)
+        foundation_ratio = foundation_tested / total_tested
+        root_pressure = len(run.frontier_history) >= 3 and foundation_ratio < 0.68
+
+        raw_candidates: list[tuple[float, str, DiagnosticItem, str]] = []
+        for kc_id in self.graph.nodes:
+            if not self._is_foundation_kc(kc_id):
+                continue
+            state = run.states[kc_id]
+            if state.label == "tested_mastered":
+                continue
+            if state.direct_evidence_count >= GRADE8_MAX_TESTS_PER_KC:
+                continue
+            usable = [
+                item for item in self.items_by_kc.get(kc_id, [])
+                if item.id not in run.seen_items
+                and self._is_grade8_exam_path_item(item)
+                and not self._surface_was_seen(run, item)
+            ]
+            if not usable:
+                continue
+            item = sorted(usable, key=lambda candidate: (self._grade8_item_role_rank(candidate), self._item_sort_key(candidate)))[0]
+            if state.direct_evidence_count == 1 and state.probability_band in {"strong_gap", "likely_gap", "uncertain"}:
+                priority = 120.0
+                reason = "confirm_foundation_root_candidate"
+            elif state.direct_evidence_count == 0 and (root_pressure or state.p_mastery <= 0.42):
+                priority = 90.0 if state.p_mastery <= 0.42 else 70.0
+                reason = "probe_foundation_before_more_grade8_scan"
+            else:
+                continue
+            try:
+                grade = int(self.graph.nodes[kc_id].get("grade", 99))
+            except (TypeError, ValueError):
+                grade = 99
+            grade_bonus = 12.0 if grade == 6 else 6.0
+            role_bonus = max(0.0, 20.0 - self._grade8_item_role_rank(item) * 3.0)
+            raw_candidates.append((priority + grade_bonus + role_bonus + self._cheap_candidate_score(run, kc_id, item), kc_id, item, reason))
+
+        if not raw_candidates:
+            return []
+
+        selected_pool = sorted(raw_candidates, key=lambda row: row[0], reverse=True)[:PARTICLE_PREFILTER_LIMIT]
+        entropy_before = selector.entropy()
+        candidates: list[dict[str, Any]] = []
+        for priority, kc_id, item, reason in selected_pool:
+            payload = self._candidate_score(run, kc_id, item, selector=selector, entropy_before=entropy_before)
+            payload["score"] = round(payload["score"] + priority, 4)
+            payload["reason"] = reason
+            payload["selector_strategy"] = "grade8_root_cause_state_space_eig"
+            payload["deep_dive_reason"] = (
+                f"root_cause_priority; grade:{self.graph.nodes[kc_id].get('grade')}; "
+                f"direct_evidence:{run.states[kc_id].direct_evidence_count}; "
+                f"band:{run.states[kc_id].probability_band}; "
+                f"foundation_ratio:{foundation_ratio:.2f}"
+            )
+            payload["candidate_pool"] = {
+                "foundation_tested": foundation_tested,
+                "total_tested": total_tested,
+                "foundation_ratio": round(foundation_ratio, 4),
+                "root_pressure": root_pressure,
+            }
+            candidates.append(payload)
+        return candidates
 
     def _grade8_unresolved_follow_up_candidates(
         self,
@@ -582,23 +671,13 @@ class V2DiagnosticEngine:
             same_path = [item for item in usable if item.content.get("target_exam_path") == target_path]
             if same_path:
                 usable = same_path
-            relaxed_surface = False
-            if not usable and kc_id == source_item.kc_id:
-                usable = [
-                    item for item in self.items_by_kc.get(kc_id, [])
-                    if item.id not in run.seen_items
-                    and self._is_grade8_exam_path_item(item)
-                    and item.content.get("target_exam_path") == target_path
-                ]
-                relaxed_surface = bool(usable)
             if not usable:
                 skipped.append({"kc_id": kc_id, "reason": "no_distinct_follow_up_item"})
                 continue
             for item in usable:
-                role_rank = GRADE8_DEEP_DIVE_ROLES.get(str(item.content.get("item_role") or ""), 99)
+                role_rank = self._grade8_item_role_rank(item)
                 kc_rank = target_kcs.index(kc_id)
-                surface_penalty = 30 if relaxed_surface else 0
-                raw_candidates.append((kc_rank * 10 + role_rank + surface_penalty, -self._cheap_candidate_score(run, kc_id, item), kc_id, item.id, item, relaxed_surface))
+                raw_candidates.append((kc_rank * 10 + role_rank, -self._cheap_candidate_score(run, kc_id, item), kc_id, item.id, item))
 
         if not raw_candidates:
             return []
@@ -606,13 +685,12 @@ class V2DiagnosticEngine:
         selected_pool = sorted(raw_candidates)[:PARTICLE_PREFILTER_LIMIT]
         entropy_before = selector.entropy()
         candidates: list[dict[str, Any]] = []
-        for _rank, _cheap, kc_id, _item_id, item, relaxed_surface in selected_pool:
+        for _rank, _cheap, kc_id, _item_id, item in selected_pool:
             payload = self._candidate_score(run, kc_id, item, selector=selector, entropy_before=entropy_before)
             same_kc_bonus = 36.0 if kc_id == source_item.kc_id else 18.0
             unknown_bonus = 10.0 if context["response_type"] == "unknown" else 0.0
-            fallback_penalty = -12.0 if relaxed_surface else 0.0
             target_order_bonus = max(0.0, 24.0 - float(_rank))
-            payload["score"] = round(payload["score"] + same_kc_bonus + unknown_bonus + fallback_penalty + target_order_bonus, 4)
+            payload["score"] = round(payload["score"] + same_kc_bonus + unknown_bonus + target_order_bonus, 4)
             payload["reason"] = "grade8_confirm_unresolved_direct_miss"
             payload["selector_strategy"] = "grade8_unresolved_follow_up_state_space_eig"
             payload["deep_dive_reason"] = self._grade8_follow_up_reason(context, item)
@@ -625,7 +703,7 @@ class V2DiagnosticEngine:
                 "pool_size": len(raw_candidates),
                 "source_probability_band": source_state.probability_band,
                 "source_p_mastery": round(source_state.p_mastery, 4),
-                "surface_relaxed": relaxed_surface,
+                "surface_relaxed": False,
             }
             payload["skipped_candidates"] = skipped[:12]
             candidates.append(payload)
@@ -712,7 +790,7 @@ class V2DiagnosticEngine:
                 skipped.append({"kc_id": kc_id, "reason": "no_usable_deep_dive_item"})
                 continue
             for item in usable:
-                role_rank = GRADE8_DEEP_DIVE_ROLES.get(str(item.content.get("item_role") or ""), 99)
+                role_rank = self._grade8_item_role_rank(item)
                 raw_candidates.append((role_rank, -self._cheap_candidate_score(run, kc_id, item), kc_id, item.id, item))
 
         if not raw_candidates:

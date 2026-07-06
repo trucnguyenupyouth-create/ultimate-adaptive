@@ -25,6 +25,12 @@ For this exam, the existing graph has:
 - **90 internal edges** among that 72-node related set.
 - A practical diagnostic should focus on a smaller **core set of about 35-45 nodes**, then ask 18-25 adaptive questions.
 
+Update after re-derivation on 2026-07-06:
+
+- The original 72-node analysis did not preserve the exact node list.
+- The auditable runtime/reportable scope has now been re-derived in `docs/grade8_exam_scope_rederived.md` and `docs/grade8_exam_scope.json`.
+- The re-derived scope contains **75 nodes** and **88 internal edges**. The count is slightly larger because the re-derivation explicitly includes the observed correct I.1 substitution node and Grade 6 sign/parentheses foundations needed for root-cause drill-down.
+
 Important graph gaps found:
 
 - No clearly named node for **addition/subtraction of algebraic fractions**. The graph has `G8-MATH-XAC-DINH-MAU`, `G8-MATH-QUY-DONG-MAU`, and `G8-MATH-RUT-GON-PHAN`, but I.2 also needs a distinct "combine rational expressions" KC.
