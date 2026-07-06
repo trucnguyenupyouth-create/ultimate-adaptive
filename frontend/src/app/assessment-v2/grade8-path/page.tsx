@@ -23,7 +23,15 @@ import { WizzdomLogo } from "@/components/wizzdom/MathDisplay";
 const MAX_QUESTIONS = 35;
 
 type Phase = "loading" | "question" | "adapting" | "completed";
-type ExpressionTemplate = "x_plus_number" | "x_times_x_plus_number" | "linear_expression" | "number_minus_x" | null;
+type ExpressionTemplate =
+  | "x_plus_number"
+  | "x_times_x_plus_number"
+  | "linear_expression"
+  | "number_minus_x"
+  | "rational_fraction"
+  | "two_factor_product"
+  | "percent_times_amount"
+  | null;
 
 const PATH_LABELS: Record<string, string> = {
   rational_expression: "Phân thức đại số",
@@ -113,13 +121,21 @@ function expressionTemplateForItem(item?: AssessmentV2Item | null): ExpressionTe
   if (["factor_common_x_from_quadratic", "convert_one_over_x_to_common_denominator", "difference_of_squares_factor_missing"].includes(family)) {
     return "x_plus_number";
   }
+  if (family === "simplify_cancel_common_factor") return "rational_fraction";
+  if (family === "rational_expression_cross_product_component") return "two_factor_product";
+  if (family === "write_interest_expression") return "percent_times_amount";
   if (family === "common_denominator_x_and_x_plus_a") return "x_times_x_plus_number";
   if (family === "expand_coefficient_parentheses") return "linear_expression";
   if (family === "represent_remaining_amount_total_minus_x") return "number_minus_x";
   return null;
 }
 
-function serializeExpressionTemplate(template: ExpressionTemplate, parts: { first: string; second: string }) {
+function amountFromQuestion(item?: AssessmentV2Item | null) {
+  const match = item?.question?.match(/khoản\s+(.+?)\s+triệu/i);
+  return match?.[1]?.replace(/\s+/g, "") || "x";
+}
+
+function serializeExpressionTemplate(template: ExpressionTemplate, parts: { first: string; second: string }, item?: AssessmentV2Item | null) {
   if (template === "x_plus_number") return `x+${parts.first}`;
   if (template === "x_times_x_plus_number") return `x*(x+${parts.first})`;
   if (template === "linear_expression") {
@@ -127,6 +143,9 @@ function serializeExpressionTemplate(template: ExpressionTemplate, parts: { firs
     return `${parts.first}*x${second.startsWith("-") ? second : `+${second}`}`;
   }
   if (template === "number_minus_x") return `${parts.first}-x`;
+  if (template === "rational_fraction") return `(${parts.first})/(${parts.second})`;
+  if (template === "two_factor_product") return `(${parts.first})*(${parts.second})`;
+  if (template === "percent_times_amount") return `(${parts.first}/100)*(${amountFromQuestion(item)})`;
   return "";
 }
 
@@ -135,40 +154,85 @@ function ExpressionTemplateInput({
   parts,
   onChange,
   onSubmit,
+  item,
 }: {
   template: Exclude<ExpressionTemplate, null>;
   parts: { first: string; second: string };
   onChange: (value: { first: string; second: string }) => void;
   onSubmit: () => void;
+  item?: AssessmentV2Item | null;
 }) {
-  const sanitize = (value: string) => value.replace(/[^0-9-]/g, "");
-  const input = (key: "first" | "second", placeholder = "?") => (
-    <span className="template-blank">
+  const sanitizeNumber = (value: string) => value.replace(/[^0-9.,-]/g, "").replace(",", ".");
+  const sanitizeMath = (value: string) => value.replace(/[^0-9a-zA-Z+\-*/^().]/g, "");
+  const blank = (
+    key: "first" | "second",
+    placeholder = "?",
+    mode: "number" | "math" = "number",
+    label?: string,
+  ) => (
+    <span className={`template-blank ${mode === "math" ? "wide" : ""}`}>
+      {label && <span className="blank-label">{label}</span>}
       <input
         className="template-input"
         value={parts[key]}
-        inputMode="numeric"
-        onChange={(event) => onChange({ ...parts, [key]: sanitize(event.target.value) })}
+        inputMode={mode === "number" ? "decimal" : "text"}
+        onChange={(event) => onChange({ ...parts, [key]: mode === "number" ? sanitizeNumber(event.target.value) : sanitizeMath(event.target.value) })}
         onKeyDown={(event) => {
           if (event.key === "Enter") onSubmit();
         }}
         placeholder={placeholder}
         autoFocus={key === "first"}
-        aria-label="Ô điền số"
+        aria-label={label ?? "Ô điền đáp án"}
       />
     </span>
   );
 
   if (template === "x_times_x_plus_number") {
-    return <div className="template-expression"><span>x(x +</span>{input("first")}<span>)</span></div>;
+    return <div className="template-expression"><span>x(x +</span>{blank("first")}<span>)</span></div>;
   }
   if (template === "linear_expression") {
-    return <div className="template-expression">{input("first")}<span>x +</span>{input("second", "-?")}</div>;
+    return <div className="template-expression">{blank("first")}<span>x +</span>{blank("second", "-?")}</div>;
   }
   if (template === "number_minus_x") {
-    return <div className="template-expression">{input("first")}<span>- x</span></div>;
+    return <div className="template-expression">{blank("first")}<span>- x</span></div>;
   }
-  return <div className="template-expression"><span>x +</span>{input("first")}</div>;
+  if (template === "rational_fraction") {
+    return (
+      <div className="structured-answer">
+        <div className="fraction-template" aria-label="Nhập phân thức">
+          {blank("first", "tử", "math", "Tử số")}
+          <div className="fraction-line" />
+          {blank("second", "mẫu", "math", "Mẫu số")}
+        </div>
+        <p className="template-hint">Nhập phân thức đã rút gọn. Ví dụ ký hiệu nhân có thể gõ bằng dấu *.</p>
+      </div>
+    );
+  }
+  if (template === "two_factor_product") {
+    return (
+      <div className="structured-answer">
+        <div className="template-expression product-template">
+          {blank("first", "thừa số", "math", "Thừa số 1")}
+          <span>·</span>
+          {blank("second", "thừa số", "math", "Thừa số 2")}
+        </div>
+        <p className="template-hint">Chỉ nhập tích được hỏi, không cần viết dấu bằng.</p>
+      </div>
+    );
+  }
+  if (template === "percent_times_amount") {
+    return (
+      <div className="structured-answer">
+        <div className="template-expression">
+          <span>{amountFromQuestion(item)} ×</span>
+          {blank("first", "?", "number", "Tỷ lệ")}
+          <span>%</span>
+        </div>
+        <p className="template-hint">Nhập số phần trăm, hệ thống sẽ tự đổi sang dạng thập phân khi chấm.</p>
+      </div>
+    );
+  }
+  return <div className="template-expression"><span>x +</span>{blank("first")}</div>;
 }
 
 function RawExpressionInput({
@@ -240,7 +304,7 @@ function rawInputCopy(item?: AssessmentV2Item | null) {
     };
   }
   return {
-    placeholder: "Ví dụ: x*(x+2)",
+    placeholder: "Nhập biểu thức",
     helper: "Có thể dùng phím hỗ trợ hoặc gõ trực tiếp. Dấu nhân nhập bằng *.",
   };
 }
@@ -268,6 +332,7 @@ export default function Grade8PathAssessmentPage() {
     if (widget === "coordinate") return coordinate.x.trim() !== "" && coordinate.y.trim() !== "";
     if (widget === "power") return power.base.trim() !== "" && power.exp.trim() !== "";
     if (expressionTemplate === "linear_expression") return expressionParts.first.trim() !== "" && expressionParts.second.trim() !== "";
+    if (expressionTemplate === "rational_fraction" || expressionTemplate === "two_factor_product") return expressionParts.first.trim() !== "" && expressionParts.second.trim() !== "";
     if (expressionTemplate) return expressionParts.first.trim() !== "";
     return text.trim().length > 0;
   }, [coordinate, expressionParts, expressionTemplate, fraction, power, text, widget]);
@@ -297,7 +362,7 @@ export default function Grade8PathAssessmentPage() {
     if (widget === "fraction") return serializeFraction(fraction);
     if (widget === "coordinate") return `(${coordinate.x},${coordinate.y})`;
     if (widget === "power") return `${power.base}^${power.exp}`;
-    if (expressionTemplate) return serializeExpressionTemplate(expressionTemplate, expressionParts);
+    if (expressionTemplate) return serializeExpressionTemplate(expressionTemplate, expressionParts, item);
     return text;
   };
 
@@ -414,6 +479,7 @@ export default function Grade8PathAssessmentPage() {
                         parts={expressionParts}
                         onChange={setExpressionParts}
                         onSubmit={() => isReady && handleResponse("answer")}
+                        item={item}
                       />
                     ) : (
                       <RawExpressionInput
@@ -683,6 +749,36 @@ export default function Grade8PathAssessmentPage() {
           display: inline-flex;
           align-items: center;
         }
+        .structured-answer {
+          display: grid;
+          justify-items: center;
+          gap: 12px;
+          width: min(640px, 100%);
+        }
+        .fraction-template {
+          display: grid;
+          justify-items: center;
+          gap: 8px;
+          min-width: min(420px, 100%);
+        }
+        .fraction-line {
+          width: min(360px, 90%);
+          height: 4px;
+          border-radius: 999px;
+          background: #111827;
+        }
+        .product-template {
+          gap: 14px;
+        }
+        .template-hint {
+          margin: 0;
+          max-width: 520px;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.45;
+          text-align: center;
+          font-weight: 750;
+        }
         .template-blank {
           position: relative;
           display: inline-flex;
@@ -696,10 +792,26 @@ export default function Grade8PathAssessmentPage() {
           box-shadow: inset 0 -4px 0 #3d72f8;
           transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
         }
+        .template-blank.wide {
+          min-width: min(320px, 82vw);
+          width: min(320px, 82vw);
+          height: 64px;
+          padding: 0 14px;
+        }
         .template-blank:focus-within {
           background: #eef4ff;
           box-shadow: inset 0 -4px 0 #2563eb, 0 0 0 5px rgba(61, 114, 248, 0.12);
           transform: translateY(-1px);
+        }
+        .blank-label {
+          position: absolute;
+          top: 6px;
+          left: 10px;
+          color: #64748b;
+          font-size: 10px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0;
         }
         .template-input {
           width: 58px;
@@ -714,6 +826,12 @@ export default function Grade8PathAssessmentPage() {
           background: transparent;
           padding: 0;
           appearance: textfield;
+        }
+        .template-blank.wide .template-input {
+          width: 100%;
+          max-width: none;
+          font-size: clamp(24px, 3vw, 34px);
+          padding-top: 12px;
         }
         .template-input::placeholder {
           color: #94a3b8;
