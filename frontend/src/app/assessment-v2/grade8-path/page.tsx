@@ -348,116 +348,107 @@ function ExpressionTemplateInput({
 }) {
   const sanitizeNumber = (value: string) => value.replace(/[^0-9.,-]/g, "").replace(",", ".");
   const sanitizeMath = (value: string) => value.replace(/[^0-9a-zA-Z+\-*/^().]/g, "");
-  const blank = (
-    key: "first" | "second",
-    placeholder = "?",
-    mode: "number" | "math" = "number",
-    label?: string,
-  ) => (
-    // Bug 2 fix: label sits ABOVE the input box, not inside via position:absolute
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-      {label && (
-        <span style={{
-          fontSize: 10, fontWeight: 800, color: "#94a3b8",
-          textTransform: "uppercase", letterSpacing: 0.5,
-          fontFamily: "ui-monospace, monospace",
-        }}>{label}</span>
-      )}
-      <span className={`template-blank ${mode === "math" ? "wide" : ""}`}>
+
+  // 100% inline styles — styled-jsx from parent does not scope into child components
+  const S = {
+    row: { display: "flex", flexWrap: "nowrap", alignItems: "center", gap: 8, fontSize: 22, fontWeight: 700, color: "#111827" } as React.CSSProperties,
+    blankSpan: (wide = false) => ({ display: "inline-flex", alignItems: "center", borderBottom: "2.5px solid #3d72f8", padding: "2px 4px", minWidth: wide ? 90 : 52 } as React.CSSProperties),
+    inputEl: (wide = false) => ({ border: "none", outline: "none", background: "transparent", fontSize: 20, fontWeight: 700, color: "#1d4ed8", width: wide ? 90 : 52, textAlign: "center" as const, fontFamily: "inherit" } as React.CSSProperties),
+    label: { fontSize: 10, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: 0.5, fontFamily: "ui-monospace, monospace", marginBottom: 2 } as React.CSSProperties,
+    hint: { fontSize: 11, color: "#94a3b8", margin: "10px 0 0", textAlign: "center" as const } as React.CSSProperties,
+    fractionLine: { width: 90, height: 2.5, background: "#111827", borderRadius: 2, margin: "2px 0" } as React.CSSProperties,
+    colBlank: { display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 3 } as React.CSSProperties,
+  };
+
+  const blank = (key: "first" | "second", placeholder = "?", mode: "number" | "math" = "number", label?: string) => {
+    const wide = mode === "math";
+    const inputNode = (
+      <span style={S.blankSpan(wide)}>
         <input
-          className="template-input"
+          style={S.inputEl(wide)}
           value={parts[key]}
           inputMode={mode === "number" ? "decimal" : "text"}
-          onChange={(event) => onChange({ ...parts, [key]: mode === "number" ? sanitizeNumber(event.target.value) : sanitizeMath(event.target.value) })}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") onSubmit();
-          }}
+          onChange={(e) => onChange({ ...parts, [key]: mode === "number" ? sanitizeNumber(e.target.value) : sanitizeMath(e.target.value) })}
+          onKeyDown={(e) => { if (e.key === "Enter") onSubmit(); }}
           placeholder={label ? "" : placeholder}
           autoFocus={key === "first"}
           aria-label={label ?? "Ô điền đáp án"}
         />
       </span>
-    </div>
-  );
-
-  if (template === "x_times_x_plus_number") {
-    // Bug 4 fix: white-space nowrap prevents ) from wrapping far away
+    );
+    if (!label) return inputNode;
     return (
-      <div className="template-expression" style={{ flexWrap: "nowrap", whiteSpace: "nowrap" }}>
-        <span>x(x&nbsp;+</span>
-        {blank("first")}
-        <span>)</span>
+      <div style={S.colBlank}>
+        <span style={S.label}>{label}</span>
+        {inputNode}
       </div>
     );
+  };
+
+  if (template === "x_times_x_plus_number") {
+    return <div style={S.row}><span>x(x&nbsp;+</span>{blank("first")}<span>)</span></div>;
+  }
+  if (template === "x_plus_number") {
+    return <div style={S.row}><span>x&nbsp;+</span>{blank("first")}</div>;
   }
   if (template === "linear_expression") {
-    // Bug 3 fix: remove hardcoded '+' — second blank holds the full signed constant (e.g. "-6")
     return (
-      <div className="template-expression" style={{ flexWrap: "nowrap", alignItems: "center" }}>
+      <div style={S.row}>
         {blank("first")}
-        <span style={{ fontSize: 15, fontWeight: 700, color: "#475569" }}>x</span>
+        <span style={{ fontSize: 18, fontWeight: 700, color: "#475569" }}>x</span>
         {blank("second", "±?")}
       </div>
     );
   }
   if (template === "number_minus_x") {
-    return <div className="template-expression">{blank("first")}<span>- x</span></div>;
+    return <div style={S.row}>{blank("first")}<span>&#8722;&nbsp;x</span></div>;
   }
   if (template === "rational_fraction") {
     return (
-      <div className="structured-answer">
-        <div className="fraction-template" aria-label="Nhập phân thức">
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }} aria-label="Nhập phân thức">
           {blank("first", "tử", "math", "Tử số")}
-          <div className="fraction-line" />
+          <div style={S.fractionLine} />
           {blank("second", "mẫu", "math", "Mẫu số")}
         </div>
-        <p className="template-hint">Nhập phân thức đã rút gọn. Ví dụ ký hiệu nhân có thể gõ bằng dấu *.</p>
+        <p style={S.hint}>Nhập phân thức đã rút gọn. Ký hiệu nhân dùng dấu *.</p>
       </div>
     );
   }
   if (template === "two_factor_product") {
     return (
-      <div className="structured-answer">
-        <div className="template-expression product-template">
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+        <div style={{ ...S.row, gap: 16 }}>
           {blank("first", "thừa số", "math", "Thừa số 1")}
-          <span>·</span>
+          <span style={{ fontSize: 22, color: "#64748b" }}>·</span>
           {blank("second", "thừa số", "math", "Thừa số 2")}
         </div>
-        <p className="template-hint">Chỉ nhập tích được hỏi, không cần viết dấu bằng.</p>
+        <p style={S.hint}>Chỉ nhập tích được hỏi, không cần viết dấu bằng.</p>
       </div>
     );
   }
   if (template === "percent_times_amount") {
     return (
-      <div className="structured-answer">
-        <div className="percent-template" aria-label="Nhập biểu thức phần trăm">
-          <span className="percent-label">Tỷ lệ phần trăm</span>
-          <div className="percent-expression">
-            <span>{amountFromQuestion(item)} ×</span>
-            <span className="percent-blank">
-              <input
-                className="percent-input"
-                value={parts.first}
-                inputMode="decimal"
-                onChange={(event) => onChange({ ...parts, first: sanitizeNumber(event.target.value) })}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") onSubmit();
-                }}
-                placeholder="?"
-                autoFocus
-                aria-label="Nhập số phần trăm"
-              />
-            </span>
-            <span>%</span>
-          </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+        <span style={S.label}>Tỷ lệ phần trăm</span>
+        <div style={{ ...S.row, gap: 10 }}>
+          <span>{amountFromQuestion(item)}&nbsp;×</span>
+          <span style={S.blankSpan()}>
+            <input style={S.inputEl()} value={parts.first} inputMode="decimal"
+              onChange={(e) => onChange({ ...parts, first: sanitizeNumber(e.target.value) })}
+              onKeyDown={(e) => { if (e.key === "Enter") onSubmit(); }}
+              placeholder="?" autoFocus aria-label="Nhập số phần trăm" />
+          </span>
+          <span>%</span>
         </div>
-        <p className="template-hint">Nhập số phần trăm, hệ thống sẽ tự đổi sang dạng thập phân khi chấm.</p>
+        <p style={S.hint}>Nhập số phần trăm, hệ thống sẽ tự đổi sang dạng thập phân khi chấm.</p>
       </div>
     );
   }
-  // Fallback: generic 1-blank expression
-  return <div className="template-expression">{blank("first")}</div>;
+  return <div style={S.row}>{blank("first")}</div>;
 }
+
+
 
 
 export default function Grade8PathAssessmentPage() {
