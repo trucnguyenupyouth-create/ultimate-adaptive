@@ -18,6 +18,7 @@ router = APIRouter(prefix="/assessment-v2", tags=["Assessment V2"])
 class CreateSessionRequest(BaseModel):
     max_questions: int = Field(default=35, ge=1, le=35)
     student_label: str | None = None
+    assessment_scope: str = "g6_algebra_pilot"
 
 
 class SubmitResponseRequest(BaseModel):
@@ -37,6 +38,7 @@ async def create_session(body: CreateSessionRequest, db: AsyncSession = Depends(
             db,
             max_questions=body.max_questions,
             student_label=body.student_label,
+            assessment_scope=body.assessment_scope,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -63,13 +65,14 @@ async def create_grade8_session(body: CreateSessionRequest, db: AsyncSession = D
 async def list_sessions(
     limit: int = 50,
     status: str | None = None,
+    assessment_scope: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     if limit < 1 or limit > 200:
         raise HTTPException(status_code=422, detail="limit must be between 1 and 200")
     if status not in {None, "in_progress", "completed"}:
         raise HTTPException(status_code=422, detail="status must be in_progress or completed")
-    return await service.list_sessions(db, limit=limit, status=status)
+    return await service.list_sessions(db, limit=limit, status=status, assessment_scope=assessment_scope)
 
 
 @router.get("/sessions/{session_id}")

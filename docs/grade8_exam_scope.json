@@ -1,0 +1,1723 @@
+{
+  "assessment_scope": "grade8_exam_path",
+  "version": 2,
+  "updated_at": "2026-07-06T14:12:00.934354+00:00",
+  "notes": [
+    "Runtime/reportable scope re-derived from grade8_exam_question_node_mapping.md, production KC metadata, and Grade 6-8 textbook skill dependencies.",
+    "The assessment seed is a student who only solved I.1 and could not do I.2, II.1, II.2, III.1, III.2.",
+    "full_related_scope_codes is the auditable root-cause graph. direct_item_scope_codes is the subset currently covered by generated draft items.",
+    "Do not report inferred gaps outside full_related_scope_codes."
+  ],
+  "exam_signal": {
+    "student_correct": [
+      "I.1"
+    ],
+    "student_unknown_or_failed": [
+      "I.2",
+      "II.1a",
+      "II.1b",
+      "II.2",
+      "III.1",
+      "III.2"
+    ]
+  },
+  "counts": {
+    "full_related_scope": 75,
+    "core_diagnostic_scope": 37,
+    "foundation_priority_scope": 47,
+    "direct_item_scope": 75,
+    "inference_only_scope": 0,
+    "internal_edges": 88
+  },
+  "question_map": {
+    "I.1": {
+      "status": "student_correct",
+      "description": "Compute A = x/(x+5) at x = 3.",
+      "primary": [
+        "G8-MATH-TINH-GIA-TRI"
+      ]
+    },
+    "I.2": {
+      "status": "student_unknown",
+      "description": "Prove B = (x - 2)/x from a rational-expression identity.",
+      "primary": [
+        "G8-MATH-NHAN-BIET-PHAN",
+        "G8-MATH-XAC-DINH-DIEU",
+        "G8-MATH-XAC-DINH-MAU",
+        "G8-MATH-QUY-DONG-MAU",
+        "G8-MATH-RUT-GON-PHAN",
+        "G8-MATH-NHAN-DANG-A",
+        "G8-MATH-PHAN-TICH-DA"
+      ]
+    },
+    "II.1a": {
+      "status": "student_unknown",
+      "description": "Solve 3(x - 2) + 5 = 2x.",
+      "primary": [
+        "G8-MATH-GIAI-PHUONG-TRINH",
+        "G7-MATH-QUY-TAC-CHUYEN",
+        "G6-MATH-BO-DAU-NGOAC"
+      ]
+    },
+    "II.1b": {
+      "status": "student_unknown",
+      "description": "Solve (x - 2)/3 + (2x - 3)/6 = 1.",
+      "primary": [
+        "G8-MATH-GIAI-PHUONG-TRINH",
+        "G6-MATH-QUY-DONG-MAU",
+        "G6-MATH-CONG-HAI-PHAN-1",
+        "G7-MATH-QUY-TAC-CHUYEN"
+      ]
+    },
+    "II.2": {
+      "status": "student_unknown",
+      "description": "Set up and solve a savings-interest word problem.",
+      "primary": [
+        "G7-MATH-VIET-BIEU-THUC",
+        "G7-MATH-NHAN-BIET-BIEU",
+        "G6-MATH-B31K2",
+        "G6-MATH-TIM-GIA-TRI-1",
+        "G8-MATH-GIAI-PHUONG-TRINH"
+      ]
+    },
+    "III.1": {
+      "status": "student_unknown",
+      "description": "Draw the graph of y = 2x - 4.",
+      "primary": [
+        "G8-MATH-NHAN-BIET-HAM",
+        "G8-MATH-TINH-HOAC-XAC",
+        "G8-MATH-BIEU-DIEN-DIEM",
+        "G8-MATH-BIEU-DIEN-DO",
+        "G8-MATH-VE-DO-THI"
+      ]
+    },
+    "III.2": {
+      "status": "student_unknown",
+      "description": "Find m so y = 2x - 4 is parallel to y = (m^2 + 1)x + m - 3.",
+      "primary": [
+        "G8-MATH-NHAN-BIET-HAM",
+        "G8-MATH-XAC-DINH-QUAN",
+        "G8-MATH-NHAN-BIET-HUONG"
+      ]
+    }
+  },
+  "strand_scope_codes": {
+    "fraction_percent_foundations_g6": [
+      "G6-MATH-NHAN-BIET-PHAN-1",
+      "G6-MATH-NHAN-BIET-HAI",
+      "G6-MATH-TINH-CHAT-CO",
+      "G6-MATH-RUT-GON-VE",
+      "G6-MATH-QUY-DONG-MAU",
+      "G6-MATH-CONG-HAI-PHAN",
+      "G6-MATH-CONG-HAI-PHAN-1",
+      "G6-MATH-TRU-HAI-PHAN",
+      "G6-MAMATMATHMAT",
+      "G6-MATH-NHAN-HAI-PHAN",
+      "G6-MATH-CHIA-HAI-PHAN",
+      "G6-MATH-PHAN-SO-NGHICH",
+      "G6-MATH-SO-DOI-CUA",
+      "G6-MATH-B31K2",
+      "G6-MATH-TIM-GIA-TRI-1",
+      "G6-MATH-TIM-MOT-SO",
+      "G6-MATH-TIM-GIA-TRI",
+      "G6-MATH-TIM-MOT-SO-1"
+    ],
+    "integer_parentheses_foundations_g6": [
+      "G6-MATH-NHAN-BIET-DOC",
+      "G6-MATH-NHAN-BIET-SO-1",
+      "G6-MATH-CONG-HAI-SO",
+      "G6-MATH-CONG-HAI-SO-1",
+      "G6-MATH-TU-CHO-SO",
+      "G6-MATH-NHAN-HAI-SO",
+      "G6-MATH-NHAN-HAI-SO-1",
+      "G6-MATH-THUC-HIEN-PHEP",
+      "G6-MATH-BO-DAU-NGOAC",
+      "G6-MATH-BO-DAU-NGOAC-1",
+      "G6-MATH-BO-NGOAC-LONG",
+      "G6-MATH-PHAN-PHOI-NHAN",
+      "G6-MATH-AP-DUNG-DUNG",
+      "G6-MATH-AP-DUNG-DUNG-1"
+    ],
+    "algebra_foundations_g7": [
+      "G9-MATH-NHAN-BIET-SO-1",
+      "G7-MATH-KHAI-NIEM-DANG",
+      "G7-MATH-QUY-TAC-CHUYEN",
+      "G7-MATH-NHAN-BIET-BIEU",
+      "G7-MATH-TINH-GIA-TRI-1",
+      "G7-MATH-VIET-BIEU-THUC",
+      "G7-MATH-NHAN-BIET-DON",
+      "G7-MATH-NHAN-BIET-DA",
+      "G7-MATH-THU-GON-DA",
+      "G7-MATH-CONG-HAI-DA",
+      "G7-MATH-TRU-HAI-DA",
+      "G7-MATH-NHAN-DON-THUC",
+      "G7-MATH-NHAN-DA-THUC",
+      "G7-MATH-CHIA-HAI-DON",
+      "G7-MATH-SAP-XEP-DA"
+    ],
+    "rational_expression_g8": [
+      "G8-MATH-TINH-GIA-TRI",
+      "G8-MATH-NHAN-BIET-PHAN",
+      "G8-MATH-XAC-DINH-DIEU",
+      "G8-MATH-KIEM-TRA-HAI",
+      "G8-MATH-XAC-DINH-MAU",
+      "G8-MATH-QUY-DONG-MAU",
+      "G8-MATH-RUT-GON-PHAN",
+      "G8-MATH-NHAN-BIET-DA",
+      "G8-MATH-THU-GON-DA",
+      "G8-MATH-PHAN-TICH-DA",
+      "G8-MATH-NHAN-DANG-A",
+      "G8-MATH-BIEN-DOI-TICH"
+    ],
+    "equation_modeling_g8": [
+      "G8-MATH-NHAN-BIET-PHUONG",
+      "G8-MATH-NHAN-BIET-PHUONG-1",
+      "G8-MATH-KIEM-TRA-GIA",
+      "G8-MATH-GIAI-PHUONG-TRINH"
+    ],
+    "linear_function_graph_g8": [
+      "G8-MATH-NHAN-BIET-HAM",
+      "G8-MATH-TINH-HOAC-XAC",
+      "G8-MATH-BIEU-DIEN-DIEM",
+      "G8-MATH-BIEU-DIEN-DO",
+      "G8-MATH-VE-DO-THI",
+      "G8-MATH-XAC-DINH-QUAN",
+      "G8-MATH-NHAN-BIET-HUONG"
+    ],
+    "polynomial_support_g8": [
+      "G8-MATH-NHAN-BIET-DON",
+      "G8-MATH-NHAN-BIET-CAC",
+      "G8-MATH-CONG-HAI-DA",
+      "G8-MATH-TRU-HAI-DA",
+      "G8-MATH-NHAN-DON-THUC"
+    ]
+  },
+  "full_related_scope_codes": [
+    "G6-MATH-NHAN-BIET-PHAN-1",
+    "G6-MATH-NHAN-BIET-HAI",
+    "G6-MATH-TINH-CHAT-CO",
+    "G6-MATH-RUT-GON-VE",
+    "G6-MATH-QUY-DONG-MAU",
+    "G6-MATH-CONG-HAI-PHAN",
+    "G6-MATH-CONG-HAI-PHAN-1",
+    "G6-MATH-TRU-HAI-PHAN",
+    "G6-MAMATMATHMAT",
+    "G6-MATH-NHAN-HAI-PHAN",
+    "G6-MATH-CHIA-HAI-PHAN",
+    "G6-MATH-PHAN-SO-NGHICH",
+    "G6-MATH-SO-DOI-CUA",
+    "G6-MATH-B31K2",
+    "G6-MATH-TIM-GIA-TRI-1",
+    "G6-MATH-TIM-MOT-SO",
+    "G6-MATH-TIM-GIA-TRI",
+    "G6-MATH-TIM-MOT-SO-1",
+    "G6-MATH-NHAN-BIET-DOC",
+    "G6-MATH-NHAN-BIET-SO-1",
+    "G6-MATH-CONG-HAI-SO",
+    "G6-MATH-CONG-HAI-SO-1",
+    "G6-MATH-TU-CHO-SO",
+    "G6-MATH-NHAN-HAI-SO",
+    "G6-MATH-NHAN-HAI-SO-1",
+    "G6-MATH-THUC-HIEN-PHEP",
+    "G6-MATH-BO-DAU-NGOAC",
+    "G6-MATH-BO-DAU-NGOAC-1",
+    "G6-MATH-BO-NGOAC-LONG",
+    "G6-MATH-PHAN-PHOI-NHAN",
+    "G6-MATH-AP-DUNG-DUNG",
+    "G6-MATH-AP-DUNG-DUNG-1",
+    "G9-MATH-NHAN-BIET-SO-1",
+    "G7-MATH-KHAI-NIEM-DANG",
+    "G7-MATH-QUY-TAC-CHUYEN",
+    "G7-MATH-NHAN-BIET-BIEU",
+    "G7-MATH-TINH-GIA-TRI-1",
+    "G7-MATH-VIET-BIEU-THUC",
+    "G7-MATH-NHAN-BIET-DON",
+    "G7-MATH-NHAN-BIET-DA",
+    "G7-MATH-THU-GON-DA",
+    "G7-MATH-CONG-HAI-DA",
+    "G7-MATH-TRU-HAI-DA",
+    "G7-MATH-NHAN-DON-THUC",
+    "G7-MATH-NHAN-DA-THUC",
+    "G7-MATH-CHIA-HAI-DON",
+    "G7-MATH-SAP-XEP-DA",
+    "G8-MATH-TINH-GIA-TRI",
+    "G8-MATH-NHAN-BIET-PHAN",
+    "G8-MATH-XAC-DINH-DIEU",
+    "G8-MATH-KIEM-TRA-HAI",
+    "G8-MATH-XAC-DINH-MAU",
+    "G8-MATH-QUY-DONG-MAU",
+    "G8-MATH-RUT-GON-PHAN",
+    "G8-MATH-NHAN-BIET-DA",
+    "G8-MATH-NHAN-BIET-DON",
+    "G8-MATH-NHAN-BIET-CAC",
+    "G8-MATH-THU-GON-DA",
+    "G8-MATH-CONG-HAI-DA",
+    "G8-MATH-TRU-HAI-DA",
+    "G8-MATH-NHAN-DON-THUC",
+    "G8-MATH-PHAN-TICH-DA",
+    "G8-MATH-NHAN-DANG-A",
+    "G8-MATH-BIEN-DOI-TICH",
+    "G8-MATH-NHAN-BIET-PHUONG",
+    "G8-MATH-NHAN-BIET-PHUONG-1",
+    "G8-MATH-KIEM-TRA-GIA",
+    "G8-MATH-GIAI-PHUONG-TRINH",
+    "G8-MATH-NHAN-BIET-HAM",
+    "G8-MATH-TINH-HOAC-XAC",
+    "G8-MATH-BIEU-DIEN-DIEM",
+    "G8-MATH-BIEU-DIEN-DO",
+    "G8-MATH-VE-DO-THI",
+    "G8-MATH-XAC-DINH-QUAN",
+    "G8-MATH-NHAN-BIET-HUONG"
+  ],
+  "core_diagnostic_scope_codes": [
+    "G6-MAMATMATHMAT",
+    "G6-MATH-B31K2",
+    "G6-MATH-BO-DAU-NGOAC",
+    "G6-MATH-BO-DAU-NGOAC-1",
+    "G6-MATH-CONG-HAI-PHAN-1",
+    "G6-MATH-NHAN-BIET-HAI",
+    "G6-MATH-NHAN-BIET-PHAN-1",
+    "G6-MATH-QUY-DONG-MAU",
+    "G6-MATH-TIM-GIA-TRI-1",
+    "G6-MATH-TIM-MOT-SO",
+    "G6-MATH-TINH-CHAT-CO",
+    "G7-MATH-KHAI-NIEM-DANG",
+    "G7-MATH-NHAN-BIET-BIEU",
+    "G7-MATH-QUY-TAC-CHUYEN",
+    "G7-MATH-TINH-GIA-TRI-1",
+    "G7-MATH-VIET-BIEU-THUC",
+    "G8-MATH-BIEU-DIEN-DIEM",
+    "G8-MATH-BIEU-DIEN-DO",
+    "G8-MATH-GIAI-PHUONG-TRINH",
+    "G8-MATH-KIEM-TRA-GIA",
+    "G8-MATH-KIEM-TRA-HAI",
+    "G8-MATH-NHAN-BIET-DA",
+    "G8-MATH-NHAN-BIET-HAM",
+    "G8-MATH-NHAN-BIET-HUONG",
+    "G8-MATH-NHAN-BIET-PHAN",
+    "G8-MATH-NHAN-BIET-PHUONG",
+    "G8-MATH-NHAN-BIET-PHUONG-1",
+    "G8-MATH-NHAN-DANG-A",
+    "G8-MATH-PHAN-TICH-DA",
+    "G8-MATH-QUY-DONG-MAU",
+    "G8-MATH-RUT-GON-PHAN",
+    "G8-MATH-THU-GON-DA",
+    "G8-MATH-TINH-HOAC-XAC",
+    "G8-MATH-VE-DO-THI",
+    "G8-MATH-XAC-DINH-DIEU",
+    "G8-MATH-XAC-DINH-MAU",
+    "G8-MATH-XAC-DINH-QUAN"
+  ],
+  "foundation_priority_scope_codes": [
+    "G6-MATH-NHAN-BIET-PHAN-1",
+    "G6-MATH-NHAN-BIET-HAI",
+    "G6-MATH-TINH-CHAT-CO",
+    "G6-MATH-RUT-GON-VE",
+    "G6-MATH-QUY-DONG-MAU",
+    "G6-MATH-CONG-HAI-PHAN",
+    "G6-MATH-CONG-HAI-PHAN-1",
+    "G6-MATH-TRU-HAI-PHAN",
+    "G6-MAMATMATHMAT",
+    "G6-MATH-NHAN-HAI-PHAN",
+    "G6-MATH-CHIA-HAI-PHAN",
+    "G6-MATH-PHAN-SO-NGHICH",
+    "G6-MATH-SO-DOI-CUA",
+    "G6-MATH-B31K2",
+    "G6-MATH-TIM-GIA-TRI-1",
+    "G6-MATH-TIM-MOT-SO",
+    "G6-MATH-TIM-GIA-TRI",
+    "G6-MATH-TIM-MOT-SO-1",
+    "G6-MATH-NHAN-BIET-DOC",
+    "G6-MATH-NHAN-BIET-SO-1",
+    "G6-MATH-CONG-HAI-SO",
+    "G6-MATH-CONG-HAI-SO-1",
+    "G6-MATH-TU-CHO-SO",
+    "G6-MATH-NHAN-HAI-SO",
+    "G6-MATH-NHAN-HAI-SO-1",
+    "G6-MATH-THUC-HIEN-PHEP",
+    "G6-MATH-BO-DAU-NGOAC",
+    "G6-MATH-BO-DAU-NGOAC-1",
+    "G6-MATH-BO-NGOAC-LONG",
+    "G6-MATH-PHAN-PHOI-NHAN",
+    "G6-MATH-AP-DUNG-DUNG",
+    "G6-MATH-AP-DUNG-DUNG-1",
+    "G9-MATH-NHAN-BIET-SO-1",
+    "G7-MATH-KHAI-NIEM-DANG",
+    "G7-MATH-QUY-TAC-CHUYEN",
+    "G7-MATH-NHAN-BIET-BIEU",
+    "G7-MATH-TINH-GIA-TRI-1",
+    "G7-MATH-VIET-BIEU-THUC",
+    "G7-MATH-NHAN-BIET-DON",
+    "G7-MATH-NHAN-BIET-DA",
+    "G7-MATH-THU-GON-DA",
+    "G7-MATH-CONG-HAI-DA",
+    "G7-MATH-TRU-HAI-DA",
+    "G7-MATH-NHAN-DON-THUC",
+    "G7-MATH-NHAN-DA-THUC",
+    "G7-MATH-CHIA-HAI-DON",
+    "G7-MATH-SAP-XEP-DA"
+  ],
+  "direct_item_scope_codes": [
+    "G6-MAMATMATHMAT",
+    "G6-MATH-AP-DUNG-DUNG",
+    "G6-MATH-AP-DUNG-DUNG-1",
+    "G6-MATH-B31K2",
+    "G6-MATH-BO-DAU-NGOAC",
+    "G6-MATH-BO-DAU-NGOAC-1",
+    "G6-MATH-BO-NGOAC-LONG",
+    "G6-MATH-CHIA-HAI-PHAN",
+    "G6-MATH-CONG-HAI-PHAN",
+    "G6-MATH-CONG-HAI-PHAN-1",
+    "G6-MATH-CONG-HAI-SO",
+    "G6-MATH-CONG-HAI-SO-1",
+    "G6-MATH-NHAN-BIET-DOC",
+    "G6-MATH-NHAN-BIET-HAI",
+    "G6-MATH-NHAN-BIET-PHAN-1",
+    "G6-MATH-NHAN-BIET-SO-1",
+    "G6-MATH-NHAN-HAI-PHAN",
+    "G6-MATH-NHAN-HAI-SO",
+    "G6-MATH-NHAN-HAI-SO-1",
+    "G6-MATH-PHAN-PHOI-NHAN",
+    "G6-MATH-PHAN-SO-NGHICH",
+    "G6-MATH-QUY-DONG-MAU",
+    "G6-MATH-RUT-GON-VE",
+    "G6-MATH-SO-DOI-CUA",
+    "G6-MATH-THUC-HIEN-PHEP",
+    "G6-MATH-TIM-GIA-TRI",
+    "G6-MATH-TIM-GIA-TRI-1",
+    "G6-MATH-TIM-MOT-SO",
+    "G6-MATH-TIM-MOT-SO-1",
+    "G6-MATH-TINH-CHAT-CO",
+    "G6-MATH-TRU-HAI-PHAN",
+    "G6-MATH-TU-CHO-SO",
+    "G7-MATH-CHIA-HAI-DON",
+    "G7-MATH-CONG-HAI-DA",
+    "G7-MATH-KHAI-NIEM-DANG",
+    "G7-MATH-NHAN-BIET-BIEU",
+    "G7-MATH-NHAN-BIET-DA",
+    "G7-MATH-NHAN-BIET-DON",
+    "G7-MATH-NHAN-DA-THUC",
+    "G7-MATH-NHAN-DON-THUC",
+    "G7-MATH-QUY-TAC-CHUYEN",
+    "G7-MATH-SAP-XEP-DA",
+    "G7-MATH-THU-GON-DA",
+    "G7-MATH-TINH-GIA-TRI-1",
+    "G7-MATH-TRU-HAI-DA",
+    "G7-MATH-VIET-BIEU-THUC",
+    "G8-MATH-BIEN-DOI-TICH",
+    "G8-MATH-BIEU-DIEN-DIEM",
+    "G8-MATH-BIEU-DIEN-DO",
+    "G8-MATH-CONG-HAI-DA",
+    "G8-MATH-GIAI-PHUONG-TRINH",
+    "G8-MATH-KIEM-TRA-GIA",
+    "G8-MATH-KIEM-TRA-HAI",
+    "G8-MATH-NHAN-BIET-CAC",
+    "G8-MATH-NHAN-BIET-DA",
+    "G8-MATH-NHAN-BIET-DON",
+    "G8-MATH-NHAN-BIET-HAM",
+    "G8-MATH-NHAN-BIET-HUONG",
+    "G8-MATH-NHAN-BIET-PHAN",
+    "G8-MATH-NHAN-BIET-PHUONG",
+    "G8-MATH-NHAN-BIET-PHUONG-1",
+    "G8-MATH-NHAN-DANG-A",
+    "G8-MATH-NHAN-DON-THUC",
+    "G8-MATH-PHAN-TICH-DA",
+    "G8-MATH-QUY-DONG-MAU",
+    "G8-MATH-RUT-GON-PHAN",
+    "G8-MATH-THU-GON-DA",
+    "G8-MATH-TINH-GIA-TRI",
+    "G8-MATH-TINH-HOAC-XAC",
+    "G8-MATH-TRU-HAI-DA",
+    "G8-MATH-VE-DO-THI",
+    "G8-MATH-XAC-DINH-DIEU",
+    "G8-MATH-XAC-DINH-MAU",
+    "G8-MATH-XAC-DINH-QUAN",
+    "G9-MATH-NHAN-BIET-SO-1"
+  ],
+  "inference_only_scope_codes": [],
+  "support_scope_codes": [],
+  "reportable_scope_codes": [
+    "G6-MATH-NHAN-BIET-PHAN-1",
+    "G6-MATH-NHAN-BIET-HAI",
+    "G6-MATH-TINH-CHAT-CO",
+    "G6-MATH-RUT-GON-VE",
+    "G6-MATH-QUY-DONG-MAU",
+    "G6-MATH-CONG-HAI-PHAN",
+    "G6-MATH-CONG-HAI-PHAN-1",
+    "G6-MATH-TRU-HAI-PHAN",
+    "G6-MAMATMATHMAT",
+    "G6-MATH-NHAN-HAI-PHAN",
+    "G6-MATH-CHIA-HAI-PHAN",
+    "G6-MATH-PHAN-SO-NGHICH",
+    "G6-MATH-SO-DOI-CUA",
+    "G6-MATH-B31K2",
+    "G6-MATH-TIM-GIA-TRI-1",
+    "G6-MATH-TIM-MOT-SO",
+    "G6-MATH-TIM-GIA-TRI",
+    "G6-MATH-TIM-MOT-SO-1",
+    "G6-MATH-NHAN-BIET-DOC",
+    "G6-MATH-NHAN-BIET-SO-1",
+    "G6-MATH-CONG-HAI-SO",
+    "G6-MATH-CONG-HAI-SO-1",
+    "G6-MATH-TU-CHO-SO",
+    "G6-MATH-NHAN-HAI-SO",
+    "G6-MATH-NHAN-HAI-SO-1",
+    "G6-MATH-THUC-HIEN-PHEP",
+    "G6-MATH-BO-DAU-NGOAC",
+    "G6-MATH-BO-DAU-NGOAC-1",
+    "G6-MATH-BO-NGOAC-LONG",
+    "G6-MATH-PHAN-PHOI-NHAN",
+    "G6-MATH-AP-DUNG-DUNG",
+    "G6-MATH-AP-DUNG-DUNG-1",
+    "G9-MATH-NHAN-BIET-SO-1",
+    "G7-MATH-KHAI-NIEM-DANG",
+    "G7-MATH-QUY-TAC-CHUYEN",
+    "G7-MATH-NHAN-BIET-BIEU",
+    "G7-MATH-TINH-GIA-TRI-1",
+    "G7-MATH-VIET-BIEU-THUC",
+    "G7-MATH-NHAN-BIET-DON",
+    "G7-MATH-NHAN-BIET-DA",
+    "G7-MATH-THU-GON-DA",
+    "G7-MATH-CONG-HAI-DA",
+    "G7-MATH-TRU-HAI-DA",
+    "G7-MATH-NHAN-DON-THUC",
+    "G7-MATH-NHAN-DA-THUC",
+    "G7-MATH-CHIA-HAI-DON",
+    "G7-MATH-SAP-XEP-DA",
+    "G8-MATH-TINH-GIA-TRI",
+    "G8-MATH-NHAN-BIET-PHAN",
+    "G8-MATH-XAC-DINH-DIEU",
+    "G8-MATH-KIEM-TRA-HAI",
+    "G8-MATH-XAC-DINH-MAU",
+    "G8-MATH-QUY-DONG-MAU",
+    "G8-MATH-RUT-GON-PHAN",
+    "G8-MATH-NHAN-BIET-DA",
+    "G8-MATH-NHAN-BIET-DON",
+    "G8-MATH-NHAN-BIET-CAC",
+    "G8-MATH-THU-GON-DA",
+    "G8-MATH-CONG-HAI-DA",
+    "G8-MATH-TRU-HAI-DA",
+    "G8-MATH-NHAN-DON-THUC",
+    "G8-MATH-PHAN-TICH-DA",
+    "G8-MATH-NHAN-DANG-A",
+    "G8-MATH-BIEN-DOI-TICH",
+    "G8-MATH-NHAN-BIET-PHUONG",
+    "G8-MATH-NHAN-BIET-PHUONG-1",
+    "G8-MATH-KIEM-TRA-GIA",
+    "G8-MATH-GIAI-PHUONG-TRINH",
+    "G8-MATH-NHAN-BIET-HAM",
+    "G8-MATH-TINH-HOAC-XAC",
+    "G8-MATH-BIEU-DIEN-DIEM",
+    "G8-MATH-BIEU-DIEN-DO",
+    "G8-MATH-VE-DO-THI",
+    "G8-MATH-XAC-DINH-QUAN",
+    "G8-MATH-NHAN-BIET-HUONG"
+  ],
+  "nodes": [
+    {
+      "code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "id": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+      "name": "Nhận biết phân số có tử và mẫu là số nguyên, mẫu khác 0",
+      "grade": 6,
+      "description_excerpt": "Học sinh có thể nhận biết đúng một biểu thức dạng  b a \t​   là phân số khi a,b là số nguyên và b  =0, đồng thời xác định đúng tử số, mẫu số và các trường hợp không phải phân số do...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-NHAN-BIET-HAI",
+      "id": "0164cf7c-e080-4ca0-909b-e292f65af633",
+      "name": "Kiểm tra hai phân số bằng nhau bằng điều kiện nhân chéo -  a·d = b·c",
+      "grade": 6,
+      "description_excerpt": "Học sinh có thể xác định đúng hai phân số a/b và c/d có bằng nhau hay không bằng cách kiểm tra điều kiện nhân chéo a⋅d=b⋅c, với b,d khác 0.  Học sinh được dậy:  Nếu b và d khác 0 t...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-TINH-CHAT-CO",
+      "id": "959461db-e6ce-44b6-8c5f-25c65ac467e8",
+      "name": "Áp dụng tính chất cơ bản của phân số bằng cách nhân hoặc chia cả tử và mẫu với cùng một số nguyên khác 0",
+      "grade": 6,
+      "description_excerpt": "Học sinh có thể tạo phân số bằng phân số đã cho bằng cách nhân hoặc chia cả tử và mẫu với cùng một số nguyên khác 0, đồng thời xử lý đúng dấu trong trường hợp số nhân hoặc số chia ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-RUT-GON-VE",
+      "id": "e25d070b-5e93-4b51-8954-c6084f4f39d4",
+      "name": "Rút gọn về phân số tối giản",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể rút gọn một phân số về phân số tối giản bằng cách chia cả tử và mẫu cho ƯCLN của chúng, và xác định đúng một phân số đã là tối giản hay chưa. Học sinh được...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-QUY-DONG-MAU",
+      "id": "93a0e693-56a1-4140-bbb5-6f27cd2c155b",
+      "name": "Quy đồng mẫu các phân số có tử/mẫu nguyên bằng cách đưa về các phân số bằng nhau cùng mẫu dương",
+      "grade": 6,
+      "description_excerpt": "Quy đồng mẫu các phân số có tử/mẫu nguyên bằng cách đưa về các phân số bằng nhau cùng mẫu dương Sau khi chọn mẫu chung, nhân cả tử và mẫu của mỗi phân số với cùng một số nguyên khá...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-CONG-HAI-PHAN",
+      "id": "4a8a5463-5958-48b7-8e90-f536aa889645",
+      "name": "Cộng hai phân số cùng mẫu ",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể cộng đúng hai phân số cùng mẫu bằng cách giữ nguyên mẫu số và cộng hai tử số, sau đó rút gọn kết quả nếu cần.  Học sinh được dạy:  Muốn cộng hai phân số cù...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-CONG-HAI-PHAN-1",
+      "id": "cdb87133-898d-431e-9155-b17dacb8d6dd",
+      "name": "Cộng hai phân số khác mẫu bằng cách quy đồng mẫu",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể cộng đúng hai phân số khác mẫu bằng cách quy đồng mẫu hai phân số, cộng hai phân số cùng mẫu sau quy đồng, và rút gọn kết quả nếu cần.  Học sinh được dạy: ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-TRU-HAI-PHAN",
+      "id": "656a1d64-f530-4757-88d5-0a96a5397eb7",
+      "name": "Trừ hai phân số cùng mẫu",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể trừ đúng hai phân số cùng mẫu bằng cách giữ nguyên mẫu số và trừ hai tử số, hoặc chuyển phép trừ thành phép cộng với phân số đối rồi cộng hai phân số cùng ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MAMATMATHMAT",
+      "id": "82cf16c3-6304-4c48-b848-5e0bde0dee58",
+      "name": "Trừ hai phân số khác mẫu",
+      "grade": 6,
+      "description_excerpt": "Học sinh có thể trừ đúng hai phân số khác mẫu bằng cách quy đồng mẫu hai phân số, sau đó trừ hai phân số cùng mẫu, xử lý đúng dấu của phân số trừ và rút gọn kết quả nếu cần.  Học s...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-NHAN-HAI-PHAN",
+      "id": "6c18010c-1818-45cb-9c06-7c4adde88e07",
+      "name": "Nhân hai phân số ",
+      "grade": 6,
+      "description_excerpt": "Tên hiện tại “Nhân hai phân số” ổn, nhưng nếu muốn chuẩn hơn theo rule tên KC thì nên dùng tên trên.  Kỹ năng: Học sinh có thể nhân đúng hai phân số bằng cách nhân tử số với tử số,...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-CHIA-HAI-PHAN",
+      "id": "d0d94d7e-8b74-4648-a31e-a722b86957d3",
+      "name": "Chia hai phân số ",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể chia đúng hai phân số bằng cách giữ nguyên phân số bị chia, đổi phép chia thành phép nhân với phân số nghịch đảo của phân số chia, rồi thực hiện phép nhân ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-PHAN-SO-NGHICH",
+      "id": "1e15deb5-5b47-4a71-a5c3-a58858f93fd8",
+      "name": "Phân số nghịch đảo ",
+      "grade": 6,
+      "description_excerpt": "Học sinh có thể xác định đúng phân số nghịch đảo của một phân số khác 0 bằng cách đổi chỗ tử số và mẫu số, đồng thời nhận biết điều kiện chỉ phân số khác 0 mới có phân số nghịch đả...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-SO-DOI-CUA",
+      "id": "eecf4177-b5c2-48ea-ac8f-2f11c40c9956",
+      "name": "Xác định số đối của phân số",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể xác định đúng số đối của một phân số, nhận biết hai phân số đối nhau có tổng bằng 0, và viết đúng các dạng tương đương của số đối.  Học sinh được dạy:  Hai...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-B31K2",
+      "id": "5d32c8a0-841b-47ef-b75e-9cc64f527aaa",
+      "name": "Tính tỉ số của hai số và viết dưới dạng tỉ số phần trăm",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể tính tỉ số của hai số bằng phép chia, sau đó viết tỉ số đó dưới dạng tỉ số phần trăm khi cần.  Học sinh được dạy:  Tỉ số của hai số a và b, với b khác 0, l...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-TIM-GIA-TRI-1",
+      "id": "9e9c5789-2dce-4f16-a695-632cb9301923",
+      "name": "Tìm giá trị phần trăm của một số",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể tìm đúng p% của một số m bằng cách đổi p% thành p/100 hoặc số thập phân rồi nhân với m.  Học sinh được dạy:  p% nghĩa là p/100. Muốn tìm p% của m, ta tính:...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-TIM-MOT-SO",
+      "id": "2c3fda5a-55af-42de-b11b-72617bc45836",
+      "name": "Tìm một số biết giá trị phần trăm",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể tìm đúng số ban đầu khi biết p% của số đó bằng m, bằng cách lấy m chia cho p/100.  Học sinh được dạy:  Nếu p% của một số là m, thì số đó bằng: m : p/100 Vì...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-TIM-GIA-TRI",
+      "id": "9b541386-16c6-4ee5-9dc0-c6eb76f0e390",
+      "name": "Tìm giá trị phân số của một số",
+      "grade": 6,
+      "description_excerpt": "Học sinh có thể tìm đúng giá trị a/b của một số m bằng cách nhân số đó với phân số a/b, trong đó b khác 0.  Học sinh được dạy:  “Tìm a/b của m” nghĩa là lấy m nhân với a/b. Công th...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-TIM-MOT-SO-1",
+      "id": "375a0e3b-9199-4531-9230-6c8e885b9848",
+      "name": "Tìm một số biết giá trị phân số của nó",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể tìm đúng số ban đầu khi biết a/b của số đó bằng m, bằng cách lấy m chia cho a/b, trong đó a/b khác 0.  Học sinh được dạy:  Nếu a/b của một số là m, thì số ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-NHAN-BIET-DOC",
+      "id": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+      "name": "Nhận biết, đọc và viết số nguyên âm",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể nhận biết số nguyên âm qua ngữ cảnh thực tế, đọc đúng tên (âm một, âm hai...) và viết đúng ký hiệu (-1, -2, -3...), phân biệt được số nguyên âm với số tự n...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-NHAN-BIET-SO-1",
+      "id": "b2dfdb0c-b3ef-47d6-bb61-a76999c50cef",
+      "name": "Xác định số đối của một số nguyên",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể xác định đúng số đối của một số nguyên, nhận ra hai số đối nhau nằm cách đều 0 trên trục số và có tổng bằng 0. Học sinh được dạy: Số đối của a là số mà cộn...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-CONG-HAI-SO",
+      "id": "32caa11b-ee1d-4208-99dd-a8b393b45dd4",
+      "name": "Cộng hai số nguyên âm",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể thực hiện đúng phép cộng hai số nguyên âm bằng cách cộng hai giá trị tuyệt đối của chúng rồi đặt dấu âm trước kết quả. Học sinh được dạy: Khi cộng hai số n...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-CONG-HAI-SO-1",
+      "id": "c333baa7-07c9-435d-8b03-a664244d0f21",
+      "name": "Cộng hai số nguyên khác dấu ",
+      "grade": 6,
+      "description_excerpt": "Học sinh có thể thực hiện đúng phép cộng hai số nguyên khác dấu bằng cách lấy hiệu hai giá trị tuyệt đối rồi gắn dấu của số có giá trị tuyệt đối lớn hơn. Học sinh được dạy: Khi cộn...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-TU-CHO-SO",
+      "id": "3bf438fd-b505-41f5-9864-ce1c914cde8c",
+      "name": "Trừ hai số nguyên",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể thực hiện đúng phép trừ hai số nguyên bằng cách viết phép trừ thành phép cộng với số đối của số trừ - KHÔNG CẦN TÍNH KẾT QỦA, MUỐN TÍNH KẾT QUẢ THÌ PHẢITCẦ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-NHAN-HAI-SO",
+      "id": "ab3650f9-b9db-458f-be79-83840d990c0a",
+      "name": "Nhân hai số nguyên khác dấu ",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể thực hiện đúng phép nhân hai số nguyên khác dấu bằng cách nhân hai giá trị tuyệt đối rồi đặt dấu âm cho tích.  Học sinh được dạy:  Khi nhân hai số nguyên k...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-NHAN-HAI-SO-1",
+      "id": "4138513c-6cc2-41fe-bed2-2b2d4641fc28",
+      "name": "Nhân hai số nguyên cùng dấu",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể thực hiện đúng phép nhân hai số nguyên cùng dấu bằng cách nhân hai giá trị tuyệt đối rồi đặt dấu dương cho tích.  Học sinh được dạy:  Khi nhân hai số nguyê...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-THUC-HIEN-PHEP",
+      "id": "ba99a753-23ae-43b9-9355-3010ffeb014a",
+      "name": "Thực hiện phép chia hết hai số nguyên - xác định đúng dấu của thương",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể thực hiện đúng phép chia hết giữa hai số nguyên, xác định đúng dấu của thương dựa trên dấu của số bị chia và số chia, đồng thời tính đúng phần giá trị tuyệ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-BO-DAU-NGOAC",
+      "id": "7c147ca4-23b5-4563-be98-cd0b07af6f6e",
+      "name": "Bỏ dấu ngoặc có dấu + đằng trước ",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể bỏ đúng dấu ngoặc trong biểu thức có dấu “+” đứng ngay trước ngoặc, giữ nguyên dấu của tất cả các số hạng bên trong ngoặc và viết được biểu thức tương đươn...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-BO-DAU-NGOAC-1",
+      "id": "da118684-1954-4b4a-ae1e-4a51f3317430",
+      "name": "Bỏ dấu ngoặc có dấu - đằng trước",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể bỏ đúng dấu ngoặc trong biểu thức có dấu “−” đứng ngay trước ngoặc, đổi dấu tất cả các số hạng bên trong ngoặc và viết được biểu thức tương đương sau khi b...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G6-MATH-BO-NGOAC-LONG",
+      "id": "1cd105ba-e188-40c5-badb-89b4a475df52",
+      "name": "Bỏ ngoặc lồng nhau ",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể bỏ đúng các lớp ngoặc lồng nhau trong biểu thức chứa phép cộng và phép trừ, bằng cách xử lý lần lượt từng lớp ngoặc, áp dụng đúng quy tắc bỏ ngoặc có dấu “...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-PHAN-PHOI-NHAN",
+      "id": "c44df09b-e567-4173-8ccd-fe6d864a8bb7",
+      "name": "Nhận biết và áp dụng tính chất phân phối: a×(b+c) = a×b + a×c",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể nhận biết tính chất phân phối của phép nhân đối với phép cộng, và áp dụng đúng theo cả hai chiều: khai triển a×(b+c) thành a×b + a×c, và ngược lại thu gọn ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-AP-DUNG-DUNG",
+      "id": "9c934457-4e43-4486-91da-61636059295c",
+      "name": "Áp dụng đúng thứ tự phép tính KHÔNG có ngoặc Thứ tự: lũy thừa → nhân chia → cộng trừ (trái sang phải khi cùng cấp)",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể tính đúng giá trị biểu thức số không có ngoặc bằng cách áp dụng đúng thứ tự ưu tiên: lũy thừa trước, rồi nhân/chia, cuối cùng cộng/trừ; các phép tính cùng ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G6-MATH-AP-DUNG-DUNG-1",
+      "id": "a75e022e-e78b-4020-a20b-45f3b0d995dd",
+      "name": "Áp dụng đúng thứ tự phép tính CÓ ngoặc (bao gồm ngoặc lồng nhiều cấp) Thứ tự ngoặc: {} → [] → ()",
+      "grade": 6,
+      "description_excerpt": "Kỹ năng: Học sinh có thể tính đúng giá trị biểu thức có ngoặc — bao gồm một cấp và nhiều cấp lồng nhau — bằng cách tính từ ngoặc trong cùng ra ngoài, kết hợp đúng với thứ tự ưu tiê...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G9-MATH-NHAN-BIET-SO-1",
+      "id": "6e841f72-b15d-4d7f-a964-97176e76f22c",
+      "name": "Nhận biết số hữu tỉ và viết dưới dạng phân số a/b (a,b∈ℤ, b≠0)",
+      "grade": 7,
+      "description_excerpt": "+ Tìm số đối",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G7-MATH-KHAI-NIEM-DANG",
+      "id": "c731aa2b-aa35-446e-af54-3e728fedd844",
+      "name": "Khái niệm đẳng thức và tính chất",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G7-MATH-QUY-TAC-CHUYEN",
+      "id": "04e30aec-737c-4d8c-9695-5e8ea9425485",
+      "name": "Quy tắc chuyển vế — tìm x trong đẳng thức",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G7-MATH-NHAN-BIET-BIEU",
+      "id": "f5219cd2-5f4c-430a-91be-5032f49542a1",
+      "name": "Nhận biết biểu thức đại số",
+      "grade": 7,
+      "description_excerpt": "Khái niệm biểu thức đại số, biến, cách viết cách biến",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G7-MATH-TINH-GIA-TRI-1",
+      "id": "5517a7df-9475-4693-beaf-ae267833759c",
+      "name": "Tính giá trị biểu thức đại số",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G7-MATH-VIET-BIEU-THUC",
+      "id": "02fc2db7-d0d3-47ae-a096-fa0632a950a4",
+      "name": "Viết biểu thức đại số biểu thị quan hệ từ ngữ cảnh thực tế hoặc bài toán hình học",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G7-MATH-NHAN-BIET-DON",
+      "id": "c60a9bcb-e86c-4ca2-be0a-6b743ba729fb",
+      "name": "Nhận biết đơn thức một biến - xác định hệ số và bậc",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G7-MATH-NHAN-BIET-DA",
+      "id": "42fc16a0-cb01-4d2d-8abd-179813e645f8",
+      "name": "Nhận biết đa thức của một biến, xác định hạng tử",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G7-MATH-THU-GON-DA",
+      "id": "0f252b8f-816d-4d9a-a6d7-6ac9239a307c",
+      "name": "Thu gọn đa thức",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G7-MATH-CONG-HAI-DA",
+      "id": "7d3eca02-09a7-4867-9826-0f008c1bbdca",
+      "name": "Cộng hai đa thức: bỏ ngoặc, nhóm hạng tử cùng bậc từ cả hai đa thức, thu gọn",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G7-MATH-TRU-HAI-DA",
+      "id": "a79b57c1-7aea-4de4-b670-fc8bf2c21734",
+      "name": "Trừ hai đa thức: bỏ ngoặc đổi dấu tất cả hạng tử của đa thức trừ, nhóm, thu gọn",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G7-MATH-NHAN-DON-THUC",
+      "id": "f93ede8a-9256-4dde-9e35-1ae428968864",
+      "name": "Nhân đơn thức với đa thức",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G7-MATH-NHAN-DA-THUC",
+      "id": "76f65d73-af13-4d87-b39b-df4a0cdcd666",
+      "name": "Nhân đa thức với đa thức",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G7-MATH-CHIA-HAI-DON",
+      "id": "55d513b9-3c2f-48b9-aef9-391aaef78a28",
+      "name": "Chia hai đơn thức: tách hệ số chia hệ số, lũy thừa chia lũy thừa, ghép kết quả",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G7-MATH-SAP-XEP-DA",
+      "id": "7c8c046e-3f77-4553-99a8-0b69a6df3d0c",
+      "name": "Sắp xếp đa thức theo lũy thừa giảm:",
+      "grade": 7,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G8-MATH-TINH-GIA-TRI",
+      "id": "d334a583-0093-4734-837d-265cb066852b",
+      "name": "Tính giá trị của phân thức",
+      "grade": 8,
+      "description_excerpt": "Mô tả: Học sinh thay giá trị của biến vào phân thức, kiểm tra mẫu khác 0, rồi tính giá trị biểu thức số nhận được.  Ví dụ:  (x² - x - 1)/(x² + 3x)  tại x = 2:  (2² - 2 - 1)/(2² + 3...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G8-MATH-NHAN-BIET-PHAN",
+      "id": "c81a9b5f-d9ea-4b2b-b477-d526c9fc7a47",
+      "name": "Nhận biết phân thức đại số, xác định tử thức, mẫu thức",
+      "grade": 8,
+      "description_excerpt": "Mô tả: Học sinh nhận biết được biểu thức dạng A/B, trong đó A, B là đa thức và B không phải đa thức 0; xác định được tử thức và mẫu thức. Đồng thời biết mỗi đa thức cũng là một phâ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-XAC-DINH-DIEU",
+      "id": "5b07c972-e6e3-4b9b-ab3c-f64783522a85",
+      "name": "Xác định điều kiện xác định của phân thức",
+      "grade": 8,
+      "description_excerpt": "No production description yet.",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-KIEM-TRA-HAI",
+      "id": "accadaf6-930d-4ead-99e1-7f21dc6a4364",
+      "name": "Kiểm tra hai phân thức bằng nhau bằng điều kiện tích chéo",
+      "grade": 8,
+      "description_excerpt": "Mô tả: Học sinh dùng quy tắc:  A/B = C/D nếu AD = BC  để kiểm tra hoặc giải thích hai phân thức bằng nhau.  Ví dụ:  (1 + x)/(1 - x²) = 1/(1 - x)  vì:  (1 + x)(1 - x) = 1 - x²",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-XAC-DINH-MAU",
+      "id": "efea3aea-d0a3-4378-9cbb-4dd7dd1c767a",
+      "name": "Xác định mẫu thức chung và nhân tử phụ",
+      "grade": 8,
+      "description_excerpt": "Mới ở đâu so với quy đồng phân số?  Ở phân số, mẫu là số:  6, 8, 12  Mẫu chung là BCNN.  Ở phân thức, mẫu là đa thức đã phân tích thành nhân tử:  5x²(x + 1) 2x(x + 1)²  MTC là:  10...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-QUY-DONG-MAU",
+      "id": "b02a831f-dc07-4cb6-a1f7-17749665771b",
+      "name": "Quy đồng mẫu thức nhiều phân thức",
+      "grade": 8,
+      "description_excerpt": "Mới ở đâu?  Sau khi tìm được MTC, học sinh phải nhân cả tử và mẫu với nhân tử phụ là một biểu thức đại số.  Ví dụ:  3/[5x²(x + 1)]  với MTC:  10x²(x + 1)²  nhân tử phụ là:  2(x + 1...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-RUT-GON-PHAN",
+      "id": "460c9eb4-7b5a-432f-8032-528e2d4a4552",
+      "name": "Rút gọn phân thức bằng nhân tử chung",
+      "grade": 8,
+      "description_excerpt": "Mới ở đâu so với phân số?  Không phải “rút gọn” nói chung. Cái mới là:  phân tích tử/mẫu thành nhân tử nhận ra nhân tử chung là cả một biểu thức không gạch hạng tử trong tổng xử lý...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-NHAN-BIET-DA",
+      "id": "433cb42b-a6e6-413f-a200-33b3dead67bc",
+      "name": "Nhận biết đa thức nhiều biến và xác định các hạng tử",
+      "grade": 8,
+      "description_excerpt": "Mô tả: Học sinh nhận biết một biểu thức có phải là đa thức nhiều biến hay không bằng cách xem biểu thức đó có viết được thành tổng của các đơn thức hay không; đồng thời xác định đư...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-NHAN-BIET-DON",
+      "id": "6e294966-6328-475a-98d0-95d044b11db7",
+      "name": "Nhận biết đơn thức nhiều biến và phân biệt với biểu thức không phải đơn thức",
+      "grade": 8,
+      "description_excerpt": "Học sinh nhận biết được biểu thức là đơn thức trong trường hợp có nhiều biến, nhiều thừa số biến, hệ số phân số/thập phân/căn số; đồng thời loại được các biểu thức không phải đơn t...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G8-MATH-NHAN-BIET-CAC",
+      "id": "8b57f59b-5df5-42d9-a110-8d4d2fc69f27",
+      "name": "Nhận biết các đơn thức đồng dạng ",
+      "grade": 8,
+      "description_excerpt": "Mô tả kỹ năng: Học sinh nhận biết các đơn thức đồng dạng bằng cách so sánh phần biến, không chỉ so sánh bậc hoặc tên biến xuất hiện.  Ví dụ:  3x²y³, -0,2x²y³, 3/4 x²y³ đồng dạng. 3...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G8-MATH-THU-GON-DA",
+      "id": "b9abefb4-fc90-41d9-93a2-3899d7603ccf",
+      "name": "Thu gọn đa thức nhiều biến bằng cách nhóm hạng tử đồng dạng",
+      "grade": 8,
+      "description_excerpt": "Mô tả: Học sinh thu gọn đa thức nhiều biến bằng cách xác định các hạng tử đồng dạng, nhóm chúng lại, rồi cộng/trừ hệ số và giữ nguyên phần biến.  Ví dụ:  M = x²y - 5xy + 7xy² + 3x²...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-CONG-HAI-DA",
+      "id": "e48df0c8-562f-44c6-b55c-15df57193fae",
+      "name": "Cộng hai đa thức nhiều biến",
+      "grade": 8,
+      "description_excerpt": "Mô tả: Học sinh tính được tổng của hai đa thức nhiều biến bằng cách nối hai đa thức bằng dấu +, bỏ ngoặc nếu có, sau đó nhóm và cộng các hạng tử đồng dạng.  Ví dụ:  C = 5x²y + 5x -...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G8-MATH-TRU-HAI-DA",
+      "id": "2ba511b9-9bdb-4d2e-8c1b-d7adb0d61553",
+      "name": "Trừ hai đa thức nhiều biến",
+      "grade": 8,
+      "description_excerpt": "Mô tả: Học sinh tính được hiệu của hai đa thức nhiều biến bằng cách lập hiệu, đổi dấu tất cả hạng tử trong đa thức bị trừ, rồi nhóm và cộng/trừ các hạng tử đồng dạng.  Ví dụ:  C - ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G8-MATH-NHAN-DON-THUC",
+      "id": "55f959a5-f5f1-43a3-a467-c71f461c87ad",
+      "name": "Nhân đơn thức với đa thức nhiều biến bằng cách phân phối vào từng hạng tử",
+      "grade": 8,
+      "description_excerpt": "Mô tả: Học sinh nhân một đơn thức với một đa thức nhiều biến bằng cách nhân đơn thức đó với từng hạng tử của đa thức, sau đó thu gọn các tích đơn thức nhận được.  Ví dụ:  (-4xy)(2x...",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G8-MATH-PHAN-TICH-DA",
+      "id": "011e9d1b-4e7b-4ab9-8ee0-f914420fda8b",
+      "name": "Phân tích đa thức thành nhân tử bằng cách đặt nhân tử chung",
+      "grade": 8,
+      "description_excerpt": "Học sinh nhận ra nhân tử xuất hiện chung trong tất cả các hạng tử của đa thức, đưa nhân tử đó ra ngoài ngoặc, và viết phần còn lại trong ngoặc sao cho nhân ngược lại được đa thức b...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-NHAN-DANG-A",
+      "id": "a23c2052-38bb-4e65-9b79-70f85eae1301",
+      "name": "Nhận dạng A² - B² và viết thành (A - B)(A + B)",
+      "grade": 8,
+      "description_excerpt": "Học sinh nhận ra một biểu thức là hiệu của hai bình phương và viết được dưới dạng tích:  A² - B² = (A - B)(A + B)  Ví dụ:  x² - 4 = x² - 2² = (x - 2)(x + 2)",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-BIEN-DOI-TICH",
+      "id": "b47ddf52-849c-4314-b224-8894d1021147",
+      "name": "Biến đổi tích (A - B)(A + B) thành A² - B²",
+      "grade": 8,
+      "description_excerpt": "Học sinh nhận ra hai thừa số có cùng một phần và đối nhau ở phần còn lại, rồi dùng hằng đẳng thức:  (A - B)(A + B) = A² - B²  Ví dụ:  (x - 3y)(x + 3y) = x² - 9y²",
+      "has_direct_item": true,
+      "is_core_diagnostic": false
+    },
+    {
+      "code": "G8-MATH-NHAN-BIET-PHUONG",
+      "id": "f17a9b57-80ea-4887-991d-f40aae0f02c1",
+      "name": "Nhận biết phương trình 1 ẩn",
+      "grade": 8,
+      "description_excerpt": "Kỹ năng: Nhận biết một phương trình một ẩn là một hệ thức có dạng A(x)=B(x), trong đó hai vế là biểu thức chứa cùng một ẩn.  Học sinh học gì: Phân biệt được:  2x + 5 = 16      là p...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-NHAN-BIET-PHUONG-1",
+      "id": "b5be836e-d82f-4d06-a1c6-64de1b449b52",
+      "name": "Nhận biết phương trình bậc nhất một ẩn",
+      "grade": 8,
+      "description_excerpt": "Kỹ năng: Nhận biết phương trình bậc nhất một ẩn có dạng ax+b=0, với a  =0.  Học sinh học gì: Phân loại được:  x + 1 = 0        là phương trình bậc nhất một ẩn 2 - x = 0        là ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-KIEM-TRA-GIA",
+      "id": "a432729a-2e59-4c86-ad21-2275ce913ffa",
+      "name": "Kiểm tra giá trị là nghiệm của phương trình 1 ẩn",
+      "grade": 8,
+      "description_excerpt": "Học sinh học gì: Với phương trình:  2x−5=4−x  kiểm tra x=3:  2⋅3−5=1,4−3=1  nên x=3 là nghiệm.  Kiểm tra x=−1:  2(−1)−5=−7,4−(−1)=5  nên x=−1 không là nghiệm.",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-GIAI-PHUONG-TRINH",
+      "id": "e2f829a8-8304-484f-8546-1d7d6a54dfc0",
+      "name": "Giải phương trình bậc nhất một ẩn dạng ax+b=0",
+      "grade": 8,
+      "description_excerpt": "Kỹ năng: Giải phương trình bậc nhất một ẩn ở dạng trực tiếp ax+b=0, a  =0, bằng cách chuyển hạng tử tự do và chia cho hệ số của x.  Học sinh học gì: Biết biến đổi:  ax+b=0  thành:...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-NHAN-BIET-HAM",
+      "id": "41e490a5-29a8-4f5e-b188-2e149d81f633",
+      "name": "Nhận biết hàm số bậc nhất và xác định hệ số a,b.",
+      "grade": 8,
+      "description_excerpt": "Nội dung: Học sinh nhận ra được hàm số có dạng y=ax+b, với a  =0, và xác định đúng hệ số a, hằng số b.",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-TINH-HOAC-XAC",
+      "id": "3825b1bd-c5db-41a7-8dfd-88e8bf9dcecd",
+      "name": "Tính hoặc xác định giá trị hàm số tại một giá trị của biến",
+      "grade": 8,
+      "description_excerpt": "Nội dung: Học sinh hiểu f(a) là giá trị của y khi x = a. Nếu cho công thức thì thay x = a vào tính. Nếu cho bảng thì tìm cột x = a rồi đọc y.  Ví dụ: y = f(x) = 3x thì f(-2) = -6. ...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-BIEU-DIEN-DIEM",
+      "id": "be11fc5d-558a-4517-ace6-f11316e330e0",
+      "name": "Biểu diễn điểm trên mặt phẳng tọa độ khi biết tọa độ",
+      "grade": 8,
+      "description_excerpt": "Nội dung: Học sinh đặt được điểm R(2; -2), S(-1; 2), C(0; -2), D(-1; 0) trên hệ trục tọa độ.",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-BIEU-DIEN-DO",
+      "id": "6dd58437-d1d9-4002-bd1e-fc1376fef725",
+      "name": "Biểu diễn đồ thị hàm số từ bảng giá trị",
+      "grade": 8,
+      "description_excerpt": "Từ bảng giá trị của hàm số, học sinh lập các cặp (x; y) tương ứng và biểu diễn các điểm đó trên mặt phẳng tọa độ. Ở B27, “vẽ đồ thị” chủ yếu là biểu diễn tập điểm từ bảng, chưa phả...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-VE-DO-THI",
+      "id": "ac44830d-db60-4dc7-9604-fbf3fc995031",
+      "name": "Vẽ đồ thị hàm số bậc nhất bằng đường thẳng đi qua hai điểm thuộc đồ thị.",
+      "grade": 8,
+      "description_excerpt": "Nội dung: Học sinh biết đồ thị của hàm số bậc nhất là một đường thẳng, nên để vẽ đồ thị chỉ cần xác định hai điểm thuộc đồ thị rồi vẽ đường thẳng đi qua hai điểm đó.  Ví dụ với y=2...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-XAC-DINH-QUAN",
+      "id": "4f652117-0eb2-4f27-a788-b745223b69a1",
+      "name": "Xác định quan hệ song song, cắt nhau hoặc trùng nhau của hai đường thẳng từ hệ số trong phương trình.",
+      "grade": 8,
+      "description_excerpt": "Nội dung: Với hai đường thẳng:  y=ax+b  và  y=a ′ x+b ′  học sinh biết:  Nếu a=a ′ , b  =b ′  thì hai đường thẳng song song.  Nếu a=a ′ , b=b ′  thì hai đường thẳng trùng nhau.  N...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    },
+    {
+      "code": "G8-MATH-NHAN-BIET-HUONG",
+      "id": "bd3021ec-5247-4b3c-b5ae-2c78ea5d2488",
+      "name": "Nhận biết hướng của đường thẳng từ dấu của hệ số góc.",
+      "grade": 8,
+      "description_excerpt": "Nội dung: Học sinh biết nếu hệ số góc a>0 thì đường thẳng đi lên từ trái sang phải; nếu a<0 thì đường thẳng đi xuống từ trái sang phải. Tương ứng, góc tạo với trục Ox là góc nhọn k...",
+      "has_direct_item": true,
+      "is_core_diagnostic": true
+    }
+  ],
+  "internal_edges": [
+    {
+      "source_code": "G6-MATH-AP-DUNG-DUNG-1",
+      "target_code": "G6-MATH-BO-NGOAC-LONG",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-B31K2",
+      "target_code": "G6-MATH-TIM-GIA-TRI-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-B31K2",
+      "target_code": "G6-MATH-TIM-MOT-SO",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-BO-DAU-NGOAC",
+      "target_code": "G6-MATH-BO-NGOAC-LONG",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-BO-DAU-NGOAC-1",
+      "target_code": "G6-MATH-BO-NGOAC-LONG",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-BO-DAU-NGOAC-1",
+      "target_code": "G7-MATH-TRU-HAI-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-BO-DAU-NGOAC-1",
+      "target_code": "G8-MATH-TRU-HAI-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-CHIA-HAI-PHAN",
+      "target_code": "G6-MATH-B31K2",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-CHIA-HAI-PHAN",
+      "target_code": "G6-MATH-TIM-MOT-SO-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-CONG-HAI-PHAN",
+      "target_code": "G6-MATH-CONG-HAI-PHAN-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-CONG-HAI-SO",
+      "target_code": "G6-MATH-CONG-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-CONG-HAI-SO-1",
+      "target_code": "G6-MATH-CONG-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-DOC",
+      "target_code": "G6-MATH-CONG-HAI-SO",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-DOC",
+      "target_code": "G6-MATH-CONG-HAI-SO-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-DOC",
+      "target_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-DOC",
+      "target_code": "G6-MATH-NHAN-BIET-SO-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-DOC",
+      "target_code": "G6-MATH-NHAN-HAI-SO",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-DOC",
+      "target_code": "G6-MATH-NHAN-HAI-SO-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-DOC",
+      "target_code": "G6-MATH-THUC-HIEN-PHEP",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "target_code": "G6-MATH-CONG-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "target_code": "G6-MATH-NHAN-BIET-HAI",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "target_code": "G6-MATH-NHAN-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "target_code": "G6-MATH-PHAN-SO-NGHICH",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "target_code": "G6-MATH-QUY-DONG-MAU",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "target_code": "G6-MATH-SO-DOI-CUA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "target_code": "G6-MATH-TINH-CHAT-CO",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "target_code": "G6-MATH-TRU-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "target_code": "G9-MATH-NHAN-BIET-SO-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-SO-1",
+      "target_code": "G6-MATH-BO-DAU-NGOAC-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-SO-1",
+      "target_code": "G6-MATH-SO-DOI-CUA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-BIET-SO-1",
+      "target_code": "G6-MATH-TU-CHO-SO",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-HAI-PHAN",
+      "target_code": "G6-MATH-CHIA-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-HAI-PHAN",
+      "target_code": "G6-MATH-TIM-GIA-TRI",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-HAI-SO",
+      "target_code": "G6-MATH-NHAN-BIET-HAI",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-HAI-SO",
+      "target_code": "G6-MATH-NHAN-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-HAI-SO",
+      "target_code": "G6-MATH-TINH-CHAT-CO",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-HAI-SO-1",
+      "target_code": "G6-MATH-NHAN-BIET-HAI",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-HAI-SO-1",
+      "target_code": "G6-MATH-NHAN-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-NHAN-HAI-SO-1",
+      "target_code": "G6-MATH-TINH-CHAT-CO",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-PHAN-PHOI-NHAN",
+      "target_code": "G7-MATH-NHAN-DON-THUC",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-PHAN-PHOI-NHAN",
+      "target_code": "G8-MATH-NHAN-DON-THUC",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-PHAN-PHOI-NHAN",
+      "target_code": "G8-MATH-PHAN-TICH-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-PHAN-SO-NGHICH",
+      "target_code": "G6-MATH-CHIA-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-QUY-DONG-MAU",
+      "target_code": "G6-MAMATMATHMAT",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-QUY-DONG-MAU",
+      "target_code": "G6-MATH-CONG-HAI-PHAN-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-THUC-HIEN-PHEP",
+      "target_code": "G6-MATH-TINH-CHAT-CO",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-TINH-CHAT-CO",
+      "target_code": "G6-MATH-QUY-DONG-MAU",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-TINH-CHAT-CO",
+      "target_code": "G8-MATH-QUY-DONG-MAU",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-TINH-CHAT-CO",
+      "target_code": "G8-MATH-RUT-GON-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-TRU-HAI-PHAN",
+      "target_code": "G6-MAMATMATHMAT",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G6-MATH-TU-CHO-SO",
+      "target_code": "G6-MATH-TRU-HAI-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-KHAI-NIEM-DANG",
+      "target_code": "G7-MATH-QUY-TAC-CHUYEN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-BIET-BIEU",
+      "target_code": "G7-MATH-TINH-GIA-TRI-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-BIET-BIEU",
+      "target_code": "G8-MATH-NHAN-BIET-DON",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-BIET-BIEU",
+      "target_code": "G8-MATH-NHAN-BIET-PHUONG",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-BIET-DA",
+      "target_code": "G7-MATH-NHAN-DON-THUC",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-BIET-DA",
+      "target_code": "G7-MATH-THU-GON-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-BIET-DON",
+      "target_code": "G7-MATH-CHIA-HAI-DON",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-BIET-DON",
+      "target_code": "G7-MATH-NHAN-BIET-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-BIET-DON",
+      "target_code": "G7-MATH-NHAN-DON-THUC",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-BIET-DON",
+      "target_code": "G7-MATH-SAP-XEP-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-NHAN-DON-THUC",
+      "target_code": "G7-MATH-NHAN-DA-THUC",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-QUY-TAC-CHUYEN",
+      "target_code": "G8-MATH-GIAI-PHUONG-TRINH",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-TINH-GIA-TRI-1",
+      "target_code": "G8-MATH-KIEM-TRA-GIA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-TINH-GIA-TRI-1",
+      "target_code": "G8-MATH-TINH-HOAC-XAC",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G7-MATH-VIET-BIEU-THUC",
+      "target_code": "G7-MATH-NHAN-BIET-BIEU",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-BIEU-DIEN-DIEM",
+      "target_code": "G8-MATH-BIEU-DIEN-DO",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-BIEU-DIEN-DIEM",
+      "target_code": "G8-MATH-VE-DO-THI",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-CAC",
+      "target_code": "G8-MATH-THU-GON-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-DA",
+      "target_code": "G8-MATH-NHAN-BIET-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-DA",
+      "target_code": "G8-MATH-NHAN-DON-THUC",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-DA",
+      "target_code": "G8-MATH-PHAN-TICH-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-DA",
+      "target_code": "G8-MATH-THU-GON-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-DON",
+      "target_code": "G8-MATH-NHAN-BIET-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-HAM",
+      "target_code": "G8-MATH-NHAN-BIET-HUONG",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-HAM",
+      "target_code": "G8-MATH-VE-DO-THI",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-HAM",
+      "target_code": "G8-MATH-XAC-DINH-QUAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-PHAN",
+      "target_code": "G8-MATH-KIEM-TRA-HAI",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-PHAN",
+      "target_code": "G8-MATH-RUT-GON-PHAN",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-PHAN",
+      "target_code": "G8-MATH-TINH-GIA-TRI",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-PHAN",
+      "target_code": "G8-MATH-XAC-DINH-DIEU",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-PHAN",
+      "target_code": "G8-MATH-XAC-DINH-MAU",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-PHUONG",
+      "target_code": "G8-MATH-KIEM-TRA-GIA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-NHAN-BIET-PHUONG",
+      "target_code": "G8-MATH-NHAN-BIET-PHUONG-1",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-THU-GON-DA",
+      "target_code": "G8-MATH-CONG-HAI-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-THU-GON-DA",
+      "target_code": "G8-MATH-TRU-HAI-DA",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-TINH-HOAC-XAC",
+      "target_code": "G8-MATH-VE-DO-THI",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    },
+    {
+      "source_code": "G8-MATH-XAC-DINH-MAU",
+      "target_code": "G8-MATH-QUY-DONG-MAU",
+      "weight": 1.0,
+      "edge_type": "prerequisite"
+    }
+  ]
+}

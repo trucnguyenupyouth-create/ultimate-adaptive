@@ -120,7 +120,7 @@ export function FractionWidget({
         placeholder="?" style={iStyle(!!den)}
       />
       {den === "0" && (
-        <p style={{ fontSize: "0.7rem", color: B.orange, marginTop: 2, fontFamily: NUNITO }}>Denominator must not be 0</p>
+        <p style={{ fontSize: "0.7rem", color: B.orange, marginTop: 2, fontFamily: NUNITO }}>Mẫu số không được bằng 0</p>
       )}
     </div>
   );
@@ -299,10 +299,202 @@ export function CoordinateWidget({
 }
 export function serializeCoordinate(s: CoordinateWidgetState) { return `(${s.x},${s.y})`; }
 
+// ─── W8: Two-Point Widget ─────────────────────────────────────────────────────
+// Structured input for ordered_pair_list when exactly 2 points are needed.
+// Shows: Điểm 1: ( x₁ , y₁ )   Điểm 2: ( x₂ , y₂ )
+export interface TwoPointWidgetState { x1: string; y1: string; x2: string; y2: string }
+
+const COORD_INPUT: React.CSSProperties = {
+  width: 52,
+  border: "none",
+  borderBottom: "2.5px solid #3d72f8",
+  outline: "none",
+  textAlign: "center",
+  fontSize: "1.3rem",
+  fontWeight: 700,
+  padding: "4px 2px",
+  background: "transparent",
+  fontFamily: "ui-monospace, monospace",
+};
+const COORD_PAREN: React.CSSProperties = {
+  fontSize: "1.9rem",
+  color: "#64748b",
+  fontWeight: 400,
+  lineHeight: 1,
+};
+const COORD_COMMA: React.CSSProperties = {
+  fontSize: "1.3rem",
+  color: "#334155",
+  fontWeight: 700,
+  padding: "0 2px",
+};
+
+export function TwoPointWidget({
+  state, onChange, onSubmit, disabled,
+}: {
+  state: TwoPointWidgetState;
+  onChange: (s: TwoPointWidgetState) => void;
+  onSubmit?: () => void;
+  disabled?: boolean;
+}) {
+  const refs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+  ];
+  const fields: Array<keyof TwoPointWidgetState> = ["x1", "y1", "x2", "y2"];
+
+  const handleKey = (idx: number) => (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") { onSubmit?.(); return; }
+    if (e.key === "Tab" || e.key === "ArrowRight") {
+      e.preventDefault();
+      refs[(idx + 1) % 4].current?.focus();
+    }
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      refs[(idx + 3) % 4].current?.focus();
+    }
+  };
+
+  const PointInput = (label: string, xKey: keyof TwoPointWidgetState, yKey: keyof TwoPointWidgetState, xIdx: number, yIdx: number) => (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+      <span style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", letterSpacing: 0.5, textTransform: "uppercase" }}>{label}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <span style={COORD_PAREN}>(</span>
+        <input
+          ref={refs[xIdx]}
+          type="text"
+          inputMode="numeric"
+          value={state[xKey]}
+          onChange={(e) => onChange({ ...state, [xKey]: e.target.value.replace(/[^0-9.\-]/g, "") })}
+          onKeyDown={handleKey(xIdx)}
+          disabled={disabled}
+          placeholder="x"
+          autoFocus={xIdx === 0}
+          style={{ ...COORD_INPUT, borderBottomColor: state[xKey] ? "#3d72f8" : "#cbd5e1" }}
+          aria-label={`${label} tọa độ x`}
+        />
+        <span style={COORD_COMMA}>,</span>
+        <input
+          ref={refs[yIdx]}
+          type="text"
+          inputMode="numeric"
+          value={state[yKey]}
+          onChange={(e) => onChange({ ...state, [yKey]: e.target.value.replace(/[^0-9.\-]/g, "") })}
+          onKeyDown={handleKey(yIdx)}
+          disabled={disabled}
+          placeholder="y"
+          style={{ ...COORD_INPUT, borderBottomColor: state[yKey] ? "#3d72f8" : "#cbd5e1" }}
+          aria-label={`${label} tọa độ y`}
+        />
+        <span style={COORD_PAREN}>)</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 24 }}>
+        {PointInput("Điểm 1", "x1", "y1", 0, 1)}
+        <span style={{ fontSize: "1.4rem", color: "#cbd5e1", paddingBottom: 4 }}>·</span>
+        {PointInput("Điểm 2", "x2", "y2", 2, 3)}
+      </div>
+      <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Tab hoặc → để chuyển ô · Enter để nộp</p>
+    </div>
+  );
+}
+export function serializeTwoPoint(s: TwoPointWidgetState) {
+  return `(${s.x1},${s.y1});(${s.x2},${s.y2})`;
+}
+export function isTwoPointReady(s: TwoPointWidgetState) {
+  return s.x1.trim() !== "" && s.y1.trim() !== "" && s.x2.trim() !== "" && s.y2.trim() !== "";
+}
+
+// ─── W9: Set Widget ───────────────────────────────────────────────────────────
+// For set_equal checker: { -2; 3 }
+export interface SetWidgetState { val: string }
+export function SetWidget({
+  val, onChange, onSubmit, disabled, placeholder = "-2; 3",
+}: {
+  val: string; onChange: (v: string) => void; onSubmit?: () => void;
+  disabled?: boolean; placeholder?: string;
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <span style={{ fontSize: "1.8rem", fontFamily: "serif", fontWeight: 700, color: "#64748b" }}>{`{`}</span>
+      <input
+        type="text"
+        value={val}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") onSubmit?.(); }}
+        disabled={disabled}
+        placeholder={placeholder}
+        autoFocus
+        style={{
+          minWidth: 140,
+          border: "none",
+          borderBottom: `3px solid ${val ? "#3d72f8" : "#E5E7EB"}`,
+          outline: "none",
+          textAlign: "center",
+          fontSize: "1.4rem",
+          fontFamily: "ui-monospace, monospace",
+          fontWeight: 700,
+          padding: "4px 4px",
+          background: "transparent",
+          color: val ? "#111827" : "#CCCCCC",
+        }}
+      />
+      <span style={{ fontSize: "1.8rem", fontFamily: "serif", fontWeight: 700, color: "#64748b" }}>{`}`}</span>
+    </div>
+  );
+}
+export function serializeSet(s: SetWidgetState) { return `{${s.val}}`; }
+
+// ─── W10: Ordered Pair List Widget ────────────────────────────────────────────
+// For ordered_pair_list_equal: (0,-4); (2,0)
+export interface OrderedPairListWidgetState { val: string }
+export function OrderedPairListWidget({
+  val, onChange, onSubmit, disabled,
+}: {
+  val: string; onChange: (v: string) => void; onSubmit?: () => void; disabled?: boolean;
+}) {
+  return (
+    <div style={{ display: "grid", gap: 10, justifyItems: "center" }}>
+      <input
+        type="text"
+        value={val}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") onSubmit?.(); }}
+        disabled={disabled}
+        placeholder="(0, -4); (2, 0)"
+        autoFocus
+        style={{
+          width: "min(420px, 100%)",
+          border: "none",
+          borderBottom: `3px solid ${val ? "#3d72f8" : "#E5E7EB"}`,
+          outline: "none",
+          textAlign: "center",
+          fontSize: "1.4rem",
+          fontFamily: "ui-monospace, monospace",
+          fontWeight: 700,
+          padding: "6px 8px",
+          background: "transparent",
+          color: val ? "#111827" : "#CCCCCC",
+        }}
+      />
+      <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", fontFamily: "sans-serif" }}>
+        Nhập từng điểm dạng <strong>(x, y)</strong>, cách nhau bằng dấu chấm phẩy
+      </p>
+    </div>
+  );
+}
+export function serializeOrderedPairList(s: OrderedPairListWidgetState) { return s.val; }
+
 // ─── Unified MathAnswerWidget ─────────────────────────────────────────────────
 // Dispatches to correct widget based on `widgetType` from API
 
-export type WidgetType = "number" | "integer" | "decimal" | "fraction" | "mixed_number" | "power" | "sqrt" | "inequality_sign" | "coordinate" | "mcq" | "raw";
+export type WidgetType = "number" | "integer" | "decimal" | "fraction" | "mixed_number" | "power" | "sqrt" | "inequality_sign" | "coordinate" | "mcq" | "raw" | "set" | "ordered_pair_list";
 
 interface MathAnswerWidgetProps {
   widgetType: WidgetType;
@@ -447,12 +639,12 @@ function CoordWidgetSC() {
 }
 
 const SHOWCASE_WIDGETS = [
-  { id: "fraction",   label: "Fraction",        context: "Simplify: 6/8 = ?",        Component: FractionWidgetSC },
-  { id: "mixed",      label: "Mixed number",    context: "Write as a mixed number: 7/3 = ?", Component: MixedWidgetSC },
-  { id: "power",      label: "Power",           context: "Fill the exponent: 2^n = 8", Component: PowerWidgetSC },
-  { id: "sqrt",       label: "Square root",     context: "Calculate: sqrt(?) = 4",   Component: SqrtWidgetSC },
-  { id: "inequality", label: "Comparison sign", context: "Compare 3/4 and 0.8:",     Component: IneqWidgetSC },
-  { id: "coordinate", label: "Coordinate",      context: "Point A has coordinates:", Component: CoordWidgetSC },
+  { id: "fraction",   label: "Phân số",        context: "Rút gọn: 6/8 = ?",        Component: FractionWidgetSC },
+  { id: "mixed",      label: "Hỗn số",    context: "Viết dưới dạng hỗn số: 7/3 = ?", Component: MixedWidgetSC },
+  { id: "power",      label: "Lũy thừa",           context: "Điền số mũ: 2^n = 8", Component: PowerWidgetSC },
+  { id: "sqrt",       label: "Căn bậc hai",     context: "Tính: căn(?) = 4",   Component: SqrtWidgetSC },
+  { id: "inequality", label: "Dấu so sánh", context: "So sánh 3/4 và 0,8:",     Component: IneqWidgetSC },
+  { id: "coordinate", label: "Tọa độ",      context: "Điểm A có tọa độ:", Component: CoordWidgetSC },
 ];
 
 export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
@@ -494,8 +686,8 @@ export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: `1px solid ${B.grayBorder}` }}>
           <div>
-            <p style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: B.blue, margin: "0 0 2px" }}>Math Input System</p>
-            <h3 style={{ fontFamily: NUNITO, fontSize: 20, fontWeight: 800, color: B.text, margin: 0 }}>Math input widgets</h3>
+            <p style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: B.blue, margin: "0 0 2px" }}>Bộ nhập toán học</p>
+            <h3 style={{ fontFamily: NUNITO, fontSize: 20, fontWeight: 800, color: B.text, margin: 0 }}>Ô nhập đáp án</h3>
           </div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "none", backgroundColor: B.gray, cursor: "pointer", transition: "opacity 0.2s" }} className="hover:opacity-70">
             <X size={16} style={{ color: B.textMuted }} />
@@ -505,7 +697,7 @@ export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
         {/* Tagline banner */}
         <div style={{ padding: "14px 24px", backgroundColor: B.blueLight }}>
           <p style={{ fontFamily: INTER, fontSize: 14, lineHeight: 1.5, color: B.textMid, margin: 0 }}>
-            Students enter math the way they write it on paper. Each expression type has its own keyboard-friendly and touch-friendly widget.
+            Học sinh nhập toán gần giống cách viết trên giấy. Mỗi dạng đáp án có ô nhập riêng để giảm lỗi gõ nhầm.
           </p>
         </div>
 
@@ -529,7 +721,7 @@ export function MathWidgetShowcase({ onClose }: { onClose: () => void }) {
         {/* Footer */}
         <div style={{ padding: "0 24px 20px", textAlign: "center" }}>
           <p style={{ fontFamily: INTER, fontSize: 11, color: B.textLight, margin: 0 }}>
-            Tab · Shift+Tab · ↑↓ to navigate · Enter to submit · numeric keyboard on mobile
+            Tab · Shift+Tab · ↑↓ để chuyển ô · Enter để nộp · bàn phím số trên điện thoại
           </p>
         </div>
       </motion.div>

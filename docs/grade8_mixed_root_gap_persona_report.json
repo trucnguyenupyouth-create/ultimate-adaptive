@@ -1,0 +1,828 @@
+{
+  "persona": {
+    "mastered_codes": [
+      "G6-MATH-B31K2",
+      "G6-MATH-CONG-HAI-SO",
+      "G6-MATH-CONG-HAI-SO-1",
+      "G6-MATH-NHAN-BIET-DOC",
+      "G6-MATH-NHAN-BIET-SO-1",
+      "G6-MATH-NHAN-HAI-SO-1",
+      "G7-MATH-NHAN-BIET-BIEU",
+      "G7-MATH-VIET-BIEU-THUC",
+      "G8-MATH-NHAN-BIET-HAM",
+      "G8-MATH-TINH-GIA-TRI",
+      "G8-MATH-TINH-HOAC-XAC"
+    ],
+    "partial_codes": [
+      "G6-MATH-BO-DAU-NGOAC",
+      "G6-MATH-NHAN-HAI-SO",
+      "G6-MATH-PHAN-PHOI-NHAN",
+      "G6-MATH-THUC-HIEN-PHEP",
+      "G6-MATH-TIM-GIA-TRI-1",
+      "G6-MATH-TU-CHO-SO",
+      "G7-MATH-KHAI-NIEM-DANG",
+      "G7-MATH-TINH-GIA-TRI-1",
+      "G8-MATH-BIEU-DIEN-DIEM",
+      "G8-MATH-NHAN-BIET-PHUONG"
+    ],
+    "gap_rule": "all other scope codes"
+  },
+  "summary": {
+    "questions": 35,
+    "correct": 10,
+    "wrong_attempts": 13,
+    "unknown_responses": 12,
+    "duplicate_item_count": 0,
+    "duplicate_surface_count": 0
+  },
+  "metrics": {
+    "truth_counts": {
+      "mastered": 11,
+      "partial": 10,
+      "gap": 54
+    },
+    "label_counts": {
+      "inferred_gap": 47,
+      "tested_gap": 14,
+      "inferred_mastered": 7,
+      "tested_mastered": 4,
+      "unknown": 3
+    },
+    "band_counts": {
+      "strong_gap": 60,
+      "strong_mastered": 11,
+      "likely_gap": 4
+    },
+    "tested_kcs": 21,
+    "foundation_tested_kcs": 20,
+    "confirmed_tested_kcs": 14,
+    "direct_gap_metrics_against_true_gap": {
+      "tp": 11,
+      "fp": 3,
+      "fn": 43,
+      "precision": 0.7857,
+      "recall": 0.2037
+    },
+    "all_gap_metrics_against_true_gap": {
+      "tp": 52,
+      "fp": 9,
+      "fn": 2,
+      "precision": 0.8525,
+      "recall": 0.963
+    },
+    "direct_mastery_metrics_against_true_mastered": {
+      "tp": 3,
+      "fp": 1,
+      "fn": 8,
+      "precision": 0.75,
+      "recall": 0.2727
+    },
+    "all_mastery_metrics_against_true_mastered": {
+      "tp": 5,
+      "fp": 6,
+      "fn": 6,
+      "precision": 0.4545,
+      "recall": 0.4545
+    },
+    "partial_marked_gap": 5,
+    "partial_marked_mastered": 5
+  },
+  "steps": [
+    {
+      "step": 1,
+      "item_id": "g8-path-146",
+      "kc_id": "c81a9b5f-d9ea-4b2b-b477-d526c9fc7a47",
+      "kc_code": "G8-MATH-NHAN-BIET-PHAN",
+      "kc": "G8-MATH-NHAN-BIET-PHAN — Nhận biết phân thức đại số, xác định tử thức, mẫu thức",
+      "truth": "gap",
+      "family": "identify_rational_expression_part",
+      "role": "anchor",
+      "question": "Trong phân thức (2x - 1)/(x + 3), mẫu thức là gì?",
+      "accepted_answers": [
+        "x+3"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "state_space_eig",
+      "deep_dive_reason": null,
+      "expected_gain": 10.1947,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 2,
+      "item_id": "g8-path-056",
+      "kc_id": "f5219cd2-5f4c-430a-91be-5032f49542a1",
+      "kc_code": "G7-MATH-NHAN-BIET-BIEU",
+      "kc": "G7-MATH-NHAN-BIET-BIEU — Nhận biết biểu thức đại số",
+      "truth": "mastered",
+      "family": "identify_variable_in_algebraic_expression",
+      "role": "prerequisite_probe",
+      "question": "Trong biểu thức 3x + 5, biến là gì? Nếu có nhiều biến, viết theo thứ tự xuất hiện và ngăn cách bằng dấu chấm phẩy.",
+      "accepted_answers": [
+        "x"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "x",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "unknown_on:g8-path-146; follow_up:near prerequisite probe after unresolved miss; role:prerequisite_probe",
+      "expected_gain": 7.3633,
+      "p_mastery_after": 0.9624
+    },
+    {
+      "step": 3,
+      "item_id": "g8-path-125",
+      "kc_id": "959461db-e6ce-44b6-8c5f-25c65ac467e8",
+      "kc_code": "G6-MATH-TINH-CHAT-CO",
+      "kc": "G6-MATH-TINH-CHAT-CO — Áp dụng tính chất cơ bản của phân số bằng cách nhân hoặc chia cả tử và mẫu với cùng một số nguyên khác 0",
+      "truth": "gap",
+      "family": "equivalent_fraction_missing_part",
+      "role": "prerequisite_probe",
+      "question": "Điền mẫu số còn thiếu: 3/5 = 12/____.",
+      "accepted_answers": [
+        "20"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "wrong",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:uncertain; foundation_ratio:0.50",
+      "expected_gain": 5.8812,
+      "p_mastery_after": 0.0506
+    },
+    {
+      "step": 4,
+      "item_id": "g8-path-122",
+      "kc_id": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+      "kc_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "kc": "G6-MATH-NHAN-BIET-PHAN-1 — Nhận biết phân số có tử và mẫu là số nguyên, mẫu khác 0",
+      "truth": "gap",
+      "family": "recognize_valid_fraction_parts",
+      "role": "prerequisite_probe",
+      "question": "Trong phân số -7/9, tử số là bao nhiêu?",
+      "accepted_answers": [
+        "-7"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "wrong_on:g8-path-125; follow_up:near prerequisite probe after unresolved miss; role:prerequisite_probe",
+      "expected_gain": 4.2683,
+      "p_mastery_after": 0.1475
+    },
+    {
+      "step": 5,
+      "item_id": "g8-path-188",
+      "kc_id": "66e748f8-6756-4f7a-8232-b6a4b7d7661f",
+      "kc_code": "G6-MATH-NHAN-BIET-DOC",
+      "kc": "G6-MATH-NHAN-BIET-DOC — Nhận biết, đọc và viết số nguyên âm",
+      "truth": "mastered",
+      "family": "write_negative_integer_context",
+      "role": "prerequisite_probe",
+      "question": "Viết số nguyên biểu diễn nhiệt độ 5 độ dưới 0.",
+      "accepted_answers": [
+        "-5"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "-5",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "unknown_on:g8-path-122; follow_up:near prerequisite probe after unresolved miss; role:prerequisite_probe",
+      "expected_gain": 1.8935,
+      "p_mastery_after": 0.98
+    },
+    {
+      "step": 6,
+      "item_id": "g8-path-143",
+      "kc_id": "da118684-1954-4b4a-ae1e-4a51f3317430",
+      "kc_code": "G6-MATH-BO-DAU-NGOAC-1",
+      "kc": "G6-MATH-BO-DAU-NGOAC-1 — Bỏ dấu ngoặc có dấu - đằng trước",
+      "truth": "gap",
+      "family": "remove_parentheses_minus_before",
+      "role": "prerequisite_probe",
+      "question": "Bỏ ngoặc và thu gọn: x - (3 - y).",
+      "accepted_answers": [
+        "x-3+y"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:likely_gap; foundation_ratio:0.80",
+      "expected_gain": 2.8033,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 7,
+      "item_id": "g8-path-190",
+      "kc_id": "b2dfdb0c-b3ef-47d6-bb61-a76999c50cef",
+      "kc_code": "G6-MATH-NHAN-BIET-SO-1",
+      "kc": "G6-MATH-NHAN-BIET-SO-1 — Xác định số đối của một số nguyên",
+      "truth": "mastered",
+      "family": "opposite_negative_integer",
+      "role": "prerequisite_probe",
+      "question": "Số đối của -7 là bao nhiêu?",
+      "accepted_answers": [
+        "7"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "7",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "unknown_on:g8-path-143; follow_up:near prerequisite probe after unresolved miss; role:prerequisite_probe",
+      "expected_gain": 2.1143,
+      "p_mastery_after": 0.9369
+    },
+    {
+      "step": 8,
+      "item_id": "g8-path-202",
+      "kc_id": "ba99a753-23ae-43b9-9355-3010ffeb014a",
+      "kc_code": "G6-MATH-THUC-HIEN-PHEP",
+      "kc": "G6-MATH-THUC-HIEN-PHEP — Thực hiện phép chia hết hai số nguyên - xác định đúng dấu của thương",
+      "truth": "partial",
+      "family": "divide_negative_by_positive_integer",
+      "role": "prerequisite_probe",
+      "question": "Tính (-24) : 6.",
+      "accepted_answers": [
+        "-4"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "-4",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:likely_gap; foundation_ratio:0.86",
+      "expected_gain": 1.8612,
+      "p_mastery_after": 0.8958
+    },
+    {
+      "step": 9,
+      "item_id": "g8-path-123",
+      "kc_id": "b68ce985-f530-48eb-9151-e880cf5a61fb",
+      "kc_code": "G6-MATH-NHAN-BIET-PHAN-1",
+      "kc": "G6-MATH-NHAN-BIET-PHAN-1 — Nhận biết phân số có tử và mẫu là số nguyên, mẫu khác 0",
+      "truth": "gap",
+      "family": "recognize_valid_fraction_parts",
+      "role": "prerequisite_probe",
+      "question": "Trong phân số 0/8, mẫu số là bao nhiêu?",
+      "accepted_answers": [
+        "8"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "wrong",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:1; band:strong_gap; foundation_ratio:0.88",
+      "expected_gain": 2.8894,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 10,
+      "item_id": "g8-path-144",
+      "kc_id": "da118684-1954-4b4a-ae1e-4a51f3317430",
+      "kc_code": "G6-MATH-BO-DAU-NGOAC-1",
+      "kc": "G6-MATH-BO-DAU-NGOAC-1 — Bỏ dấu ngoặc có dấu - đằng trước",
+      "truth": "gap",
+      "family": "remove_parentheses_minus_before",
+      "role": "prerequisite_probe",
+      "question": "Bỏ ngoặc và thu gọn: 5 - (a + 2).",
+      "accepted_answers": [
+        "3-a"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "3-a",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:1; band:strong_gap; foundation_ratio:0.88",
+      "expected_gain": 1.3854,
+      "p_mastery_after": 0.3194
+    },
+    {
+      "step": 11,
+      "item_id": "g8-path-204",
+      "kc_id": "1cd105ba-e188-40c5-badb-89b4a475df52",
+      "kc_code": "G6-MATH-BO-NGOAC-LONG",
+      "kc": "G6-MATH-BO-NGOAC-LONG — Bỏ ngoặc lồng nhau ",
+      "truth": "gap",
+      "family": "remove_nested_parentheses_minus_inside",
+      "role": "prerequisite_probe",
+      "question": "Bỏ ngoặc: a - (b - (c + 2)).",
+      "accepted_answers": [
+        "a-b+c+2"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:uncertain; foundation_ratio:0.88",
+      "expected_gain": 4.6811,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 12,
+      "item_id": "g8-path-036",
+      "kc_id": "7c147ca4-23b5-4563-be98-cd0b07af6f6e",
+      "kc_code": "G6-MATH-BO-DAU-NGOAC",
+      "kc": "G6-MATH-BO-DAU-NGOAC — Bỏ dấu ngoặc có dấu + đằng trước ",
+      "truth": "partial",
+      "family": "expand_coefficient_parentheses",
+      "role": "misconception",
+      "question": "Khai triển biểu thức 3(x - 2).",
+      "accepted_answers": [
+        "3*x-6"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "unknown_on:g8-path-204; follow_up:near prerequisite probe after unresolved miss; role:misconception",
+      "expected_gain": 2.0228,
+      "p_mastery_after": 0.2792
+    },
+    {
+      "step": 13,
+      "item_id": "g8-path-180",
+      "kc_id": "1e15deb5-5b47-4a71-a5c3-a58858f93fd8",
+      "kc_code": "G6-MATH-PHAN-SO-NGHICH",
+      "kc": "G6-MATH-PHAN-SO-NGHICH — Phân số nghịch đảo ",
+      "truth": "gap",
+      "family": "reciprocal_positive_fraction",
+      "role": "prerequisite_probe",
+      "question": "Phân số nghịch đảo của 3/5 là gì?",
+      "accepted_answers": [
+        "5/3"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:strong_gap; foundation_ratio:0.90",
+      "expected_gain": 1.4271,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 14,
+      "item_id": "g8-path-181",
+      "kc_id": "1e15deb5-5b47-4a71-a5c3-a58858f93fd8",
+      "kc_code": "G6-MATH-PHAN-SO-NGHICH",
+      "kc": "G6-MATH-PHAN-SO-NGHICH — Phân số nghịch đảo ",
+      "truth": "gap",
+      "family": "reciprocal_negative_fraction",
+      "role": "prerequisite_probe",
+      "question": "Viết nghịch đảo của phân số -2/7.",
+      "accepted_answers": [
+        "-7/2"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "unknown_on:g8-path-180; follow_up:same KC confirmation because one miss left the node unresolved; role:prerequisite_probe",
+      "expected_gain": 0.0027,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 15,
+      "item_id": "g8-path-182",
+      "kc_id": "eecf4177-b5c2-48ea-ac8f-2f11c40c9956",
+      "kc_code": "G6-MATH-SO-DOI-CUA",
+      "kc": "G6-MATH-SO-DOI-CUA — Xác định số đối của phân số",
+      "truth": "gap",
+      "family": "opposite_positive_fraction",
+      "role": "prerequisite_probe",
+      "question": "Số đối của 3/5 là gì?",
+      "accepted_answers": [
+        "-3/5"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:strong_gap; foundation_ratio:0.91",
+      "expected_gain": 1.6373,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 16,
+      "item_id": "g8-path-183",
+      "kc_id": "eecf4177-b5c2-48ea-ac8f-2f11c40c9956",
+      "kc_code": "G6-MATH-SO-DOI-CUA",
+      "kc": "G6-MATH-SO-DOI-CUA — Xác định số đối của phân số",
+      "truth": "gap",
+      "family": "opposite_negative_fraction",
+      "role": "prerequisite_probe",
+      "question": "Điền số đối của -7/9.",
+      "accepted_answers": [
+        "7/9"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "-9/7",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "unknown_on:g8-path-182; follow_up:same KC confirmation because one miss left the node unresolved; role:prerequisite_probe",
+      "expected_gain": 0.0145,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 17,
+      "item_id": "g8-path-205",
+      "kc_id": "1cd105ba-e188-40c5-badb-89b4a475df52",
+      "kc_code": "G6-MATH-BO-NGOAC-LONG",
+      "kc": "G6-MATH-BO-NGOAC-LONG — Bỏ ngoặc lồng nhau ",
+      "truth": "gap",
+      "family": "simplify_nested_parentheses_expression",
+      "role": "prerequisite_probe",
+      "question": "Rút gọn biểu thức x + (y - (z - 3)).",
+      "accepted_answers": [
+        "x+y-z+3"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:1; band:strong_gap; foundation_ratio:0.92",
+      "expected_gain": 0.0137,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 18,
+      "item_id": "g8-path-210",
+      "kc_id": "a75e022e-e78b-4020-a20b-45f3b0d995dd",
+      "kc_code": "G6-MATH-AP-DUNG-DUNG-1",
+      "kc": "G6-MATH-AP-DUNG-DUNG-1 — Áp dụng đúng thứ tự phép tính CÓ ngoặc (bao gồm ngoặc lồng nhiều cấp) Thứ tự ngoặc: {} → [] → ()",
+      "truth": "gap",
+      "family": "order_operations_parentheses_first",
+      "role": "prerequisite_probe",
+      "question": "Tính 2 × (3 + 4).",
+      "accepted_answers": [
+        "14"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_deep_dive",
+      "deep_dive_reason": "unknown_on:g8-path-205; probe:graph ancestor prerequisite; role:prerequisite_probe",
+      "expected_gain": 0.22,
+      "p_mastery_after": 0.4872
+    },
+    {
+      "step": 19,
+      "item_id": "g8-path-211",
+      "kc_id": "a75e022e-e78b-4020-a20b-45f3b0d995dd",
+      "kc_code": "G6-MATH-AP-DUNG-DUNG-1",
+      "kc": "G6-MATH-AP-DUNG-DUNG-1 — Áp dụng đúng thứ tự phép tính CÓ ngoặc (bao gồm ngoặc lồng nhiều cấp) Thứ tự ngoặc: {} → [] → ()",
+      "truth": "gap",
+      "family": "parentheses_then_multiply",
+      "role": "prerequisite_probe",
+      "question": "Hoàn thành: (12 - 5) × 3 = ____.",
+      "accepted_answers": [
+        "21"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "-3",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "unknown_on:g8-path-210; follow_up:same KC confirmation because one miss left the node unresolved; role:prerequisite_probe",
+      "expected_gain": 7.0569,
+      "p_mastery_after": 0.0734
+    },
+    {
+      "step": 20,
+      "item_id": "g8-path-208",
+      "kc_id": "9c934457-4e43-4486-91da-61636059295c",
+      "kc_code": "G6-MATH-AP-DUNG-DUNG",
+      "kc": "G6-MATH-AP-DUNG-DUNG — Áp dụng đúng thứ tự phép tính KHÔNG có ngoặc Thứ tự: lũy thừa → nhân chia → cộng trừ (trái sang phải khi cùng cấp)",
+      "truth": "gap",
+      "family": "order_operations_no_parentheses",
+      "role": "prerequisite_probe",
+      "question": "Tính 3 + 4 × 2.",
+      "accepted_answers": [
+        "11"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "14",
+      "selector_policy": "grade8_deep_dive",
+      "deep_dive_reason": "wrong_on:g8-path-211; probe:required prerequisite; role:prerequisite_probe",
+      "expected_gain": 6.4732,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 21,
+      "item_id": "g8-path-209",
+      "kc_id": "9c934457-4e43-4486-91da-61636059295c",
+      "kc_code": "G6-MATH-AP-DUNG-DUNG",
+      "kc": "G6-MATH-AP-DUNG-DUNG — Áp dụng đúng thứ tự phép tính KHÔNG có ngoặc Thứ tự: lũy thừa → nhân chia → cộng trừ (trái sang phải khi cùng cấp)",
+      "truth": "gap",
+      "family": "division_before_addition",
+      "role": "prerequisite_probe",
+      "question": "Theo đúng thứ tự phép tính, 18 : 3 + 5 bằng bao nhiêu?",
+      "accepted_answers": [
+        "11"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "6",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "wrong_on:g8-path-208; follow_up:same KC confirmation because one miss left the node unresolved; role:prerequisite_probe",
+      "expected_gain": 0.8542,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 22,
+      "item_id": "g8-path-126",
+      "kc_id": "959461db-e6ce-44b6-8c5f-25c65ac467e8",
+      "kc_code": "G6-MATH-TINH-CHAT-CO",
+      "kc": "G6-MATH-TINH-CHAT-CO — Áp dụng tính chất cơ bản của phân số bằng cách nhân hoặc chia cả tử và mẫu với cùng một số nguyên khác 0",
+      "truth": "gap",
+      "family": "equivalent_fraction_missing_part",
+      "role": "prerequisite_probe",
+      "question": "Điền tử số còn thiếu: -2/7 = ____/21.",
+      "accepted_answers": [
+        "-6"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "wrong",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:1; band:strong_gap; foundation_ratio:0.93",
+      "expected_gain": 0.0,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 23,
+      "item_id": "g8-path-170",
+      "kc_id": "e25d070b-5e93-4b51-8954-c6084f4f39d4",
+      "kc_code": "G6-MATH-RUT-GON-VE",
+      "kc": "G6-MATH-RUT-GON-VE — Rút gọn về phân số tối giản",
+      "truth": "gap",
+      "family": "simplify_fraction_by_gcd",
+      "role": "prerequisite_probe",
+      "question": "Rút gọn phân số 12/18 về tối giản.",
+      "accepted_answers": [
+        "2/3"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "6/9",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:strong_gap; foundation_ratio:0.93",
+      "expected_gain": 0.2576,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 24,
+      "item_id": "g8-path-171",
+      "kc_id": "e25d070b-5e93-4b51-8954-c6084f4f39d4",
+      "kc_code": "G6-MATH-RUT-GON-VE",
+      "kc": "G6-MATH-RUT-GON-VE — Rút gọn về phân số tối giản",
+      "truth": "gap",
+      "family": "reduce_negative_fraction",
+      "role": "prerequisite_probe",
+      "question": "Viết phân số -15/20 ở dạng tối giản.",
+      "accepted_answers": [
+        "-3/4"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "3/4",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "wrong_on:g8-path-170; follow_up:same KC confirmation because one miss left the node unresolved; role:prerequisite_probe",
+      "expected_gain": 0.0108,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 25,
+      "item_id": "g8-path-200",
+      "kc_id": "4138513c-6cc2-41fe-bed2-2b2d4641fc28",
+      "kc_code": "G6-MATH-NHAN-HAI-SO-1",
+      "kc": "G6-MATH-NHAN-HAI-SO-1 — Nhân hai số nguyên cùng dấu",
+      "truth": "mastered",
+      "family": "multiply_two_negative_integers",
+      "role": "prerequisite_probe",
+      "question": "Tính (-6) × (-4).",
+      "accepted_answers": [
+        "24"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "24",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:strong_gap; foundation_ratio:0.93",
+      "expected_gain": 0.0038,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 26,
+      "item_id": "g8-path-201",
+      "kc_id": "4138513c-6cc2-41fe-bed2-2b2d4641fc28",
+      "kc_code": "G6-MATH-NHAN-HAI-SO-1",
+      "kc": "G6-MATH-NHAN-HAI-SO-1 — Nhân hai số nguyên cùng dấu",
+      "truth": "mastered",
+      "family": "positive_product_same_sign",
+      "role": "prerequisite_probe",
+      "question": "Tích của 7 và 8 bằng bao nhiêu?",
+      "accepted_answers": [
+        "56"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "56",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:1; band:strong_gap; foundation_ratio:0.94",
+      "expected_gain": 0.1789,
+      "p_mastery_after": 0.3194
+    },
+    {
+      "step": 27,
+      "item_id": "g8-path-198",
+      "kc_id": "ab3650f9-b9db-458f-be79-83840d990c0a",
+      "kc_code": "G6-MATH-NHAN-HAI-SO",
+      "kc": "G6-MATH-NHAN-HAI-SO — Nhân hai số nguyên khác dấu ",
+      "truth": "partial",
+      "family": "multiply_opposite_sign_integers",
+      "role": "prerequisite_probe",
+      "question": "Tính (-6) × 4.",
+      "accepted_answers": [
+        "-24"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "-24",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:strong_gap; foundation_ratio:0.94",
+      "expected_gain": 4.1603,
+      "p_mastery_after": 0.6002
+    },
+    {
+      "step": 28,
+      "item_id": "g8-path-199",
+      "kc_id": "ab3650f9-b9db-458f-be79-83840d990c0a",
+      "kc_code": "G6-MATH-NHAN-HAI-SO",
+      "kc": "G6-MATH-NHAN-HAI-SO — Nhân hai số nguyên khác dấu ",
+      "truth": "partial",
+      "family": "product_positive_negative_integer",
+      "role": "prerequisite_probe",
+      "question": "Hoàn thành tích: 5 × (-9) = ____.",
+      "accepted_answers": [
+        "-45"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "45",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:1; band:uncertain; foundation_ratio:0.94",
+      "expected_gain": 11.7419,
+      "p_mastery_after": 0.1112
+    },
+    {
+      "step": 29,
+      "item_id": "g8-path-192",
+      "kc_id": "32caa11b-ee1d-4208-99dd-a8b393b45dd4",
+      "kc_code": "G6-MATH-CONG-HAI-SO",
+      "kc": "G6-MATH-CONG-HAI-SO — Cộng hai số nguyên âm",
+      "truth": "mastered",
+      "family": "add_two_negative_integers",
+      "role": "prerequisite_probe",
+      "question": "Tính (-7) + (-5).",
+      "accepted_answers": [
+        "-12"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "12",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:strong_gap; foundation_ratio:0.94",
+      "expected_gain": 6.3005,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 30,
+      "item_id": "g8-path-193",
+      "kc_id": "32caa11b-ee1d-4208-99dd-a8b393b45dd4",
+      "kc_code": "G6-MATH-CONG-HAI-SO",
+      "kc": "G6-MATH-CONG-HAI-SO — Cộng hai số nguyên âm",
+      "truth": "mastered",
+      "family": "context_two_decreases",
+      "role": "prerequisite_probe",
+      "question": "Một giá trị giảm 4 rồi giảm tiếp 6. Tổng thay đổi là bao nhiêu?",
+      "accepted_answers": [
+        "-10"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "-10",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "wrong_on:g8-path-192; follow_up:same KC confirmation because one miss left the node unresolved; role:prerequisite_probe",
+      "expected_gain": 0.6765,
+      "p_mastery_after": 0.3194
+    },
+    {
+      "step": 31,
+      "item_id": "g8-path-076",
+      "kc_id": "5d32c8a0-841b-47ef-b75e-9cc64f527aaa",
+      "kc_code": "G6-MATH-B31K2",
+      "kc": "G6-MATH-B31K2 — Tính tỉ số của hai số và viết dưới dạng tỉ số phần trăm",
+      "truth": "mastered",
+      "family": "percent_to_decimal",
+      "role": "anchor",
+      "question": "Viết 6% dưới dạng số thập phân.",
+      "accepted_answers": [
+        "3/50"
+      ],
+      "correct": true,
+      "response_type": "answer",
+      "answer": "3/50",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:6; direct_evidence:0; band:strong_gap; foundation_ratio:0.94",
+      "expected_gain": 0.0,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 32,
+      "item_id": "g8-path-214",
+      "kc_id": "c60a9bcb-e86c-4ca2-be0a-6b743ba729fb",
+      "kc_code": "G7-MATH-NHAN-BIET-DON",
+      "kc": "G7-MATH-NHAN-BIET-DON — Nhận biết đơn thức một biến - xác định hệ số và bậc",
+      "truth": "gap",
+      "family": "identify_monomial_coefficient",
+      "role": "prerequisite_probe",
+      "question": "Hệ số của đơn thức -7x^3 là bao nhiêu?",
+      "accepted_answers": [
+        "-7"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:7; direct_evidence:0; band:strong_gap; foundation_ratio:0.95",
+      "expected_gain": 9.3979,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 33,
+      "item_id": "g8-path-215",
+      "kc_id": "c60a9bcb-e86c-4ca2-be0a-6b743ba729fb",
+      "kc_code": "G7-MATH-NHAN-BIET-DON",
+      "kc": "G7-MATH-NHAN-BIET-DON — Nhận biết đơn thức một biến - xác định hệ số và bậc",
+      "truth": "gap",
+      "family": "monomial_degree_two_variables",
+      "role": "prerequisite_probe",
+      "question": "Bậc của đơn thức 4a^2b^3 là bao nhiêu?",
+      "accepted_answers": [
+        "5"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "6",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "unknown_on:g8-path-214; follow_up:same KC confirmation because one miss left the node unresolved; role:prerequisite_probe",
+      "expected_gain": 0.4447,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 34,
+      "item_id": "g8-path-220",
+      "kc_id": "7d3eca02-09a7-4867-9826-0f008c1bbdca",
+      "kc_code": "G7-MATH-CONG-HAI-DA",
+      "kc": "G7-MATH-CONG-HAI-DA — Cộng hai đa thức: bỏ ngoặc, nhóm hạng tử cùng bậc từ cả hai đa thức, thu gọn",
+      "truth": "gap",
+      "family": "add_two_polynomials_g7",
+      "role": "prerequisite_probe",
+      "question": "Cộng hai đa thức: (2x^2 + 3x) + (x^2 - 5x).",
+      "accepted_answers": [
+        "3*x^2-2*x"
+      ],
+      "correct": false,
+      "response_type": "unknown",
+      "answer": "I don't know",
+      "selector_policy": "grade8_root_cause",
+      "deep_dive_reason": "root_cause_priority; grade:7; direct_evidence:0; band:strong_gap; foundation_ratio:0.95",
+      "expected_gain": 0.2874,
+      "p_mastery_after": 0.02
+    },
+    {
+      "step": 35,
+      "item_id": "g8-path-221",
+      "kc_id": "7d3eca02-09a7-4867-9826-0f008c1bbdca",
+      "kc_code": "G7-MATH-CONG-HAI-DA",
+      "kc": "G7-MATH-CONG-HAI-DA — Cộng hai đa thức: bỏ ngoặc, nhóm hạng tử cùng bậc từ cả hai đa thức, thu gọn",
+      "truth": "gap",
+      "family": "sum_polynomial_with_constant_g7",
+      "role": "prerequisite_probe",
+      "question": "Tìm tổng của a^2 - 4 và 3a^2 + 1.",
+      "accepted_answers": [
+        "4*a^2-3"
+      ],
+      "correct": false,
+      "response_type": "answer",
+      "answer": "4*a^2+5",
+      "selector_policy": "grade8_unresolved_follow_up",
+      "deep_dive_reason": "unknown_on:g8-path-220; follow_up:same KC confirmation because one miss left the node unresolved; role:prerequisite_probe",
+      "expected_gain": 0.0027,
+      "p_mastery_after": 0.02
+    }
+  ],
+  "qualitative_judgment": "The run behaves like a root-cause diagnostic rather than a Grade 8 scan: it spends most of the budget on Grade 6-7 foundations after early misses, while still preserving a few mastered scattered skills. The main risk is that broad graph inference can over-label some partial skills as gaps when the persona is fragile but not completely missing the skill. Teacher-facing output should therefore separate direct tested gaps from inferred possibly affected nodes."
+}

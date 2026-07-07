@@ -21,6 +21,10 @@ export interface AssessmentV2Item {
   answer_type?: string;
   answer_widget?: string;
   checker_type?: string;
+  target_exam_path?: string;
+  item_role?: string;
+  item_family?: string;
+  surface_signature?: string;
   difficulty_label?: string;
   is_diagnostic_anchor?: boolean;
   progress_hint?: string;
@@ -30,6 +34,7 @@ export interface AssessmentV2SessionResponse {
   session_id: string;
   session_code: string;
   status: "in_progress" | "completed";
+  assessment_scope?: string;
   max_questions: number;
   question_number?: number;
   item?: AssessmentV2Item | null;
@@ -42,6 +47,7 @@ export interface AssessmentV2Result {
   session_id: string;
   session_code: string;
   status: "in_progress" | "completed";
+  assessment_scope?: string;
   max_questions: number;
   summary: AssessmentV2Summary;
   learning_loop?: AssessmentV2LearningLoop;
@@ -52,6 +58,47 @@ export interface AssessmentV2Result {
     frontier_history?: unknown[];
     state_transitions?: unknown[];
     evidence_by_kc?: Record<string, unknown[]>;
+    teacher_review?: {
+      selection_steps?: Array<{
+        step?: number;
+        item_id?: string;
+        kc_id?: string;
+        kc_code?: string;
+        kc_name?: string;
+        target_exam_path?: string;
+        item_role?: string;
+        item_family?: string;
+        correct?: boolean;
+        response_type?: string;
+        selection_reason?: string;
+        selector_policy?: string;
+        deep_dive_reason?: string;
+        expected_gain?: number;
+        gain_if_correct?: number;
+        gain_if_wrong?: number;
+        candidate_pool?: Record<string, unknown>;
+        skipped_candidates?: unknown[];
+      }>;
+      node_explanations?: Record<string, {
+        kc_id: string;
+        kc_code?: string;
+        kc_name?: string;
+        final_state?: string;
+        p_mastery?: number;
+        probability_band?: string;
+        direct_evidence_count?: number;
+        inferred_evidence_count?: number;
+        reason_text?: string;
+        direct_step?: number | null;
+      }>;
+      path_summaries?: Array<{
+        target_exam_path: string;
+        tested_nodes: string[];
+        likely_blockers: string[];
+        ready_to_learn: string[];
+        selection_steps: number;
+      }>;
+    };
   };
 }
 
@@ -59,6 +106,7 @@ export interface AssessmentV2SessionMeta {
   session_id: string;
   session_code: string;
   status: "in_progress" | "completed";
+  assessment_scope?: string;
   student_label?: string | null;
   max_questions: number;
   questions_asked: number;
@@ -144,12 +192,14 @@ export interface AssessmentV2MasteryCheck {
 export async function createAssessmentV2Session(options?: {
   max_questions?: number;
   student_label?: string;
+  assessment_scope?: "g6_algebra_pilot" | "grade8_exam_path" | string;
 }): Promise<AssessmentV2SessionResponse> {
   return apiFetch("/assessment-v2/grade8-sessions", {
     method: "POST",
     body: JSON.stringify({
       max_questions: options?.max_questions ?? 35,
       student_label: options?.student_label ?? null,
+      assessment_scope: options?.assessment_scope ?? "g6_algebra_pilot",
     }),
   });
 }
@@ -157,10 +207,12 @@ export async function createAssessmentV2Session(options?: {
 export async function listAssessmentV2Sessions(options?: {
   limit?: number;
   status?: "in_progress" | "completed";
+  assessment_scope?: string;
 }): Promise<{ sessions: AssessmentV2SessionMeta[]; limit: number; status?: string | null }> {
   const params = new URLSearchParams();
   params.set("limit", String(options?.limit ?? 50));
   if (options?.status) params.set("status", options.status);
+  if (options?.assessment_scope) params.set("assessment_scope", options.assessment_scope);
   return apiFetch(`/assessment-v2/sessions?${params.toString()}`);
 }
 

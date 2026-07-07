@@ -11,6 +11,7 @@ from app.engines.assessment_v2.diagnostic_engine import (
     DiagnosticResponse,
     DiagnosticRun,
     DiagnosticState,
+    KnowledgeStateParticleSelector,
     V2DiagnosticEngine,
 )
 from app.engines.assessment_v2.open_grading import OpenGradeResult, grade_open_response
@@ -27,6 +28,7 @@ __all__ = [
     "DiagnosticResponse",
     "DiagnosticRun",
     "DiagnosticState",
+    "KnowledgeStateParticleSelector",
     "OpenGradeResult",
     "STRAND_G6_ALGEBRA",
     "STRAND_G6_GEOMETRY_DEFERRED",
