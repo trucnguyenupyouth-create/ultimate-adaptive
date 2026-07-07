@@ -637,12 +637,12 @@ export default function Grade8PathAssessmentPage() {
                     }}>
                       {widget === "fraction" ? "PHÂN SỐ"
                         : widget === "decimal" ? "SỐ THẬP PHÂN"
-                        : widget === "coordinate" ? "TỊA ĐỘ  (x, y)"
-                        : widget === "power" ? "LŨY THỪ  a^n"
+                        : widget === "coordinate" ? "TOẠ ĐỘ  (x ; y)"
+                        : widget === "power" ? "LŨY THỪA  aⁿ"
                         : widget === "set_input" ? "TẬP HỢP  { ... }"
-                        : widget === "ordered_pair_list_input" ? "HAI ĐIỪu NÀY VÀO  (  ,  )"
-                        : expressionTemplate ? "BIỪu THỨC CÓ CẤU TRÚC"
-                        : "BIỪu THỨC ĐẠI SỐ"}
+                        : widget === "ordered_pair_list_input" ? "HAI ĐIỂM  (x₁;y₁) · (x₂;y₂)"
+                        : expressionTemplate ? "BIỂU THỨC CÓ CẤU TRÚC"
+                        : "BIỂU THỨC ĐẠI SỐ"}
                     </span>
                   </div>
                   {widget === "expression_raw" && expressionTemplate ? (
@@ -792,7 +792,7 @@ export default function Grade8PathAssessmentPage() {
           display: flex;
           flex-direction: column;
           gap: 10px;
-          margin-top: auto;
+          margin-top: 12px;
         }
         .guidance-card {
           border-radius: 14px;
