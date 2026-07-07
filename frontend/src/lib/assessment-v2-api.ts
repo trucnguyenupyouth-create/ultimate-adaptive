@@ -194,12 +194,14 @@ export async function createAssessmentV2Session(options?: {
   student_label?: string;
   assessment_scope?: "g6_algebra_pilot" | "grade8_exam_path" | string;
 }): Promise<AssessmentV2SessionResponse> {
-  return apiFetch("/assessment-v2/grade8-sessions", {
+  const scope = options?.assessment_scope ?? "g6_algebra_pilot";
+  const path = scope === "grade8_exam_path" ? "/assessment-v2/grade8-sessions" : "/assessment-v2/sessions";
+  return apiFetch(path, {
     method: "POST",
     body: JSON.stringify({
       max_questions: options?.max_questions ?? 35,
       student_label: options?.student_label ?? null,
-      assessment_scope: options?.assessment_scope ?? "g6_algebra_pilot",
+      assessment_scope: scope,
     }),
   });
 }

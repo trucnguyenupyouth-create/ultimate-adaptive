@@ -198,6 +198,111 @@ async def _load_grade8_context(
     return graph["nodes"], graph["edges"], diagnostic_items
 
 
+def _grade8_context_can_start(
+    nodes: list[dict[str, Any]],
+    edges: list[dict[str, Any]],
+    items: list[DiagnosticItem],
+) -> bool:
+    if not nodes or not items:
+        return False
+    try:
+        engine = V2DiagnosticEngine(nodes=nodes, edges=edges, items=items, mode="grade8_path")
+        return engine.select_next(engine.new_run()) is not None
+    except Exception:
+        return False
+
+
+async def _load_grade8_exam_path_context(
+    db: AsyncSession,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[DiagnosticItem]]:
+    """Load the Grade 8 diagnostic context with a production-safe fallback.
+
+    The academic pilot currently depends on the generated official-path JSON
+    item bank. The review DB may not yet have those items marked
+    ready_for_pilot, so relying only on DB-ready rows can leave the assessment
+    with zero selectable items and fail session creation.
+    """
+    nodes, edges, items = await _load_grade8_context(db)
+    if _grade8_context_can_start(nodes, edges, items):
+        return nodes, edges, items
+
+    if not GRADE8_DRAFT_ITEMS_PATH.exists():
+        raise ValueError("Grade 8 official-path draft item bank is not available on this deployment.")
+    if not GRADE8_SCOPE_PATH.exists():
+        raise ValueError("Grade 8 official-path scope is not available on this deployment.")
+
+    raw_items = json.loads(GRADE8_DRAFT_ITEMS_PATH.read_text(encoding="utf-8")).get("items", [])
+    scope_config = json.loads(GRADE8_SCOPE_PATH.read_text(encoding="utf-8"))
+    if not raw_items:
+        raise ValueError("Grade 8 official-path draft item bank is empty.")
+
+    scope_codes = set(scope_config.get("reportable_scope_codes") or [])
+    scope_codes.update(scope_config.get("support_scope_codes") or [])
+    if not scope_codes:
+        raise ValueError("Grade 8 official-path scope has no reportable/support nodes.")
+
+    node_result = await db.execute(select(KnowledgeComponent).where(KnowledgeComponent.code.in_(sorted(scope_codes))))
+    node_rows = list(node_result.scalars().all())
+    ids_by_code = {row.code: str(row.id) for row in node_rows}
+    missing_codes = sorted(scope_codes - set(ids_by_code))
+    if missing_codes:
+        raise ValueError(f"Grade 8 official-path scope references missing KCs: {missing_codes}")
+
+    nodes = [
+        {
+            "id": str(row.id),
+            "code": row.code,
+            "name": row.name,
+            "grade": row.grade,
+            "subject": row.subject,
+            "chapter_info": row.chapter_info,
+            "description": row.description,
+        }
+        for row in node_rows
+    ]
+    existing_ids = {node["id"] for node in nodes}
+
+    edge_result = await db.execute(select(KCPrerequisite).where(KCPrerequisite.edge_type == "prerequisite"))
+    edges = [
+        {
+            "source": str(row.prereq_id),
+            "target": str(row.kc_id),
+            "prereq_id": str(row.prereq_id),
+            "kc_id": str(row.kc_id),
+            "edge_type": row.edge_type,
+            "weight": row.weight,
+        }
+        for row in edge_result.scalars().all()
+        if str(row.prereq_id) in existing_ids and str(row.kc_id) in existing_ids
+    ]
+
+    diagnostic_items: list[DiagnosticItem] = []
+    for raw in raw_items:
+        if raw.get("official_assessment_scope") != GRADE8_EXAM_PATH_SCOPE:
+            continue
+        if raw.get("kc_code") not in scope_codes:
+            continue
+        kc_id = str(raw.get("kc_id") or ids_by_code.get(raw.get("kc_code")) or "")
+        if kc_id not in existing_ids:
+            continue
+        content = dict(raw)
+        content["kc_id"] = kc_id
+        widget = content.get("answer_widget") or content.get("answer_type") or "short_text"
+        format_type = "open_short" if widget == "expression" else "open"
+        diagnostic_items.append(DiagnosticItem(
+            id=content["review_id"],
+            kc_id=kc_id,
+            format_type=format_type,
+            difficulty_label=content.get("item_role") or content.get("difficulty_label") or "medium",
+            is_diagnostic_anchor=content.get("item_role") == "anchor",
+            content=content,
+        ))
+
+    if not diagnostic_items:
+        raise ValueError("Grade 8 official-path assessment has no usable local draft items.")
+    return nodes, edges, diagnostic_items
+
+
 async def _load_pilot_context(db: AsyncSession) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[DiagnosticItem]]:
     await _ensure_seeded(db)
     graph = await _load_g6_graph(db)
@@ -546,7 +651,7 @@ async def create_grade8_session(
     Uses a 37-node core graph spanning Grade 6/7/8 and all items in
     assessment_v2_item_reviews with official_assessment_scope='grade8_exam_path'.
     """
-    nodes, edges, items = await _load_grade8_context(db)
+    nodes, edges, items = await _load_grade8_exam_path_context(db)
     if not items:
         raise ValueError("No Grade 8 pilot-ready items are available.")
     engine = V2DiagnosticEngine(nodes=nodes, edges=edges, items=items, mode="grade8_path")
