@@ -373,10 +373,26 @@ function ExpressionTemplateInput({
   if (template === "percent_times_amount") {
     return (
       <div className="structured-answer">
-        <div className="template-expression">
-          <span>{amountFromQuestion(item)} ×</span>
-          {blank("first", "?", "number", "Tỷ lệ")}
-          <span>%</span>
+        <div className="percent-template" aria-label="Nhập biểu thức phần trăm">
+          <span className="percent-label">Tỷ lệ phần trăm</span>
+          <div className="percent-expression">
+            <span>{amountFromQuestion(item)} ×</span>
+            <span className="percent-blank">
+              <input
+                className="percent-input"
+                value={parts.first}
+                inputMode="decimal"
+                onChange={(event) => onChange({ ...parts, first: sanitizeNumber(event.target.value) })}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") onSubmit();
+                }}
+                placeholder="?"
+                autoFocus
+                aria-label="Nhập số phần trăm"
+              />
+            </span>
+            <span>%</span>
+          </div>
         </div>
         <p className="template-hint">Nhập số phần trăm, hệ thống sẽ tự đổi sang dạng thập phân khi chấm.</p>
       </div>
@@ -555,21 +571,6 @@ export default function Grade8PathAssessmentPage() {
                 <div className="answer-box">
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                     <p style={{ margin: 0 }}>Nhập đáp án của em</p>
-                    <span style={{
-                      fontSize: 11, fontWeight: 800, padding: "3px 10px",
-                      borderRadius: 999, border: "1px solid #bfdbfe",
-                      background: "#eff6ff", color: "#2563eb",
-                      fontFamily: "ui-monospace, monospace", letterSpacing: 0.3,
-                    }}>
-                      {widget === "fraction" ? "PHÂN SỐ"
-                        : widget === "decimal" ? "SỐ THẬP PHÂN"
-                        : widget === "coordinate" ? "TỌA ĐỘ  (x, y)"
-                        : widget === "power" ? "LŨY THỪA  a^n"
-                        : widget === "set_input" ? "TẬP HỢP  { ... }"
-                        : widget === "ordered_pair_list_input" ? "DANH SÁCH ĐIỂM"
-                        : expressionTemplate ? "BIỂU THỨC CÓ CẤU TRÚC"
-                        : "BIỂU THỨC ĐẠI SỐ"}
-                    </span>
                   </div>
                   {widget === "expression_raw" && expressionTemplate ? (
                     // Structured template (e.g. x + [?], [coeff]x + [const], etc.)
@@ -850,6 +851,63 @@ export default function Grade8PathAssessmentPage() {
         }
         .product-template {
           gap: 14px;
+        }
+        .percent-template {
+          display: grid;
+          justify-items: center;
+          gap: 8px;
+          padding: 4px 0;
+        }
+        .percent-label {
+          border-radius: 999px;
+          padding: 5px 10px;
+          background: #eef2ff;
+          color: #3d72f8;
+          font-size: 11px;
+          font-weight: 900;
+        }
+        .percent-expression {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          color: #111827;
+          font-size: clamp(26px, 3.4vw, 38px);
+          font-weight: 900;
+          line-height: 1.1;
+        }
+        .percent-blank {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 86px;
+          height: 58px;
+          border-radius: 16px;
+          background: #f8fbff;
+          box-shadow: inset 0 -4px 0 #3d72f8;
+          transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+        }
+        .percent-blank:focus-within {
+          background: #eef4ff;
+          box-shadow: inset 0 -4px 0 #2563eb, 0 0 0 5px rgba(61, 114, 248, 0.12);
+          transform: translateY(-1px);
+        }
+        .percent-input {
+          width: 62px;
+          border: none;
+          outline: none;
+          background: transparent;
+          color: #111827;
+          text-align: center;
+          font-size: clamp(28px, 3.6vw, 38px);
+          font-weight: 900;
+          line-height: 1;
+          padding: 0;
+          appearance: textfield;
+        }
+        .percent-input::placeholder {
+          color: #94a3b8;
+          opacity: 0.7;
         }
         .template-hint {
           margin: 0;
