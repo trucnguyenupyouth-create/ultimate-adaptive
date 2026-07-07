@@ -354,28 +354,51 @@ function ExpressionTemplateInput({
     mode: "number" | "math" = "number",
     label?: string,
   ) => (
-    <span className={`template-blank ${mode === "math" ? "wide" : ""}`}>
-      {label && <span className="blank-label">{label}</span>}
-      <input
-        className="template-input"
-        value={parts[key]}
-        inputMode={mode === "number" ? "decimal" : "text"}
-        onChange={(event) => onChange({ ...parts, [key]: mode === "number" ? sanitizeNumber(event.target.value) : sanitizeMath(event.target.value) })}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") onSubmit();
-        }}
-        placeholder={placeholder}
-        autoFocus={key === "first"}
-        aria-label={label ?? "Ô điền đáp án"}
-      />
-    </span>
+    // Bug 2 fix: label sits ABOVE the input box, not inside via position:absolute
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+      {label && (
+        <span style={{
+          fontSize: 10, fontWeight: 800, color: "#94a3b8",
+          textTransform: "uppercase", letterSpacing: 0.5,
+          fontFamily: "ui-monospace, monospace",
+        }}>{label}</span>
+      )}
+      <span className={`template-blank ${mode === "math" ? "wide" : ""}`}>
+        <input
+          className="template-input"
+          value={parts[key]}
+          inputMode={mode === "number" ? "decimal" : "text"}
+          onChange={(event) => onChange({ ...parts, [key]: mode === "number" ? sanitizeNumber(event.target.value) : sanitizeMath(event.target.value) })}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") onSubmit();
+          }}
+          placeholder={label ? "" : placeholder}
+          autoFocus={key === "first"}
+          aria-label={label ?? "Ô điền đáp án"}
+        />
+      </span>
+    </div>
   );
 
   if (template === "x_times_x_plus_number") {
-    return <div className="template-expression"><span>x(x +</span>{blank("first")}<span>)</span></div>;
+    // Bug 4 fix: white-space nowrap prevents ) from wrapping far away
+    return (
+      <div className="template-expression" style={{ flexWrap: "nowrap", whiteSpace: "nowrap" }}>
+        <span>x(x&nbsp;+</span>
+        {blank("first")}
+        <span>)</span>
+      </div>
+    );
   }
   if (template === "linear_expression") {
-    return <div className="template-expression">{blank("first")}<span>x +</span>{blank("second", "-?")}</div>;
+    // Bug 3 fix: remove hardcoded '+' — second blank holds the full signed constant (e.g. "-6")
+    return (
+      <div className="template-expression" style={{ flexWrap: "nowrap", alignItems: "center" }}>
+        {blank("first")}
+        <span style={{ fontSize: 15, fontWeight: 700, color: "#475569" }}>x</span>
+        {blank("second", "±?")}
+      </div>
+    );
   }
   if (template === "number_minus_x") {
     return <div className="template-expression">{blank("first")}<span>- x</span></div>;
@@ -432,7 +455,8 @@ function ExpressionTemplateInput({
       </div>
     );
   }
-  return <div className="template-expression"><span>x +</span>{blank("first")}</div>;
+  // Fallback: generic 1-blank expression
+  return <div className="template-expression">{blank("first")}</div>;
 }
 
 
