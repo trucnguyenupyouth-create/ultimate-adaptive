@@ -719,6 +719,361 @@ export default function Grade8PathAssessmentPage() {
           <StudentReport result={result} />
         )}
       </section>
+      <style jsx>{`
+        .grade8-shell {
+          min-height: 100vh;
+          display: grid;
+          grid-template-columns: 340px minmax(0, 1fr);
+          background:
+            radial-gradient(circle at 12% 14%, rgba(61,114,248,0.16), transparent 26%),
+            radial-gradient(circle at top right, rgba(16,185,129,0.12), transparent 30%),
+            linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
+          color: #111827;
+        }
+        .side {
+          min-height: 100vh;
+          padding: 28px 24px;
+          background: rgba(255, 255, 255, 0.72);
+          color: #111827;
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
+          border-right: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 18px 0 60px rgba(15, 23, 42, 0.05);
+          backdrop-filter: blur(18px);
+        }
+        .brand-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .brand-row span {
+          border-radius: 999px;
+          padding: 7px 10px;
+          background: #eef2ff;
+          color: #3d72f8;
+          font-size: 12px;
+          font-weight: 900;
+          white-space: nowrap;
+        }
+        .student-intro {
+          display: grid;
+          gap: 12px;
+        }
+        .eyebrow {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #3d72f8;
+          margin: 0;
+        }
+        .kc {
+          font-size: 11px;
+          color: #6b7280;
+          margin: 0 0 6px;
+          font-weight: 600;
+        }
+        h1 {
+          font-size: 22px;
+          font-weight: 900;
+          margin: 0;
+          line-height: 1.25;
+          color: #111827;
+        }
+        .side p {
+          font-size: 14px;
+          line-height: 1.55;
+          color: #4b5563;
+          margin: 0;
+        }
+        .guidance-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: auto;
+        }
+        .guidance-card {
+          border-radius: 14px;
+          padding: 14px 16px;
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          font-size: 13px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          color: #374151;
+        }
+        .guidance-card.primary {
+          background: #eff6ff;
+          border-color: #bfdbfe;
+        }
+        .guidance-card strong { font-size: 22px; font-weight: 900; color: #111827; }
+        .guidance-card.primary strong { color: #1d4ed8; }
+        .content {
+          padding: 40px 48px;
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 24px;
+          overflow-y: auto;
+        }
+        .card {
+          background: #ffffff;
+          border-radius: 24px;
+          padding: 32px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+        }
+        .card.center {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 14px;
+          text-align: center;
+          padding: 60px 32px;
+        }
+        .card h2 {
+          font-size: 20px;
+          font-weight: 800;
+          margin: 0;
+          color: #111827;
+        }
+        .card p {
+          font-size: 14px;
+          color: #6b7280;
+          margin: 0;
+          line-height: 1.55;
+        }
+        .spin {
+          animation: spin 1s linear infinite;
+          color: #3d72f8;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .top-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 12px;
+          color: #6b7280;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+        .progress {
+          height: 5px;
+          background: #e5e7eb;
+          border-radius: 999px;
+          overflow: hidden;
+          margin-bottom: 20px;
+        }
+        .progress div {
+          height: 100%;
+          background: linear-gradient(90deg, #3d72f8, #10b981);
+          border-radius: 999px;
+          transition: width 0.4s ease;
+        }
+        .meta {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 10px;
+        }
+        .meta span {
+          font-size: 11px;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 999px;
+          background: #f1f5f9;
+          color: #64748b;
+        }
+        h2 {
+          font-size: 18px;
+          font-weight: 700;
+          line-height: 1.5;
+          margin: 0 0 24px;
+          color: #111827;
+        }
+        .answer-box {
+          background: #f8fafc;
+          border-radius: 16px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+          align-items: center;
+          border: 1px solid #e5e7eb;
+        }
+        .answer-box p { font-size: 13px; font-weight: 600; color: #6b7280; }
+        .actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 24px;
+        }
+        button {
+          flex: 1;
+          padding: 14px 20px;
+          border-radius: 999px;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          border: none;
+          background: #3d72f8;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.18s;
+        }
+        button:hover { background: #2563eb; }
+        button:disabled { opacity: 0.35; cursor: not-allowed; }
+        button.secondary {
+          background: transparent;
+          color: #6b7280;
+          border: 2px solid #e5e7eb;
+          flex: 0 0 auto;
+          padding: 14px 20px;
+        }
+        button.secondary:hover { background: #f8fafc; border-color: #d1d5db; }
+        .error {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #dc2626;
+          border-radius: 10px;
+          padding: 10px 16px;
+          font-size: 13px;
+          margin-bottom: 12px;
+        }
+        .empty {
+          text-align: center;
+          color: #9ca3af;
+          font-size: 14px;
+          padding: 40px;
+        }
+        .complete-icon { color: #10b981; margin-bottom: 8px; }
+        .muted { color: #6b7280; font-size: 14px; line-height: 1.55; margin: 8px 0 24px; }
+        .metrics {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+        .metrics div { border-radius: 16px; background: #f8fafc; padding: 18px; }
+        .metrics strong { display: block; font-size: 32px; }
+        .metrics span { color: #64748b; font-weight: 800; }
+        .summary-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .summary-grid section { border-radius: 18px; border: 1px solid #e5e7eb; padding: 18px; }
+        .summary-grid p { line-height: 1.45; color: #334155; }
+        /* Template widgets */
+        .template-expression {
+          display: flex;
+          align-items: flex-end;
+          gap: 6px;
+          font-size: 20px;
+          font-weight: 700;
+          color: #111827;
+          flex-wrap: wrap;
+        }
+        .template-blank {
+          display: inline-flex;
+          align-items: center;
+          border-bottom: 2.5px solid #3d72f8;
+          padding: 2px 0;
+          min-width: 44px;
+        }
+        .template-blank.wide { min-width: 80px; }
+        .template-input {
+          border: none;
+          outline: none;
+          background: transparent;
+          font-size: 18px;
+          font-weight: 700;
+          color: #1d4ed8;
+          width: 100%;
+          min-width: 44px;
+          text-align: center;
+        }
+        .blank-label {
+          position: absolute;
+          top: 6px;
+          left: 10px;
+          font-size: 9px;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          pointer-events: none;
+          white-space: nowrap;
+        }
+        .template-hint {
+          font-size: 11px;
+          color: #94a3b8;
+          margin: 10px 0 0;
+          text-align: center;
+        }
+        .structured-answer {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+        .fraction-template {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+        .fraction-line {
+          width: 80px;
+          height: 2.5px;
+          background: #111827;
+          border-radius: 2px;
+        }
+        .product-template {
+          align-items: flex-end;
+          gap: 12px;
+        }
+        .percent-template {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+        .percent-label {
+          font-size: 10px;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+        }
+        .percent-expression {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 20px;
+          font-weight: 700;
+        }
+        .percent-blank {
+          border-bottom: 2.5px solid #3d72f8;
+          min-width: 60px;
+        }
+        .percent-input {
+          border: none;
+          outline: none;
+          background: transparent;
+          font-size: 18px;
+          font-weight: 700;
+          color: #1d4ed8;
+          width: 60px;
+          text-align: center;
+        }
+        @media (max-width: 900px) {
+          .grade8-shell { grid-template-columns: 1fr; }
+          .side { min-height: auto; }
+          .content { padding: 20px; }
+          .metrics, .summary-grid { grid-template-columns: 1fr; }
+          .actions { flex-direction: column; }
+        }
+      `}</style>
     </main>
   );
 }
