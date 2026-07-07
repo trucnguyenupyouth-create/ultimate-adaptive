@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, CheckCircle2, Loader2, Zap, Lock, TrendingUp, BookOpen, Star } from "lucide-react";
+import { motion } from "framer-motion";
+import { B, NUNITO, INTER, MONO } from "@/components/wizzdom/design-tokens";
 import {
   createAssessmentV2Session,
   submitAssessmentV2Response,
@@ -690,377 +692,256 @@ export default function Grade8PathAssessmentPage() {
         )}
 
         {phase === "completed" && result && (
-          <div className="card">
-            <div className="complete-icon"><CheckCircle2 size={28} /></div>
-            <h2>Đã hoàn thành bài kiểm tra</h2>
-            <p className="muted">
-              Đây là kết quả chẩn đoán, không phải điểm số. Các kiến thức suy luận được xem là vùng có thể bị ảnh hưởng bởi chuỗi kiến thức nền.
-            </p>
-            <div className="metrics">
-              <div><strong>{result.summary.value_metrics.questions_asked}</strong><span>câu đã hỏi</span></div>
-              <div><strong>{result.summary.value_metrics.skills_directly_tested}</strong><span>kỹ năng kiểm tra trực tiếp</span></div>
-              <div><strong>{result.summary.value_metrics.skills_inferred}</strong><span>kỹ năng suy luận</span></div>
-            </div>
-            <div className="summary-grid">
-              <section>
-                <h3>Kiến thức cần ôn</h3>
-                {(result.summary.skills_to_review.length ? result.summary.skills_to_review : result.summary.possibly_affected).slice(0, 8).map((row) => (
-                  <p key={row.kc_id}><strong>{row.code}</strong><br />{row.name} · {Math.round(row.p_mastery * 100)}%</p>
-                ))}
-              </section>
-            </div>
-          </div>
+          <StudentReport result={result} />
         )}
       </section>
-
-      <style jsx>{`
-        .grade8-shell {
-          min-height: 100vh;
-          display: grid;
-          grid-template-columns: 340px minmax(0, 1fr);
-          background:
-            radial-gradient(circle at 12% 14%, rgba(61,114,248,0.16), transparent 26%),
-            radial-gradient(circle at top right, rgba(16,185,129,0.12), transparent 30%),
-            linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
-          color: #111827;
-        }
-        .side {
-          min-height: 100vh;
-          padding: 28px 24px;
-          background: rgba(255, 255, 255, 0.72);
-          color: #111827;
-          display: flex;
-          flex-direction: column;
-          gap: 22px;
-          border-right: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 18px 0 60px rgba(15, 23, 42, 0.05);
-          backdrop-filter: blur(18px);
-        }
-        .brand-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-        }
-        .brand-row span {
-          border-radius: 999px;
-          padding: 7px 10px;
-          background: #eef2ff;
-          color: #3d72f8;
-          font-size: 12px;
-          font-weight: 900;
-          white-space: nowrap;
-        }
-        .student-intro {
-          display: grid;
-          gap: 12px;
-        }
-        .eyebrow, .kc {
-          margin: 0;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 12px;
-          font-weight: 900;
-          color: #3d72f8;
-          text-transform: uppercase;
-          letter-spacing: 0;
-        }
-        h1 { font-size: 40px; line-height: 1.04; margin: 0; letter-spacing: 0; }
-        h2 { font-size: 30px; line-height: 1.22; margin: 18px 0; }
-        h3 { margin: 0 0 14px; }
-        .side p { color: #475569; line-height: 1.55; font-size: 17px; margin: 0; }
-        .guidance-list {
-          display: grid;
-          gap: 12px;
-        }
-        .guidance-card {
-          border: 1px solid rgba(15,23,42,0.08);
-          border-radius: 16px;
-          background: rgba(255,255,255,0.86);
-          padding: 16px;
-          box-shadow: 0 12px 28px rgba(15,23,42,0.05);
-        }
-        .guidance-card.primary {
-          background: #eef2ff;
-          border-color: rgba(61,114,248,0.18);
-        }
-        .guidance-card strong { display: block; font-size: 18px; line-height: 1.25; }
-        .guidance-card.primary strong { font-size: 32px; color: #3d72f8; }
-        .guidance-card span { display: block; color: #64748b; margin-top: 6px; line-height: 1.45; font-weight: 750; }
-        .content { padding: 38px; display: flex; align-items: center; justify-content: center; }
-        .card {
-          width: min(1000px, 100%);
-          border-radius: 22px;
-          background: white;
-          border: 1px solid rgba(15,23,42,0.1);
-          box-shadow: 0 18px 55px rgba(15,23,42,0.08);
-          padding: 32px;
-        }
-        .center { text-align: center; display: grid; justify-items: center; }
-        .spin { animation: spin 1s linear infinite; color: #3d72f8; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .top-row { display: flex; justify-content: space-between; gap: 12px; font-weight: 850; color: #64748b; }
-        .top-row a { color: #3d72f8; text-decoration: none; }
-        .progress { height: 8px; border-radius: 999px; background: #e5e7eb; overflow: hidden; margin: 14px 0 24px; }
-        .progress div { height: 100%; background: #3d72f8; border-radius: 999px; transition: width 0.25s; }
-        .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .meta span {
-          border-radius: 999px;
-          padding: 6px 10px;
-          background: #eef2ff;
-          color: #3d72f8;
-          font-size: 11px;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-weight: 900;
-        }
-        .answer-box {
-          border: 2px solid #dbe3f0;
-          border-radius: 22px;
-          padding: 28px;
-          display: grid;
-          justify-items: center;
-          gap: 16px;
-          margin: 26px 0;
-        }
-        .answer-box p { margin: 0; color: #64748b; font-weight: 850; }
-        .raw-input {
-          width: min(620px, 100%);
-          border: none;
-          border-bottom: 3px solid #3d72f8;
-          outline: none;
-          text-align: center;
-          font-size: 28px;
-          font-weight: 850;
-          padding: 10px 8px;
-        }
-        .raw-expression {
-          width: min(680px, 100%);
-          display: grid;
-          justify-items: center;
-          gap: 14px;
-        }
-        .math-keypad {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 8px;
-        }
-        .math-keypad button {
-          min-width: 42px;
-          height: 38px;
-          border-radius: 12px;
-          padding: 0 12px;
-          background: #eef4ff;
-          color: #1d4ed8;
-          border: 1px solid #c7d7fe;
-          font-size: 16px;
-        }
-        .input-note {
-          max-width: 560px;
-          color: #64748b;
-          font-size: 13px;
-          line-height: 1.4;
-          text-align: center;
-        }
-        .template-expression {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-wrap: wrap;
-          gap: 8px;
-          color: #111827;
-          font-size: clamp(28px, 4vw, 42px);
-          font-weight: 900;
-          line-height: 1.15;
-          letter-spacing: 0;
-          padding: 4px 0 2px;
-        }
-        .template-expression span {
-          display: inline-flex;
-          align-items: center;
-        }
-        .structured-answer {
-          display: grid;
-          justify-items: center;
-          gap: 12px;
-          width: min(640px, 100%);
-        }
-        .fraction-template {
-          display: grid;
-          justify-items: center;
-          gap: 8px;
-          min-width: min(420px, 100%);
-        }
-        .fraction-line {
-          width: min(360px, 90%);
-          height: 4px;
-          border-radius: 999px;
-          background: #111827;
-        }
-        .product-template {
-          gap: 14px;
-        }
-        .percent-template {
-          display: grid;
-          justify-items: center;
-          gap: 8px;
-          padding: 4px 0;
-        }
-        .percent-label {
-          border-radius: 999px;
-          padding: 5px 10px;
-          background: #eef2ff;
-          color: #3d72f8;
-          font-size: 11px;
-          font-weight: 900;
-        }
-        .percent-expression {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          color: #111827;
-          font-size: clamp(26px, 3.4vw, 38px);
-          font-weight: 900;
-          line-height: 1.1;
-        }
-        .percent-blank {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 86px;
-          height: 58px;
-          border-radius: 16px;
-          background: #f8fbff;
-          box-shadow: inset 0 -4px 0 #3d72f8;
-          transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
-        }
-        .percent-blank:focus-within {
-          background: #eef4ff;
-          box-shadow: inset 0 -4px 0 #2563eb, 0 0 0 5px rgba(61, 114, 248, 0.12);
-          transform: translateY(-1px);
-        }
-        .percent-input {
-          width: 62px;
-          border: none;
-          outline: none;
-          background: transparent;
-          color: #111827;
-          text-align: center;
-          font-size: clamp(28px, 3.6vw, 38px);
-          font-weight: 900;
-          line-height: 1;
-          padding: 0;
-          appearance: textfield;
-        }
-        .percent-input::placeholder {
-          color: #94a3b8;
-          opacity: 0.7;
-        }
-        .template-hint {
-          margin: 0;
-          max-width: 520px;
-          color: #64748b;
-          font-size: 13px;
-          line-height: 1.45;
-          text-align: center;
-          font-weight: 750;
-        }
-        .template-blank {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 74px;
-          height: 58px;
-          padding: 0 8px;
-          border-radius: 14px;
-          background: #f8fbff;
-          box-shadow: inset 0 -4px 0 #3d72f8;
-          transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
-        }
-        .template-blank.wide {
-          min-width: min(320px, 82vw);
-          width: min(320px, 82vw);
-          height: 64px;
-          padding: 0 14px;
-        }
-        .template-blank:focus-within {
-          background: #eef4ff;
-          box-shadow: inset 0 -4px 0 #2563eb, 0 0 0 5px rgba(61, 114, 248, 0.12);
-          transform: translateY(-1px);
-        }
-        .blank-label {
-          position: absolute;
-          top: 6px;
-          left: 10px;
-          color: #64748b;
-          font-size: 10px;
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 0;
-        }
-        .template-input {
-          width: 58px;
-          max-width: 72px;
-          border: none;
-          outline: none;
-          text-align: center;
-          font-size: clamp(28px, 4vw, 40px);
-          line-height: 1;
-          font-weight: 900;
-          color: #111827;
-          background: transparent;
-          padding: 0;
-          appearance: textfield;
-        }
-        .template-blank.wide .template-input {
-          width: 100%;
-          max-width: none;
-          font-size: clamp(24px, 3vw, 34px);
-          padding-top: 12px;
-        }
-        .template-input::placeholder {
-          color: #94a3b8;
-          opacity: 0.75;
-        }
-        .actions { display: flex; gap: 12px; }
-        button {
-          border: none;
-          border-radius: 999px;
-          padding: 16px 24px;
-          background: #3d72f8;
-          color: white;
-          font-size: 16px;
-          font-weight: 900;
-          cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-        }
-        button:disabled { opacity: 0.35; cursor: not-allowed; }
-        .secondary { background: #e8edf6; color: #334155; }
-        .error { margin: 18px 0; border-radius: 14px; padding: 14px; background: #fef2f2; color: #dc2626; font-weight: 800; }
-        .empty, .muted { color: #64748b; line-height: 1.5; }
-        .complete-icon {
-          width: 58px; height: 58px; border-radius: 18px; background: #ecfdf5; color: #10b981;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 22px 0; }
-        .metrics div { border-radius: 16px; background: #f8fafc; padding: 18px; }
-        .metrics strong { display: block; font-size: 32px; }
-        .metrics span { color: #64748b; font-weight: 800; }
-        .summary-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        .summary-grid section { border-radius: 18px; border: 1px solid #e5e7eb; padding: 18px; }
-        .summary-grid p { line-height: 1.45; color: #334155; }
-        @media (max-width: 900px) {
-          .grade8-shell { grid-template-columns: 1fr; }
-          .side { min-height: auto; }
-          .content { padding: 20px; }
-          .metrics, .summary-grid { grid-template-columns: 1fr; }
-          .actions { flex-direction: column; }
-        }
-      `}</style>
     </main>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// StudentReport — Full student-facing result screen
+// Benchmark: assessment-v2/algebra MapStep + OutcomeStep design patterns
+// ─────────────────────────────────────────────────────────────────────────────
+function SkillBubble({ label, state, size = 52 }: { label: string; state: "strong" | "review" | "developing" | "inferred"; size?: number }) {
+  const colors: Record<string, { bg: string; border: string; text: string; glow?: string }> = {
+    strong:     { bg: B.greenLight,  border: "rgba(16,185,129,0.4)", text: B.green },
+    developing: { bg: B.blueLight,   border: "rgba(61,114,248,0.35)", text: B.blue },
+    review:     { bg: B.orangeLight, border: "rgba(245,158,11,0.4)",  text: B.orange },
+    inferred:   { bg: "#F8FAFC",     border: B.grayBorder,            text: B.textLight },
+  };
+  const c = colors[state];
+  return (
+    <div title={label} style={{
+      width: size, height: size, borderRadius: "50%",
+      background: c.bg,
+      border: `2px solid ${c.border}`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      boxShadow: state === "strong" ? `0 0 10px rgba(16,185,129,0.25)` : state === "developing" ? `0 0 10px rgba(61,114,248,0.2)` : undefined,
+      cursor: "default",
+    }}>
+      <span style={{ fontSize: Math.max(8, size * 0.15), fontWeight: 700, color: c.text, fontFamily: NUNITO, textAlign: "center", padding: "0 4px", lineHeight: 1.1, maxWidth: size - 8, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+        {label.split(" ").slice(0, 2).join(" ")}
+      </span>
+    </div>
+  );
+}
+
+function KnowledgeMapPanel({ result }: { result: AssessmentV2Result }) {
+  const vm = result.summary.value_metrics;
+  const strong = result.summary.strong_areas.slice(0, 4);
+  const review = result.summary.skills_to_review.slice(0, 3);
+  const affected = result.summary.possibly_affected.slice(0, 3);
+  const inferred = result.summary.not_enough_evidence?.slice(0, 4) ?? [];
+  const target = result.summary.ready_to_learn?.[0] ?? result.summary.skills_to_review?.[0];
+
+  const rows: Array<{ label: string; state: "strong" | "review" | "developing" | "inferred"; size?: number }> = [
+    // Top: target (larger, glowing blue)
+    ...(target ? [{ label: target.name ?? "", state: "developing" as const, size: 72 }] : []),
+    ...strong.map((r) => ({ label: r.name ?? "", state: "strong" as const, size: 52 })),
+    ...review.map((r) => ({ label: r.name ?? "", state: "review" as const, size: 52 })),
+    ...affected.map((r) => ({ label: r.name ?? "", state: "developing" as const, size: 46 })),
+    ...inferred.map((r) => ({ label: r.name ?? "", state: "inferred" as const, size: 40 })),
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "24px 16px", height: "100%" }}>
+      {/* Target badge */}
+      {target && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 9999, backgroundColor: B.blueLight, border: `1.5px solid rgba(61,114,248,0.3)`, boxShadow: "0 0 16px rgba(61,114,248,0.18)" }}>
+          <Zap size={12} style={{ color: B.blue }} />
+          <span style={{ fontSize: 11, fontWeight: 800, color: B.blue, fontFamily: NUNITO }}>Mục tiêu tiếp theo</span>
+        </div>
+      )}
+
+      {/* Bubble grid */}
+      <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: 10, alignContent: "center", justifyContent: "center", maxWidth: 340 }}>
+        {rows.map((r, i) => (
+          <motion.div key={i} initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04, duration: 0.35, ease: "backOut" }}>
+            <SkillBubble label={r.label} state={r.state} size={r.size} />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
+        {[
+          { color: B.green,     label: "Đã vững" },
+          { color: B.blue,      label: "Đang phát triển" },
+          { color: B.orange,    label: "Cần ôn" },
+          { color: B.textLight, label: "Suy luận" },
+        ].map(({ color, label }) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: color }} />
+            <span style={{ fontSize: 11, color: B.textMuted, fontFamily: INTER }}>{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StudentReport({ result }: { result: AssessmentV2Result }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setShow(true), 200); return () => clearTimeout(t); }, []);
+
+  const vm = result.summary.value_metrics;
+  const strongAreas  = result.summary.strong_areas.slice(0, 4);
+  const toReview     = (result.summary.skills_to_review.length ? result.summary.skills_to_review : result.summary.possibly_affected).slice(0, 4);
+  const target       = result.summary.ready_to_learn?.[0] ?? result.summary.skills_to_review?.[0];
+
+  const UNLOCK_REASONS: Record<string, string> = {
+    default: "Nền tảng để tiến lên các kỹ năng đại số nâng cao",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+      style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 3fr)", gap: 0, minHeight: "calc(100vh - 64px)" }}
+    >
+      {/* LEFT: Knowledge Map */}
+      <div style={{ background: "#F5F7FF", borderRight: `1px solid ${B.grayBorder}`, padding: 24 }}>
+        <KnowledgeMapPanel result={result} />
+      </div>
+
+      {/* RIGHT: Report Panel */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }} animate={show ? { opacity: 1, x: 0 } : {}}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        style={{ padding: "32px 36px", display: "flex", flexDirection: "column", gap: 24, overflowY: "auto", maxHeight: "calc(100vh - 64px)" }}
+      >
+        {/* Eyebrow */}
+        <p style={{ margin: 0, fontFamily: MONO, fontSize: 11, fontWeight: 700, color: B.blue, textTransform: "uppercase", letterSpacing: 1 }}>
+          Hệ thống đã phân tích xong
+        </p>
+
+        {/* Hero headline */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <h2 style={{ margin: 0, fontFamily: NUNITO, fontSize: 28, fontWeight: 900, color: B.text, lineHeight: 1.2 }}>
+            Em có nền tảng tốt hơn em nghĩ 💡
+          </h2>
+          <p style={{ margin: 0, fontFamily: INTER, fontSize: 15, color: B.textMid, lineHeight: 1.55 }}>
+            Dưới đây là bức tranh kiến thức của em sau {vm.questions_asked} câu hỏi. Hệ thống đã hiểu em — không chỉ những gì em biết, mà còn những gì em sắp biết được.
+          </p>
+        </div>
+
+        {/* AI Insight card (orange-tinted, like MapStep diagnosis card) */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }} animate={show ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2, duration: 0.4 }}
+          style={{ borderRadius: 16, padding: 18, border: "1px solid rgba(245,158,11,0.25)", backgroundColor: B.orangeLight }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <Zap size={13} style={{ color: B.orange }} />
+            <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 900, color: B.orange, textTransform: "uppercase" }}>Nhận xét của hệ thống</span>
+          </div>
+          <p style={{ margin: 0, fontFamily: INTER, fontSize: 14, lineHeight: 1.6, color: B.textMid }}>
+            {strongAreas.length > 0
+              ? `Em nắm vững ${strongAreas[0]?.name ?? "các kỹ năng cơ bản"} và nhiều kiến thức nền quan trọng.`
+              : "Em đang xây dựng nền tảng toán học tốt."}
+            {" "}{target
+              ? `Vùng cần mở khóa tiếp theo là "${target.name}" — đây chính là chìa khóa để em tiến xa hơn trong đại số lớp 8.`
+              : "Tiếp tục học đúng thứ sẽ unlock khả năng của em rất nhiều."}
+          </p>
+        </motion.div>
+
+        {/* Stats row */}
+        <motion.div
+          initial={{ opacity: 0 }} animate={show ? { opacity: 1 } : {}} transition={{ delay: 0.3, duration: 0.4 }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}
+        >
+          {[
+            { value: String(vm.questions_asked), label: "câu em đã làm" },
+            { value: String(vm.skills_directly_tested), label: "kỹ năng quan sát trực tiếp" },
+            { value: String(vm.skills_inferred), label: "kỹ năng hệ thống suy luận" },
+          ].map(({ value, label }) => (
+            <div key={label} style={{ borderRadius: 14, padding: "14px 16px", background: B.white, border: `1px solid ${B.grayBorder}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+              <span style={{ display: "block", fontFamily: NUNITO, fontSize: 30, fontWeight: 900, color: B.text, lineHeight: 1 }}>{value}</span>
+              <span style={{ display: "block", fontFamily: INTER, fontSize: 12, color: B.textMuted, marginTop: 4, lineHeight: 1.3 }}>{label}</span>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Skill groups — 2 columns */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }} animate={show ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.4, duration: 0.4 }}
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
+        >
+          {/* Strong skills */}
+          <div style={{ borderRadius: 16, padding: 18, background: B.white, border: `1px solid ${B.grayBorder}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 14 }}>
+              <TrendingUp size={14} style={{ color: B.green }} />
+              <span style={{ fontFamily: NUNITO, fontSize: 13, fontWeight: 800, color: B.green }}>Em đang vững 💪</span>
+            </div>
+            {strongAreas.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {strongAreas.map((row) => (
+                  <div key={row.kc_id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 10, backgroundColor: B.greenLight, border: "1px solid rgba(16,185,129,0.2)" }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: B.green, flexShrink: 0 }} />
+                    <span style={{ fontFamily: INTER, fontSize: 13, fontWeight: 600, color: B.textMid, lineHeight: 1.3 }}>{row.name}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontFamily: INTER, fontSize: 13, color: B.textMuted }}>Hệ thống chưa xác nhận được vùng vững — thử làm thêm câu hỏi để rõ hơn.</p>
+            )}
+          </div>
+
+          {/* Skills to unlock */}
+          <div style={{ borderRadius: 16, padding: 18, background: B.white, border: `1px solid ${B.grayBorder}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 14 }}>
+              <Lock size={13} style={{ color: B.blue }} />
+              <span style={{ fontFamily: NUNITO, fontSize: 13, fontWeight: 800, color: B.blue }}>Cần mở khóa 🔓</span>
+            </div>
+            {toReview.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {toReview.map((row, i) => (
+                  <div key={row.kc_id} style={{ padding: "10px 12px", borderRadius: 10, background: i === 0 ? B.blueLight : "#FAFBFF", border: `1px solid ${i === 0 ? "rgba(61,114,248,0.25)" : B.grayBorder}` }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <Lock size={10} style={{ color: i === 0 ? B.blue : B.textLight, flexShrink: 0 }} />
+                      <span style={{ fontFamily: NUNITO, fontSize: 13, fontWeight: 700, color: i === 0 ? B.blue : B.textMid }}>{row.name}</span>
+                    </div>
+                    <p style={{ margin: "4px 0 0 16px", fontFamily: INTER, fontSize: 11, color: B.textMuted, lineHeight: 1.4 }}>
+                      {UNLOCK_REASONS[row.code ?? ""] ?? UNLOCK_REASONS.default}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontFamily: INTER, fontSize: 13, color: B.textMuted }}>Em đã làm rất tốt! Tiếp tục học để đi sâu hơn.</p>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Encouragement strip */}
+        <motion.div
+          initial={{ opacity: 0 }} animate={show ? { opacity: 1 } : {}} transition={{ delay: 0.5, duration: 0.4 }}
+          style={{ borderRadius: 16, padding: 16, background: B.blueLight, border: `1px solid rgba(61,114,248,0.18)`, display: "flex", alignItems: "center", gap: 14 }}
+        >
+          <Star size={20} style={{ color: B.blue, flexShrink: 0 }} />
+          <p style={{ margin: 0, fontFamily: INTER, fontSize: 14, lineHeight: 1.55, color: B.textMid }}>
+            <strong style={{ color: B.blue, fontFamily: NUNITO }}>Học đúng thứ là điều quan trọng nhất.</strong>
+            {" "}Hệ thống đã xác định chính xác điểm em cần học tiếp — không lãng phí thời gian vào những thứ em đã biết.
+          </p>
+        </motion.div>
+
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }} animate={show ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.6, duration: 0.4 }}
+          style={{ display: "flex", gap: 12 }}
+        >
+          <button
+            style={{ flex: 1, borderRadius: 9999, padding: "14px 0", fontWeight: 700, fontSize: 14, backgroundColor: B.white, color: B.textMuted, border: `2px solid ${B.grayBorder}`, cursor: "pointer", fontFamily: NUNITO, transition: "all 0.2s" }}
+            onClick={() => window.location.reload()}
+          >
+            Làm lại bài kiểm tra
+          </button>
+          <button
+            style={{ flex: 2, borderRadius: 9999, padding: "14px 0", fontWeight: 700, fontSize: 15, backgroundColor: B.blue, color: B.white, border: "none", cursor: "pointer", fontFamily: NUNITO, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 14px rgba(61,114,248,0.28)", transition: "all 0.2s" }}
+          >
+            Xem lộ trình học của em <ArrowRight size={16} />
+          </button>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }
