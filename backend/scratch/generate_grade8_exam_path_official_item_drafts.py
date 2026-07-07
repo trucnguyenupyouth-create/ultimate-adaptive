@@ -686,11 +686,11 @@ def _items(nodes: dict[str, dict[str, str]]) -> list[dict[str, Any]]:
             diagnoses_codes=["G6-MAMATMATHMAT"],
         )
     for question, answer in [
-        # Removed: "tích chéo 2·6 = ?" — hands student the multiplication, tests nothing
-        # Replaced with: meaningful cross-multiply to find missing part
-        ("Điền tử số còn thiếu: ?/9 = 2/3.", "6"),
-        ("Điền tử số còn thiếu để k/12 = 1/3.", "4"),
-        ("Điền mẫu số còn thiếu để 6/k = 2/5.", "15"),
+        # All 3 require cross-multiplication: a×d = b×c to find missing part
+        # (not solvable by obvious scaling)
+        ("Tìm k biết: 5/k = 2/6.", "15"),        # 5×6 = 2×k → k=15
+        ("Điền tử số còn thiếu để k/12 = 1/3.", "4"),  # k×3 = 1×12 → k=4
+        ("Điền mẫu số còn thiếu để 6/k = 2/5.", "15"), # 6×5 = 2×k → k=15
     ]:
         add(
             path="rational_expression",
