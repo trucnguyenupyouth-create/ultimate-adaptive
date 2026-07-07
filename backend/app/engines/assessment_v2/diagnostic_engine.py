@@ -453,8 +453,10 @@ class V2DiagnosticEngine:
     def select_next(self, run: DiagnosticRun) -> DiagnosticItem | None:
         if self.mode == "grade8_path":
             return self._select_next_grade8_path(run)
-        candidates = self._frontier_candidates(run, allow_confirmation=False)
+        selector = KnowledgeStateParticleSelector.from_run(self.graph, run)
+        candidates = self._frontier_candidates(run, allow_confirmation=False, selector=selector)
         reason_suffix = ""
+        policy = "state_space_eig"
         if not candidates and self.mode == "assessment" and self.enable_confirmation_phase:
             candidates = self._frontier_candidates(run, allow_confirmation=True, selector=selector)
             reason_suffix = "_confirmation"
@@ -588,8 +590,14 @@ class V2DiagnosticEngine:
 
         return None  # All Grade 8 KCs tested and all drill-down chains exhausted
 
-    def _frontier_candidates(self, run: DiagnosticRun, allow_confirmation: bool) -> list[dict[str, Any]]:
-        candidates: list[dict[str, Any]] = []
+    def _frontier_candidates(
+        self,
+        run: DiagnosticRun,
+        allow_confirmation: bool,
+        selector: KnowledgeStateParticleSelector | None = None,
+    ) -> list[dict[str, Any]]:
+        selector = selector or KnowledgeStateParticleSelector.from_run(self.graph, run)
+        raw_candidates: list[tuple[float, str, DiagnosticItem]] = []
         for kc_id in self.graph.nodes:
             state = run.states[kc_id]
             if allow_confirmation and self._grade8_scope_has_items_for_kc(kc_id):

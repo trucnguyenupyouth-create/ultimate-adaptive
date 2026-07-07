@@ -423,6 +423,10 @@ def _normalize_student_answer(answer: Any) -> str:
     return "" if answer is None else str(answer)
 
 
+def _engine_mode_for_scope(assessment_scope: str | None) -> str:
+    return "grade8_path" if assessment_scope == GRADE8_EXAM_PATH_SCOPE else "assessment"
+
+
 def _student_summary(run: DiagnosticRun, nodes: list[dict[str, Any]]) -> dict[str, Any]:
     node_by_id = {node["id"]: node for node in nodes}
     states = {kc_id: state.to_dict() for kc_id, state in run.states.items()}
@@ -609,7 +613,7 @@ async def create_session(
     nodes, edges, items = await _load_context_for_scope(db, assessment_scope)
     if not items:
         raise ValueError("No Assessment V2 pilot-ready items are available.")
-    engine = V2DiagnosticEngine(nodes=nodes, edges=edges, items=items)
+    engine = V2DiagnosticEngine(nodes=nodes, edges=edges, items=items, mode=_engine_mode_for_scope(assessment_scope))
     run = engine.new_run()
     first = engine.select_next(run)
     if first is None:
@@ -791,7 +795,8 @@ async def submit_response(
         grading=grading.__dict__,
         response_type="unknown" if is_unknown else "answer",
     )
-    engine = V2DiagnosticEngine(nodes=nodes, edges=edges, items=items)
+    assessment_scope = payload.get("assessment_scope") or DEFAULT_ASSESSMENT_SCOPE
+    engine = V2DiagnosticEngine(nodes=nodes, edges=edges, items=items, mode=_engine_mode_for_scope(assessment_scope))
     engine.apply_response(run, item, diagnostic_response)
 
     responses = list(payload.get("responses", []))
