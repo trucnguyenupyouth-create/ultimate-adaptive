@@ -175,6 +175,8 @@ class V2DiagnosticEngine:
         return DiagnosticRun(states=states, tested_order=list(known_kcs))
 
     def select_next(self, run: DiagnosticRun) -> DiagnosticItem | None:
+        if self.mode == "grade8_path":
+            return self._select_next_grade8_path(run)
         candidates = self._frontier_candidates(run, allow_confirmation=False)
         reason_suffix = ""
         if not candidates and self.mode == "assessment" and self.enable_confirmation_phase:
@@ -193,6 +195,116 @@ class V2DiagnosticEngine:
             "top_candidates": sorted(candidates, key=lambda row: row["score"], reverse=True)[:5],
         })
         return selected["item"]
+
+    def _select_next_grade8_path(self, run: DiagnosticRun) -> DiagnosticItem | None:
+        """Grade 8 path-aware diagnostic selection — two phases only.
+
+        Phase 1 — Grade 8 EIG scan:
+            Ask Grade 8 anchor questions in order of expected information gain.
+            Goal: identify which Grade 8 KCs are gaps.
+
+        Phase 2 — Path drill-down:
+            When a Grade 8 gap is found, follow its prerequisite chain downward
+            one level at a time. Ask the direct prerequisite of the gap KC.
+            - If the prerequisite is CORRECT  → root gap is the Grade 8 KC itself
+              (prerequisite knowledge is fine). Stop drilling this chain.
+            - If the prerequisite is WRONG    → prerequisite is now the new gap.
+              Drill into ITS prerequisites next question.
+            - Continue until the deepest failed prerequisite is found (root cause).
+
+        Grade 6/7 questions are ONLY served if the drill-down path from a
+        Grade 8 gap leads there. There is NO global lower-grade sweep.
+        """
+        # ── Phase 2: Path drill-down ────────────────────────────────────────────
+        # Find the most recently tested KC that is still a gap (p_mastery low,
+        # has been directly tested). Walk tested_order in reverse so we always
+        # drill the most recent gap first (depth-first).
+        for kc_id in reversed(run.tested_order):
+            state = run.states.get(kc_id)
+            if state is None or state.direct_evidence_count == 0:
+                continue
+            if state.p_mastery >= MASTERED_THRESHOLD:
+                continue  # Mastered — not a gap, skip
+
+            # kc_id is a gap. Find untested direct prerequisites that have items.
+            direct_prereqs = list(self.graph.predecessors(kc_id))
+            drillable = [
+                p for p in direct_prereqs
+                if p in run.states
+                and run.states[p].direct_evidence_count == 0
+                and self.items_by_kc.get(p)
+            ]
+
+            if not drillable:
+                # No untested prerequisites with items for this gap.
+                # kc_id IS the root cause gap — nothing further to drill.
+                continue  # Try next gap in tested_order (if any)
+
+            # Pick the prerequisite whose p_mastery is most uncertain (closest to 0.5).
+            # This gives the highest diagnostic value.
+            best_prereq = min(drillable, key=lambda p: abs(run.states[p].p_mastery - 0.5))
+            usable = [
+                i for i in self.items_by_kc[best_prereq]
+                if i.id not in run.seen_items
+            ]
+            if not usable:
+                continue
+
+            item = sorted(usable, key=self._item_sort_key)[0]
+            gap_node = self.graph.nodes.get(kc_id, {})
+            drill_node = self.graph.nodes.get(best_prereq, {})
+            run.frontier_history.append({
+                "step": len(run.frontier_history) + 1,
+                "selected_kc": best_prereq,
+                "selected_item": item.id,
+                "selector_policy": "grade8_path_drill",
+                "reason": "drill_prerequisite_of_gap",
+                "source_gap_kc": kc_id,
+                "source_gap_code": gap_node.get("code", "?"),
+                "drill_target_code": drill_node.get("code", "?"),
+                "drill_target_grade": drill_node.get("grade"),
+                "drill_depth": len(run.tested_order),
+            })
+            return item
+
+        # ── Phase 1: Grade 8 EIG scan ───────────────────────────────────────────
+        # No active drill-down (no gaps yet, or all gaps exhausted their chains).
+        # Scan ONLY Grade 8 KCs using expected information gain.
+        g8_candidates: list[dict[str, Any]] = []
+        for kc_id in self.graph.nodes:
+            node_data = self.graph.nodes[kc_id]
+            if node_data.get("grade") != 8:
+                continue  # Phase 1 touches Grade 8 only
+            state = run.states.get(kc_id)
+            if state is None:
+                continue
+            if state.direct_evidence_count >= ASSESSMENT_MAX_TESTS_PER_KC:
+                continue
+            if state.label in {"tested_mastered", "tested_gap"}:
+                continue
+            usable = [
+                i for i in self.items_by_kc.get(kc_id, [])
+                if i.id not in run.seen_items
+            ]
+            if not usable:
+                continue
+            item = sorted(usable, key=self._item_sort_key)[0]
+            g8_candidates.append(self._candidate_score(run, kc_id, item))
+
+        if g8_candidates:
+            selected = max(g8_candidates, key=lambda c: c["score"])
+            run.frontier_history.append({
+                "step": len(run.frontier_history) + 1,
+                "selected_kc": selected["kc_id"],
+                "selected_item": selected["item_id"],
+                "selector_policy": "grade8_scan_eig",
+                "reason": "grade8_eig_scan",
+                "p_mastery": selected["p_mastery"],
+                "score": selected["score"],
+            })
+            return selected["item"]
+
+        return None  # All Grade 8 KCs tested and all drill-down chains exhausted
 
     def _frontier_candidates(self, run: DiagnosticRun, allow_confirmation: bool) -> list[dict[str, Any]]:
         candidates: list[dict[str, Any]] = []

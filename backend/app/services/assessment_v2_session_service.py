@@ -90,6 +90,107 @@ async def _load_g6_graph(db: AsyncSession) -> dict[str, list[dict[str, Any]]]:
     return {"nodes": nodes, "edges": edges}
 
 
+# Recommended core KC codes for the Grade 8 diagnostic path.
+# Covers the 37-node core from the node-mapping design doc:
+# rational expressions, linear equations, fraction foundation,
+# word-problem modeling, and linear function strands.
+_GRADE8_CORE_KC_CODES: frozenset[str] = frozenset({
+    # Grade 8 – Rational Expressions
+    "G8-MATH-NHAN-BIET-PHAN", "G8-MATH-XAC-DINH-DIEU", "G8-MATH-XAC-DINH-MAU",
+    "G8-MATH-QUY-DONG-MAU", "G8-MATH-RUT-GON-PHAN", "G8-MATH-NHAN-DANG-A",
+    "G8-MATH-PHAN-TICH-DA", "G8-MATH-NHAN-BIET-DA", "G8-MATH-THU-GON-DA",
+    # Grade 8 – Equations
+    "G8-MATH-NHAN-BIET-PHUONG", "G8-MATH-NHAN-BIET-PHUONG-1",
+    "G8-MATH-KIEM-TRA-GIA", "G8-MATH-GIAI-PHUONG-TRINH",
+    # Grade 8 – Linear Function
+    "G8-MATH-NHAN-BIET-HAM", "G8-MATH-TINH-HOAC-XAC",
+    "G8-MATH-BIEU-DIEN-DIEM", "G8-MATH-BIEU-DIEN-DO",
+    "G8-MATH-VE-DO-THI", "G8-MATH-XAC-DINH-QUAN", "G8-MATH-NHAN-BIET-HUONG",
+    # Grade 7 – Algebra prerequisites
+    "G7-MATH-KHAI-NIEM-DANG", "G7-MATH-QUY-TAC-CHUYEN",
+    "G7-MATH-TINH-GIA-TRI-1", "G7-MATH-NHAN-BIET-BIEU", "G7-MATH-VIET-BIEU-THUC",
+    # Grade 6 – Fraction & arithmetic foundation
+    "G6-MATH-NHAN-BIET-PHAN-1", "G6-MATH-TINH-CHAT-CO",
+    "G6-MATH-QUY-DONG-MAU", "G6-MATH-CONG-HAI-PHAN-1",
+    "G6-MATH-BO-DAU-NGOAC", "G6-MATH-BO-DAU-NGOAC-1",
+    # Grade 6 – Percent & word problem
+    "G6-MATH-B31K2", "G6-MATH-TIM-GIA-TRI-1", "G6-MATH-TIM-MOT-SO",
+})
+
+
+async def _load_grade8_graph(db: AsyncSession) -> dict[str, list[dict[str, Any]]]:
+    """Load the full grade 6-8 prerequisite graph for the grade8 diagnostic path.
+
+    Only nodes whose KC code appears in _GRADE8_CORE_KC_CODES are included.
+    All prerequisite edges between those nodes are included.
+    """
+    node_result = await db.execute(
+        select(KnowledgeComponent).where(KnowledgeComponent.grade.in_([6, 7, 8]))
+    )
+    nodes = [
+        {
+            "id": str(row.id),
+            "code": row.code,
+            "name": row.name,
+            "grade": row.grade,
+            "subject": row.subject,
+            "chapter_info": row.chapter_info,
+            "description": row.description,
+        }
+        for row in node_result.scalars().all()
+        if row.code in _GRADE8_CORE_KC_CODES
+    ]
+    node_ids = {node["id"] for node in nodes}
+    edge_result = await db.execute(select(KCPrerequisite).where(KCPrerequisite.edge_type == "prerequisite"))
+    edges = [
+        {
+            "source": str(row.prereq_id),
+            "target": str(row.kc_id),
+            "prereq_id": str(row.prereq_id),
+            "kc_id": str(row.kc_id),
+            "edge_type": row.edge_type,
+            "weight": row.weight,
+        }
+        for row in edge_result.scalars().all()
+        if str(row.prereq_id) in node_ids and str(row.kc_id) in node_ids
+    ]
+    return {"nodes": nodes, "edges": edges}
+
+
+async def _load_grade8_context(
+    db: AsyncSession,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[DiagnosticItem]]:
+    """Load nodes, edges, and pilot-ready items for the grade8_exam_path diagnostic."""
+    graph = await _load_grade8_graph(db)
+    scope_ids = {node["id"] for node in graph["nodes"]}
+
+    result = await db.execute(select(AssessmentV2ItemReview).order_by(AssessmentV2ItemReview.review_id))
+    diagnostic_items: list[DiagnosticItem] = []
+    for row in result.scalars().all():
+        item = dict(row.item_payload or {})
+        item["review_id"] = row.review_id
+        item["review_decision"] = row.review_decision
+        item["flagged_for_review"] = bool(row.flagged_for_review)
+        item["review_comment"] = row.review_comment or ""
+        # Only include items scoped to the grade8 exam path
+        if item.get("official_assessment_scope") != "grade8_exam_path":
+            continue
+        enriched = enrich_review_item(item)
+        if enriched.get("kc_id") not in scope_ids or not is_pilot_ready(enriched):
+            continue
+        content = dict(enriched)
+        format_type = "open_short" if enriched.get("answer_widget") == "expression" else "open"
+        diagnostic_items.append(DiagnosticItem(
+            id=enriched["review_id"],
+            kc_id=str(enriched["kc_id"]),
+            format_type=format_type,
+            difficulty_label=enriched.get("difficulty_label") or "medium",
+            is_diagnostic_anchor=bool(enriched.get("is_diagnostic_anchor")),
+            content=content,
+        ))
+    return graph["nodes"], graph["edges"], diagnostic_items
+
+
 async def _load_pilot_context(db: AsyncSession) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[DiagnosticItem]]:
     await _ensure_seeded(db)
     graph = await _load_g6_graph(db)
@@ -396,6 +497,51 @@ async def create_session(db: AsyncSession, max_questions: int = DEFAULT_MAX_QUES
         status="in_progress",
         max_questions=max_questions,
         student_label=student_label,
+        payload=payload,
+        updated_at=_now(),
+    )
+    db.add(row)
+    await db.commit()
+    await db.refresh(row)
+    return _session_response_from_row(row)
+
+
+async def create_grade8_session(
+    db: AsyncSession,
+    max_questions: int = DEFAULT_MAX_QUESTIONS,
+    student_label: str | None = None,
+) -> dict[str, Any]:
+    """Create a new Grade 8 diagnostic session using the full grade8_exam_path context.
+
+    Uses a 37-node core graph spanning Grade 6/7/8 and all items in
+    assessment_v2_item_reviews with official_assessment_scope='grade8_exam_path'.
+    """
+    nodes, edges, items = await _load_grade8_context(db)
+    if not items:
+        raise ValueError("No Grade 8 pilot-ready items are available.")
+    engine = V2DiagnosticEngine(nodes=nodes, edges=edges, items=items, mode="grade8_path")
+    run = engine.new_run()
+    first = engine.select_next(run)
+    if first is None:
+        raise ValueError("Grade 8 diagnostic could not select a first item.")
+
+    session_code = f"v2-{uuid.uuid4().hex[:12]}"
+    payload = {
+        "version": 1,
+        "created_at": _now_iso(),
+        "assessment_scope": "grade8_exam_path",
+        "nodes": nodes,
+        "edges": edges,
+        "items": [_serialize_diagnostic_item_for_payload(item) for item in items],
+        "run": run.to_dict(),
+        "current_item_id": first.id,
+        "responses": [],
+    }
+    row = AssessmentV2Session(
+        session_code=session_code,
+        status="in_progress",
+        max_questions=max_questions,
+        student_label=student_label or "Grade 8 official-path standalone test",
         payload=payload,
         updated_at=_now(),
     )

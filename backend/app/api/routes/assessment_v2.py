@@ -42,6 +42,23 @@ async def create_session(body: CreateSessionRequest, db: AsyncSession = Depends(
         raise HTTPException(status_code=422, detail=str(e))
 
 
+@router.post("/grade8-sessions")
+async def create_grade8_session(body: CreateSessionRequest, db: AsyncSession = Depends(get_db)):
+    """Create a Grade 8 diagnostic session using the full 37-node core graph.
+
+    Uses all items with official_assessment_scope='grade8_exam_path' from
+    assessment_v2_item_reviews, including Grade 6/7 prerequisite items.
+    """
+    try:
+        return await service.create_grade8_session(
+            db,
+            max_questions=body.max_questions,
+            student_label=body.student_label,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
 @router.get("/sessions")
 async def list_sessions(
     limit: int = 50,

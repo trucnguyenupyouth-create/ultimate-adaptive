@@ -145,7 +145,7 @@ export async function createAssessmentV2Session(options?: {
   max_questions?: number;
   student_label?: string;
 }): Promise<AssessmentV2SessionResponse> {
-  return apiFetch("/assessment-v2/sessions", {
+  return apiFetch("/assessment-v2/grade8-sessions", {
     method: "POST",
     body: JSON.stringify({
       max_questions: options?.max_questions ?? 35,
