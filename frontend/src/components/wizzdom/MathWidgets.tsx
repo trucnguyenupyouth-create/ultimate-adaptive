@@ -299,6 +299,118 @@ export function CoordinateWidget({
 }
 export function serializeCoordinate(s: CoordinateWidgetState) { return `(${s.x},${s.y})`; }
 
+// ─── W8: Two-Point Widget ─────────────────────────────────────────────────────
+// Structured input for ordered_pair_list when exactly 2 points are needed.
+// Shows: Điểm 1: ( x₁ , y₁ )   Điểm 2: ( x₂ , y₂ )
+export interface TwoPointWidgetState { x1: string; y1: string; x2: string; y2: string }
+
+const COORD_INPUT: React.CSSProperties = {
+  width: 52,
+  border: "none",
+  borderBottom: "2.5px solid #3d72f8",
+  outline: "none",
+  textAlign: "center",
+  fontSize: "1.3rem",
+  fontWeight: 700,
+  padding: "4px 2px",
+  background: "transparent",
+  fontFamily: "ui-monospace, monospace",
+};
+const COORD_PAREN: React.CSSProperties = {
+  fontSize: "1.9rem",
+  color: "#64748b",
+  fontWeight: 400,
+  lineHeight: 1,
+};
+const COORD_COMMA: React.CSSProperties = {
+  fontSize: "1.3rem",
+  color: "#334155",
+  fontWeight: 700,
+  padding: "0 2px",
+};
+
+export function TwoPointWidget({
+  state, onChange, onSubmit, disabled,
+}: {
+  state: TwoPointWidgetState;
+  onChange: (s: TwoPointWidgetState) => void;
+  onSubmit?: () => void;
+  disabled?: boolean;
+}) {
+  const refs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+  ];
+  const fields: Array<keyof TwoPointWidgetState> = ["x1", "y1", "x2", "y2"];
+
+  const handleKey = (idx: number) => (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") { onSubmit?.(); return; }
+    if (e.key === "Tab" || e.key === "ArrowRight") {
+      e.preventDefault();
+      refs[(idx + 1) % 4].current?.focus();
+    }
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      refs[(idx + 3) % 4].current?.focus();
+    }
+  };
+
+  const PointInput = (label: string, xKey: keyof TwoPointWidgetState, yKey: keyof TwoPointWidgetState, xIdx: number, yIdx: number) => (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+      <span style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", letterSpacing: 0.5, textTransform: "uppercase" }}>{label}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <span style={COORD_PAREN}>(</span>
+        <input
+          ref={refs[xIdx]}
+          type="text"
+          inputMode="numeric"
+          value={state[xKey]}
+          onChange={(e) => onChange({ ...state, [xKey]: e.target.value.replace(/[^0-9.\-]/g, "") })}
+          onKeyDown={handleKey(xIdx)}
+          disabled={disabled}
+          placeholder="x"
+          autoFocus={xIdx === 0}
+          style={{ ...COORD_INPUT, borderBottomColor: state[xKey] ? "#3d72f8" : "#cbd5e1" }}
+          aria-label={`${label} tọa độ x`}
+        />
+        <span style={COORD_COMMA}>,</span>
+        <input
+          ref={refs[yIdx]}
+          type="text"
+          inputMode="numeric"
+          value={state[yKey]}
+          onChange={(e) => onChange({ ...state, [yKey]: e.target.value.replace(/[^0-9.\-]/g, "") })}
+          onKeyDown={handleKey(yIdx)}
+          disabled={disabled}
+          placeholder="y"
+          style={{ ...COORD_INPUT, borderBottomColor: state[yKey] ? "#3d72f8" : "#cbd5e1" }}
+          aria-label={`${label} tọa độ y`}
+        />
+        <span style={COORD_PAREN}>)</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 24 }}>
+        {PointInput("Điểm 1", "x1", "y1", 0, 1)}
+        <span style={{ fontSize: "1.4rem", color: "#cbd5e1", paddingBottom: 4 }}>·</span>
+        {PointInput("Điểm 2", "x2", "y2", 2, 3)}
+      </div>
+      <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Tab hoặc → để chuyển ô · Enter để nộp</p>
+    </div>
+  );
+}
+export function serializeTwoPoint(s: TwoPointWidgetState) {
+  return `(${s.x1},${s.y1});(${s.x2},${s.y2})`;
+}
+export function isTwoPointReady(s: TwoPointWidgetState) {
+  return s.x1.trim() !== "" && s.y1.trim() !== "" && s.x2.trim() !== "" && s.y2.trim() !== "";
+}
+
 // ─── W9: Set Widget ───────────────────────────────────────────────────────────
 // For set_equal checker: { -2; 3 }
 export interface SetWidgetState { val: string }

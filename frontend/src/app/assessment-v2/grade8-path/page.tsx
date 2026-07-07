@@ -13,11 +13,15 @@ import {
   FractionWidget,
   MathAnswerWidget,
   SetWidget,
+  TwoPointWidget,
   OrderedPairListWidget,
   isFractionReady,
+  isTwoPointReady,
   serializeFraction,
+  serializeTwoPoint,
   type FractionWidgetState,
   type SetWidgetState,
+  type TwoPointWidgetState,
   type OrderedPairListWidgetState,
   type WidgetType,
 } from "@/components/wizzdom/MathWidgets";
@@ -25,7 +29,25 @@ import { WizzdomLogo } from "@/components/wizzdom/MathDisplay";
 
 const MAX_QUESTIONS = 35;
 
+// ─── Unicode math rendering ────────────────────────────────────────────────────
+// Converts raw notation (x^2, x^2y, xy) → readable Unicode for display in
+// question text. Does NOT affect the answer input or backend serialization.
+const SUPERSCRIPTS: Record<string, string> = {
+  "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
+  "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
+};
+function toSuperscript(exp: string): string {
+  return exp.split("").map((c) => SUPERSCRIPTS[c] ?? c).join("");
+}
+function renderMath(text: string): string {
+  // x^2y → x²y, x^2 → x², m^2 → m² etc.
+  return text
+    .replace(/\(([^)]+)\)\^(\d+)/g, "($1)$2".replace(/\d+/, (n) => toSuperscript(n)))
+    .replace(/([a-zA-Z])\^(\d+)/g, (_m, v, n) => `${v}${toSuperscript(n)}`);
+}
+
 type Phase = "loading" | "question" | "adapting" | "completed";
+
 type ExpressionTemplate =
   | "x_plus_number"
   | "x_times_x_plus_number"
@@ -37,24 +59,34 @@ type ExpressionTemplate =
   | null;
 
 // ─── Token sets per item_family for AlgebraExpressionWidget ──────────────────
-// Only show tokens relevant to the answer for that family.
-const FAMILY_TOKENS: Record<string, string[]> = {
-  // Bỏ ngoặc / đa thức
-  remove_parentheses_minus_before:            ["x", "y", "+", "-"],
-  remove_nested_parentheses_minus_inside:     ["x", "y", "+", "-"],
-  subtract_multivariable_polynomials:         ["x", "y", "+", "-"],
+// Each entry lists chips to show. Compound tokens like "x²" display nicely
+// but insert their ASCII equivalent (x^2) into the text field.
+const FAMILY_TOKENS: Record<string, Array<{ label: string; insert: string }>> = {
+  // Polynomial families — need x² and xy compound chips
+  subtract_multivariable_polynomials:         [{label:"x²",insert:"x^2"},{label:"xy",insert:"xy"},{label:"x",insert:"x"},{label:"y",insert:"y"},{label:"+",insert:"+"},{label:"-",insert:"-"}],
+  add_multivariable_polynomials:              [{label:"x²",insert:"x^2"},{label:"xy",insert:"xy"},{label:"x",insert:"x"},{label:"y",insert:"y"},{label:"+",insert:"+"},{label:"-",insert:"-"}],
+  combine_like_terms_polynomial:              [{label:"x²",insert:"x^2"},{label:"xy",insert:"xy"},{label:"x",insert:"x"},{label:"y",insert:"y"},{label:"+",insert:"+"},{label:"-",insert:"-"}],
+  sum_linear_multivariable_polynomials:       [{label:"a",insert:"a"},{label:"b",insert:"b"},{label:"c",insert:"c"},{label:"+",insert:"+"},{label:"-",insert:"-"}],
+  // Bỏ ngoặc — chỉ cần biến đơn và dấu
+  remove_parentheses_minus_before:            [{label:"x",insert:"x"},{label:"y",insert:"y"},{label:"a",insert:"a"},{label:"b",insert:"b"},{label:"+",insert:"+"},{label:"-",insert:"-"}],
+  remove_nested_parentheses_minus_inside:     [{label:"a",insert:"a"},{label:"b",insert:"b"},{label:"c",insert:"c"},{label:"+",insert:"+"},{label:"-",insert:"-"}],
   // Nhận biết
-  identify_polynomial_terms:                 ["x", "y", "^", "+", "-"],
-  identify_rational_expression_part:         ["x", "a", "b", "+", "-", "/"],
-  identify_variable_in_algebraic_expression: ["x", "a", "b", "+", "-"],
+  identify_polynomial_terms:                 [{label:"x²",insert:"x^2"},{label:"x",insert:"x"},{label:"y",insert:"y"},{label:"+",insert:"+"},{label:"-",insert:"-"}],
+  identify_rational_expression_part:         [{label:"x",insert:"x"},{label:"a",insert:"a"},{label:"b",insert:"b"},{label:"+",insert:"+"},{label:"-",insert:"-"},{label:"/",insert:"/"}],
+  identify_variable_in_algebraic_expression: [{label:"x",insert:"x"},{label:"a",insert:"a"},{label:"b",insert:"b"},{label:"+",insert:"+"},{label:"-",insert:"-"}],
   // Chia đơn thức
-  divide_two_monomials_g7:                   ["x", "y", "a", "b", "^", "/"],
+  divide_two_monomials_g7:                   [{label:"x",insert:"x"},{label:"y",insert:"y"},{label:"a",insert:"a"},{label:"b",insert:"b"},{label:"^",insert:"^"},{label:"/",insert:"/"}],
+  // Lãi suất — cần x, %, số thập phân
+  write_interest_expression:                 [{label:"x",insert:"x"},{label:"%",insert:"%"},{label:"×",insert:"*"},{label:"+",insert:"+"},{label:"-",insert:"-"}],
 };
 
-// Default tokens for unknown expression families
-const DEFAULT_EXPRESSION_TOKENS = ["x", "a", "b", "+", "-", "*", "/", "^", "(", ")"];
+const DEFAULT_EXPRESSION_TOKENS: Array<{ label: string; insert: string }> = [
+  {label:"x",insert:"x"},{label:"a",insert:"a"},{label:"b",insert:"b"},
+  {label:"+",insert:"+"},{label:"-",insert:"-"},{label:"×",insert:"*"},
+  {label:"/",insert:"/"},{label:"^",insert:"^"},{label:"(",insert:"("},{label:")",insert:")"},
+];
 
-function getTokensForFamily(family?: string | null): string[] {
+function getTokensForFamily(family?: string | null): Array<{ label: string; insert: string }> {
   if (!family) return DEFAULT_EXPRESSION_TOKENS;
   return FAMILY_TOKENS[family] ?? DEFAULT_EXPRESSION_TOKENS;
 }
@@ -77,16 +109,16 @@ function AlgebraExpressionWidget({
   const inputRef = useRef<HTMLInputElement>(null);
   const tokens = getTokensForFamily(item?.item_family);
 
-  const insert = (token: string) => {
+  const insert = (raw: string) => {
     const input = inputRef.current;
-    if (!input) { onChange(value + token); return; }
+    if (!input) { onChange(value + raw); return; }
     const start = input.selectionStart ?? value.length;
     const end = input.selectionEnd ?? value.length;
-    const next = `${value.slice(0, start)}${token}${value.slice(end)}`;
+    const next = `${value.slice(0, start)}${raw}${value.slice(end)}`;
     onChange(next);
     requestAnimationFrame(() => {
       input.focus();
-      input.setSelectionRange(start + token.length, start + token.length);
+      input.setSelectionRange(start + raw.length, start + raw.length);
     });
   };
 
@@ -119,11 +151,11 @@ function AlgebraExpressionWidget({
 
       {/* Contextual token chips */}
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
-        {tokens.map((token) => (
+        {tokens.map(({ label, insert: raw }) => (
           <button
-            key={token}
+            key={label}
             type="button"
-            onClick={() => insert(token)}
+            onClick={() => insert(raw)}
             disabled={disabled}
             style={{
               minWidth: 40,
@@ -143,7 +175,7 @@ function AlgebraExpressionWidget({
               transition: "background 0.12s",
             }}
           >
-            {token}
+            {label}
           </button>
         ))}
         {value && (
@@ -273,7 +305,7 @@ function expressionTemplateForItem(item?: AssessmentV2Item | null): ExpressionTe
   }
   if (family === "simplify_cancel_common_factor") return "rational_fraction";
   if (family === "rational_expression_cross_product_component") return "two_factor_product";
-  if (family === "write_interest_expression") return "percent_times_amount";
+  // write_interest_expression: removed from template — too scaffolded, use AlgebraExpressionWidget
   if (family === "common_denominator_x_and_x_plus_a") return "x_times_x_plus_number";
   if (family === "expand_coefficient_parentheses") return "linear_expression";
   if (family === "represent_remaining_amount_total_minus_x") return "number_minus_x";
@@ -418,7 +450,7 @@ export default function Grade8PathAssessmentPage() {
   const [power, setPower] = useState({ base: "", exp: "" });
   const [expressionParts, setExpressionParts] = useState({ first: "", second: "" });
   const [setInput, setSetInput] = useState<SetWidgetState>({ val: "" });
-  const [pairListInput, setPairListInput] = useState<OrderedPairListWidgetState>({ val: "" });
+  const [twoPoint, setTwoPoint] = useState<TwoPointWidgetState>({ x1: "", y1: "", x2: "", y2: "" });
 
   const widget = normalizeWidget(item?.answer_widget, item?.checker_type);
   const expressionTemplate = widget === "expression_raw" ? expressionTemplateForItem(item) : null;
@@ -428,12 +460,12 @@ export default function Grade8PathAssessmentPage() {
     if (widget === "coordinate") return coordinate.x.trim() !== "" && coordinate.y.trim() !== "";
     if (widget === "power") return power.base.trim() !== "" && power.exp.trim() !== "";
     if (widget === "set_input") return setInput.val.trim().length > 0;
-    if (widget === "ordered_pair_list_input") return pairListInput.val.trim().length > 0;
+    if (widget === "ordered_pair_list_input") return isTwoPointReady(twoPoint);
     if (expressionTemplate === "linear_expression") return expressionParts.first.trim() !== "" && expressionParts.second.trim() !== "";
     if (expressionTemplate === "rational_fraction" || expressionTemplate === "two_factor_product") return expressionParts.first.trim() !== "" && expressionParts.second.trim() !== "";
     if (expressionTemplate) return expressionParts.first.trim() !== "";
     return text.trim().length > 0;
-  }, [coordinate, expressionParts, expressionTemplate, fraction, pairListInput.val, power, setInput.val, text, widget]);
+  }, [coordinate, expressionParts, expressionTemplate, fraction, twoPoint, power, setInput.val, text, widget]);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -461,7 +493,7 @@ export default function Grade8PathAssessmentPage() {
     if (widget === "coordinate") return `(${coordinate.x},${coordinate.y})`;
     if (widget === "power") return `${power.base}^${power.exp}`;
     if (widget === "set_input") return `{${setInput.val}}`;
-    if (widget === "ordered_pair_list_input") return pairListInput.val;
+    if (widget === "ordered_pair_list_input") return serializeTwoPoint(twoPoint);
     if (expressionTemplate) return serializeExpressionTemplate(expressionTemplate, expressionParts, item);
     return text;
   };
@@ -488,7 +520,7 @@ export default function Grade8PathAssessmentPage() {
         setQuestionNumber(next.question_number ?? questionNumber + 1);
         resetAnswer({ setText, setFraction, setCoordinate, setPower, setExpressionParts });
         setSetInput({ val: "" });
-        setPairListInput({ val: "" });
+        setTwoPoint({ x1: "", y1: "", x2: "", y2: "" });
         setPhase("question");
       }, 500);
     } catch (err) {
@@ -566,11 +598,26 @@ export default function Grade8PathAssessmentPage() {
                   {item.item_role && <span>{labelFor(ROLE_LABELS, item.item_role)}</span>}
                   {item.item_family && <span>{familyLabel(item.item_family)}</span>}
                 </div>
-                <h2>{item.question}</h2>
+                <h2>{renderMath(item.question)}</h2>
 
                 <div className="answer-box">
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                     <p style={{ margin: 0 }}>Nhập đáp án của em</p>
+                    <span style={{
+                      fontSize: 11, fontWeight: 800, padding: "3px 10px",
+                      borderRadius: 999, border: "1px solid #bfdbfe",
+                      background: "#eff6ff", color: "#2563eb",
+                      fontFamily: "ui-monospace, monospace", letterSpacing: 0.3,
+                    }}>
+                      {widget === "fraction" ? "PHÂN SỐ"
+                        : widget === "decimal" ? "SỐ THẬP PHÂN"
+                        : widget === "coordinate" ? "TỊA ĐỘ  (x, y)"
+                        : widget === "power" ? "LŨY THỪ  a^n"
+                        : widget === "set_input" ? "TẬP HỢP  { ... }"
+                        : widget === "ordered_pair_list_input" ? "HAI ĐIỪu NÀY VÀO  (  ,  )"
+                        : expressionTemplate ? "BIỪu THỨC CÓ CẤU TRÚC"
+                        : "BIỪu THỨC ĐẠI SỐ"}
+                    </span>
                   </div>
                   {widget === "expression_raw" && expressionTemplate ? (
                     // Structured template (e.g. x + [?], [coeff]x + [const], etc.)
@@ -598,9 +645,9 @@ export default function Grade8PathAssessmentPage() {
                       disabled={submitting}
                     />
                   ) : widget === "ordered_pair_list_input" ? (
-                    <OrderedPairListWidget
-                      val={pairListInput.val}
-                      onChange={(v) => setPairListInput({ val: v })}
+                    <TwoPointWidget
+                      state={twoPoint}
+                      onChange={setTwoPoint}
                       onSubmit={() => isReady && handleResponse("answer")}
                       disabled={submitting}
                     />
