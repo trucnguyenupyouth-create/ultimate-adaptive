@@ -686,7 +686,9 @@ def _items(nodes: dict[str, dict[str, str]]) -> list[dict[str, Any]]:
             diagnoses_codes=["G6-MAMATMATHMAT"],
         )
     for question, answer in [
-        ("Với hai phân số 2/3 và 4/6, tích chéo 2·6 bằng bao nhiêu?", "12"),
+        # Removed: "tích chéo 2·6 = ?" — hands student the multiplication, tests nothing
+        # Replaced with: meaningful cross-multiply to find missing part
+        ("Điền tử số còn thiếu: ?/9 = 2/3.", "6"),
         ("Điền tử số còn thiếu để k/12 = 1/3.", "4"),
         ("Điền mẫu số còn thiếu để 6/k = 2/5.", "15"),
     ]:
